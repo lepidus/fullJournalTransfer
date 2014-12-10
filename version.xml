@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
+
+<!--
+ * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia
+ * Author: Giovani Pieri <giovani@lepidus.com.br>
+ *
+ * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ -->
+
+<version>
+	<application>fullJournalTransfer</application>
+	<type>plugins.importexport</type>
+	<release>1.0.0.0</release>
+	<date>2014-11-31</date>
+    <class>FullJournalImportExportPlugin</class>
+</version>

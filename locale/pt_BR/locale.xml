@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
+
+<!--
+ * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia 
+ * Author: Giovani Pieri <giovani@lepidus.com.br>
+ *
+ * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ -->
+ 
+<locale name="pt_BR" full_name="Português do Brasil">
+	<message key="plugins.importexport.fullJournal.displayName">Exportação de conteúdo revista</message>
+	<message key="plugins.importexport.fullJournal.description">Permite importar e exportar revistas.</message>
+
+	<message key="plugins.importexport.fullJournal.cliUsage"><![CDATA[Uso: {$scriptName} {$pluginName} [comando]
+
+Comandos:
+	import [tarFileName]
+	export [tarFileName] [journal_path]
+
+]]></message>
+	<message key="plugins.importexport.fullJournal.import.success">Importação bem sucedida</message>
+	<message key="plugins.importexport.fullJournal.import.success.description">Revista foi importada com sucesso.</message>
+
+	<message key="plugins.importexport.fullJournal.export">Exportar Revista</message>
+	<message key="plugins.importexport.fullJournal.exportJournal">Exportar</message>
+	<message key="plugins.importexport.fullJournal.import">Importar Revista</message>
+	<message key="plugins.importexport.fullJournal.import.description"><![CDATA[Este plugin suporta a importação de dados de revista para transferência de periódicos entre portais.]]></message>
+	<message key="plugins.importexport.fullJournal.import.error">Erro na importação</message>
+	<message key="plugins.importexport.fullJournal.import.error.description">Um ou mais erros ocorreram durante o processo de importação da revista. Certifique-se que o arquivo esteja no formato correto. O detalhamento dos erros está listado a seguir.</message>
+	<message key="plugins.importexport.fullJournal.import.error.invalidPackage">Arquivo inválido</message>
+
+	<message key="plugins.importexport.fullJournal.cliError">ERRO:</message>
+	<message key="plugins.importexport.fullJournal.cliError.fileNotFound">Arquivo "{$tarFile}" não foi encontrado</message>
+
+	<message key="plugins.importexport.fullJournal.error.unkownObject">Revista sendo importada faz referência a {$objectName} com código desconhecido (código {$id}).</message>
+
+	<message key="plugins.importexport.fullJournal.error.unknownJournal">Caminho da revista, "{$journalPath}", não existe.</message>
+	<message key="plugins.importexport.fullJournal.export.error.couldNotWrite">Não foi possível escrever no arquivo "{$fileName}".</message>
+	<message key="plugins.importexport.fullJournal.import.error.couldNotWriteFile">Não foi possivel salvar cópia de "{$originalName}".</message>
+
+	<message key="plugins.importexport.fullJournal.terms.article_file">Arquivo de um artigo</message>
+	<message key="plugins.importexport.fullJournal.terms.email_log">Log de mensagem de email</message>
+	<message key="plugins.importexport.fullJournal.terms.issue_file">Arquivo de uma edição</message>
+	<message key="plugins.importexport.fullJournal.terms.issue_galley">Documento publicado de uma edição</message>
+
+</locale>
