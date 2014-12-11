@@ -7,9 +7,9 @@ DEFINE("INTERNAL_TRANSFER_OBJECT_SECTION", 4);
 DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE", 5);
 DEFINE("INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE", 6);
 DEFINE("INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG", 7);
-DEFINE("INTERNAL_TRANSFER_OBJECT_GROUP", 7);
-DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE_FILE", 8);
-DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY", 9);
+DEFINE("INTERNAL_TRANSFER_OBJECT_GROUP", 8);
+DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE_FILE", 9);
+DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY", 10);
 
 class XMLDisassembler {
 	var $logger;
@@ -91,6 +91,7 @@ class XMLDisassembler {
 		$this->importIssues();
 
 		assert($xml->name == 'articles');
+		$logger->log("Importing articles\n");
 		$this->importArticles();
 
 		$this->restorePublicFolder();
@@ -384,7 +385,7 @@ class XMLDisassembler {
 			$oldIssueId = (int)$issueXML->oldId;
 
 			$issueDAO->insertIssue($issue);
-			$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), $issueXML->customOrder);
+			$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), (int)$issueXML->customOrder);
 			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE, $oldIssueId, $issue->getId());
 			$this->restoreDataObjectSettings($issueDAO, $issueXML->settings, 'issue_settings', 'issue_id', $issue->getId());
 
@@ -462,9 +463,12 @@ class XMLDisassembler {
 
 			if (isset($issueXML->customSectionOrder)) {
 				foreach ($issueXML->customSectionOrder->sectionOrder as $sectionOrderXML) {
-					$sectionId = $this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_SECTION, (int)$sectionOrderXML['sectionId']);
-					$seq = (int) $sectionOrderXML['seq'];
-					$sectionDAO->insertCustomSectionOrder($issue->getId(), $sectionId, $seq);
+					try {
+						$sectionId = $this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_SECTION, (int)$sectionOrderXML['sectionId']);
+						$seq = (int) $sectionOrderXML['seq'];
+						$sectionDAO->insertCustomSectionOrder($issue->getId(), $sectionId, $seq);
+					} catch (Exception $e) {
+					}
 				}
 			}
 			$this->nextElement();
@@ -571,42 +575,48 @@ class XMLDisassembler {
 
 			$articleFileDAO =& DAORegistry::getDAO('ArticleFileDAO');
 			foreach ($articleXML->articleFile as $articleFileXML) {
-				$articleFile = new ArticleFile();
-				$articleFile->setArticleId($article->getId());
-				$articleFile->setSourceFileId((int) $articleFileXML->sourceFileId);
-				$articleFile->setSourceRevision((int) $articleFileXML->sourceRevision);
-				$articleFile->setRevision((int) $articleFileXML->revision);
-				$articleFile->setFileName((string) $articleFileXML->fileName);
-				$articleFile->setFileType((string) $articleFileXML->fileType);
-				$articleFile->setFileSize((string) $articleFileXML->fileSize);
-				$articleFile->setOriginalFileName((string) $articleFileXML->originalFileName);
-				$articleFile->setFileStage((int) $articleFileXML->fileStage);
-				$articleFile->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG, (int) $articleFileXML->assocId));
-				$articleFile->setDateUploaded((string) $articleFileXML->dateUploaded);
-				$articleFile->setDateModified((string) $articleFileXML->dateModified);
-				$articleFile->setRound((int) $articleFileXML->round);
-				$articleFile->setViewable((int) $articleFileXML->viewable);
-				$articleFileDAO->insertArticleFile($articleFile);
+				try {
+					$articleFile = new ArticleFile();
+					$articleFile->setArticleId($article->getId());
+					$articleFile->setSourceFileId((int) $articleFileXML->sourceFileId);
+					$articleFile->setSourceRevision((int) $articleFileXML->sourceRevision);
+					$articleFile->setRevision((int) $articleFileXML->revision);
+					$articleFile->setFileName((string) $articleFileXML->fileName);
+					$articleFile->setFileType((string) $articleFileXML->fileType);
+					$articleFile->setFileSize((string) $articleFileXML->fileSize);
+					$articleFile->setOriginalFileName((string) $articleFileXML->originalFileName);
+					$articleFile->setFileStage((int) $articleFileXML->fileStage);
+					$articleFile->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG, (int) $articleFileXML->assocId));
+					$articleFile->setDateUploaded((string) $articleFileXML->dateUploaded);
+					$articleFile->setDateModified((string) $articleFileXML->dateModified);
+					$articleFile->setRound((int) $articleFileXML->round);
+					$articleFile->setViewable((int) $articleFileXML->viewable);
+					$articleFileDAO->insertArticleFile($articleFile);
 
-				$oldArticleFileId = (int)$articleFileXML->oldId;
+					$oldArticleFileId = (int)$articleFileXML->oldId;
 
-				$oldFileName = $articleFile->getFileName();
-				$stagePath = $articleFileManager->fileStageToPath($articleFile->getFileStage());
-				$fileInTransferPackage = $this->journalFolderPath."/articles/$oldArticleId/$stagePath/$oldFileName";
-				$newFileName = $articleFileManager->generateFilename($articleFile, $articleFile->getFileStage(), $articleFile->getOriginalFileName());
-				$newFilePath = "/articles/".$article->getId()."/$stagePath/$newFileName";
+					$oldFileName = $articleFile->getFileName();
+					$stagePath = $articleFileManager->fileStageToPath($articleFile->getFileStage());
+					$fileInTransferPackage = $this->journalFolderPath."/articles/$oldArticleId/$stagePath/$oldFileName";
+					$newFileName = $articleFileManager->generateFilename($articleFile, $articleFile->getFileStage(), $articleFile->getOriginalFileName());
+					$newFilePath = "/articles/".$article->getId()."/$stagePath/$newFileName";
 
-				$journalFileManager->copyFile($fileInTransferPackage, $journalFileManager->filesDir . $newFilePath);
-				unlink($fileInTransferPackage);
+					$journalFileManager->copyFile($fileInTransferPackage, $journalFileManager->filesDir . $newFilePath);
+					unlink($fileInTransferPackage);
 
-				$articleFileDAO->updateArticleFile($articleFile);
-				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $oldArticleFileId, $articleFile->getFileId());
+					$articleFileDAO->updateArticleFile($articleFile);
+					$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $oldArticleFileId, $articleFile->getFileId());
+				} catch (Exception $e) {
+				}
 			}
 
 			$articleFiles = $articleFileDAO->getArticleFilesByArticle($article->getId());
 			foreach ($articleFiles as $articleFile) {
-				$articleFile->setSourceFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $articleFile->getSourceFileId()));
-				$articleFileDAO->updateArticleFile($articleFile);
+				try {
+					$articleFile->setSourceFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $articleFile->getSourceFileId()));
+					$articleFileDAO->updateArticleFile($articleFile);
+				} catch (Exception $e) {
+				}
 			}
 
 			$suppFileDAO =& DAORegistry::getDAO('SuppFileDAO');

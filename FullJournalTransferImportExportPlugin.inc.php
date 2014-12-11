@@ -251,12 +251,13 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 		try {
 			$disassembler = new XMLDisassembler($xmlFileName, $publicFolderPath, $siteFolderPath, $journalFolderPath);
 			$disassembler->startImporting();
-		} catch (Exception $e) {
-			$errors[] = array($e->getMessage());
-			return false;
-		} finally {
 			$this->_removeTemporaryFiles(array($xmlFileName, $journalFolderPath,
 											$publicFolderPath, $siteFolderPath));
+		} catch (Exception $e) {
+			$this->_removeTemporaryFiles(array($xmlFileName, $journalFolderPath,
+											$publicFolderPath, $siteFolderPath));
+			$errors[] = array($e->getMessage());
+			return false;
 		}
 
 		return true;

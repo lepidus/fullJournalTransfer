@@ -91,9 +91,25 @@ class XMLAssembler {
 		$interestManager = new InterestManager();
 
 		$roleDao =& DAORegistry::getDAO('RoleDAO');
-		$userDAO =& DAORegistry::getDAO('IssueDAO');
+		$userDAO =& DAORegistry::getDAO('UserDAO');
 
-		$users =& $roleDao->getUsersByJournalId($this->journal->getId());
+		$result =& $userDAO->retrieveRange(
+			'SELECT DISTINCT u.*
+			FROM	users u
+				LEFT JOIN controlled_vocabs cv ON (cv.symbolic = "interest")
+				LEFT JOIN user_interests ui ON (ui.user_id = u.user_id)
+				LEFT JOIN controlled_vocab_entries cve ON (cve.controlled_vocab_id = cv.controlled_vocab_id AND ui.controlled_vocab_entry_id = cve.controlled_vocab_entry_id)
+				LEFT JOIN controlled_vocab_entry_settings cves ON (cves.controlled_vocab_entry_id = cve.controlled_vocab_entry_id)
+			WHERE u.user_id IN (
+				SELECT r.user_id FROM roles AS r WHERE r.journal_id = ?
+				UNION
+				SELECT gm.user_id FROM group_memberships AS gm INNER JOIN groups AS g ON gm.group_id=g.group_id WHERE g.assoc_id = ?
+			)',
+			array($this->journal->getId(), $this->journal->getId()),
+			null
+		);
+
+		$users =& new DAOResultFactory($result, $userDAO, '_returnUserFromRowWithData');
 
 		$writer->startElement('users');
 		while (!$users->eof()) {
@@ -662,7 +678,7 @@ class XMLAssembler {
 						$writer->startElement('setting');
 						$this->writeAttribute($writer, 'name', $row['setting_name']);
 						$this->writeAttribute($writer, 'type', $row['setting_type']);
-						$writer->writeCData($row['setting_value']);
+						$writer->text($row['setting_value']);
 						$writer->endElement();
 						unset($row);
 						$events->MoveNext();
@@ -727,7 +743,7 @@ class XMLAssembler {
 			$this->writeAttribute($writer, 'name', $row['setting_name']);
 			$this->writeAttribute($writer, 'type', $row['setting_type']);
 			$this->writeAttribute($writer, 'locale', $row['locale']);
-			$writer->writeCData($row['setting_value']);
+			$writer->text($row['setting_value']);
 			$writer->endElement();
 			unset($row);
 			$writer->flush();
@@ -755,7 +771,7 @@ class XMLAssembler {
 			$this->writeAttribute($writer, 'locale', $row['locale']);
 			$this->writeAttribute($writer, 'assocType', $row['assoc_type']);
 			$this->writeAttribute($writer, 'assocId', $row['assoc_id']);
-			$writer->writeCData($row['setting_value']);
+			$writer->text($row['setting_value']);
 			$writer->endElement();
 			unset($row);
 			$writer->flush();
