@@ -134,7 +134,7 @@ class XMLDisassembler {
 		HookRegistry::call('JournalSiteSettingsForm::execute', array(&$this, &$journal, &$section, &$isNewJournal));
 
 		$journalSettingsDao =& DAORegistry::getDAO('JournalSettingsDAO');
-		$this->restoreDataOjectSettings($journalSettingsDao, $journalConfigXML->settings, "journal_settings", "journal_id", $journal->getId());
+		$this->restoreDataObjectSettings($journalSettingsDao, $journalConfigXML->settings, "journal_settings", "journal_id", $journal->getId());
 
 		$this->journal = $journal;
 	}
@@ -168,9 +168,9 @@ class XMLDisassembler {
 				$reviewFormElementDao->insertObject($reviewFormElement);
 				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT, (int)$reviewElementXML->oldId, $reviewFormElement->getId());
 
-				$this->restoreDataOjectSettings($reviewFormElementDao, $reviewElementXML->settings, 'review_form_element_settings', 'review_form_element_id', $reviewFormElement->getId());
+				$this->restoreDataObjectSettings($reviewFormElementDao, $reviewElementXML->settings, 'review_form_element_settings', 'review_form_element_id', $reviewFormElement->getId());
 			}
-			$this->restoreDataOjectSettings($reviewFormDao, $reviewFormXML->settings, 'review_form_settings', 'review_form_id', $reviewForm->getId());
+			$this->restoreDataObjectSettings($reviewFormDao, $reviewFormXML->settings, 'review_form_settings', 'review_form_id', $reviewForm->getId());
 			$this->nextElement();
 		}
 	}
@@ -240,17 +240,20 @@ class XMLDisassembler {
 				$this->generateUsername($user);
 
 				$userDAO->insertUser($user);
-				$this->restoreDataOjectSettings($userDAO, $userXML->settings, 'user_settings', 'user_id', $user->getId());
+				$this->restoreDataObjectSettings($userDAO, $userXML->settings, 'user_settings', 'user_id', $user->getId());
 
+				$user = $userDAO->getById($user->getId());
 				$profileImage =& $user->getSetting('profileImage');
 				if ($profileImage) {
-					$extension = $publicFileManager->getExtension($profileImage);
+					$oldProfileImage = $profileImage['uploadName'];
+					$extension = $publicFileManager->getExtension($oldProfileImage);
 					$newProfileImage = 'profileImage-' . $user->getId() . "." . $extension;
-					$sourceFile = $this->siteFolderPath . '/' . $profileImage;
+					$sourceFile = $this->siteFolderPath . '/' . $oldProfileImage;
 					$publicFileManager->copyFile($sourceFile, $publicFileManager->getSiteFilesPath() . "/" .  $newProfileImage);
 					unlink($sourceFile);
 
-					$user->updateSetting('profileImage', $newProfileImage);
+					$profileImage['uploadName'] = $newProfileImage;
+					$user->updateSetting('profileImage', $profileImage);
 				}
 
 				$interests = array();
@@ -300,7 +303,7 @@ class XMLDisassembler {
 				$groupMembership->setAboutDisplayed((int)$groupMembershipXML->aboutDisplayed);
 				$groupMembershipDao->insertMembership($groupMembership);
 			}
-			$this->restoreDataOjectSettings($groupDao, $groupXML->settings, 'group_settings', 'group_id', $group->getId());
+			$this->restoreDataObjectSettings($groupDao, $groupXML->settings, 'group_settings', 'group_id', $group->getId());
 			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_GROUP, (int) $groupXML->oldId, $group->getId());
 			$this->nextElement();
 		}
@@ -332,7 +335,7 @@ class XMLDisassembler {
 			$sectionDAO->insertSection($section);
 
 			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_SECTION, (int)$sectionXML->oldId, $section->getId());
-			$this->restoreDataOjectSettings($sectionDAO, $sectionXML->settings, 'section_settings', 'section_id', $section->getId());
+			$this->restoreDataObjectSettings($sectionDAO, $sectionXML->settings, 'section_settings', 'section_id', $section->getId());
 
 			foreach ($sectionXML->sectionEditor as $sectionEditorXML) {
 				$userId = $this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$sectionEditorXML->userId);
@@ -383,7 +386,7 @@ class XMLDisassembler {
 			$issueDAO->insertIssue($issue);
 			$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), $issueXML->customOrder);
 			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE, $oldIssueId, $issue->getId());
-			$this->restoreDataOjectSettings($issueDAO, $issueXML->settings, 'issue_settings', 'issue_id', $issue->getId());
+			$this->restoreDataObjectSettings($issueDAO, $issueXML->settings, 'issue_settings', 'issue_id', $issue->getId());
 
 			$issue =& $issueDAO->getIssueById($issue->getId()); // Reload issue to get restored settings
 			$covers = $issue->getFileName(null);
@@ -454,7 +457,7 @@ class XMLDisassembler {
 
 				$issueGalleyDAO->insertGalley($issueGalley);
 				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY, (int)$issueGalleyXML->oldId, $issueGalley->getId());
-				$this->restoreDataOjectSettings($issueGalleyDAO, $issueGalleyXML->settings, 'issue_galley_settings', 'galley_id', $issueGalley->getId());
+				$this->restoreDataObjectSettings($issueGalleyDAO, $issueGalleyXML->settings, 'issue_galley_settings', 'galley_id', $issueGalley->getId());
 			}
 
 			if (isset($issueXML->customSectionOrder)) {
@@ -504,7 +507,7 @@ class XMLDisassembler {
 			$articleDAO->insertArticle($article);
 
 			$oldArticleId = (int)$articleXML->oldId;
-			$this->restoreDataOjectSettings($articleDAO, $articleXML->settings, 'article_settings', 'article_id', $article->getId());
+			$this->restoreDataObjectSettings($articleDAO, $articleXML->settings, 'article_settings', 'article_id', $article->getId());
 
 			$article =& $articleDAO->getArticle($article->getId()); // Reload article with restored settings
 			$covers = $article->getFileName(null);
@@ -539,7 +542,7 @@ class XMLDisassembler {
 				$author->setSequence((int) $authorXML->sequence);
 				$authorDAO->insertAuthor($author);
 
-				$this->restoreDataOjectSettings($authorDAO, $authorXML->settings, 'author_settings', 'author_id', $author->getId());
+				$this->restoreDataObjectSettings($authorDAO, $authorXML->settings, 'author_settings', 'author_id', $author->getId());
 				unset($author);
 			}
 
@@ -620,7 +623,7 @@ class XMLDisassembler {
 				$suppFile->setSequence((int) $suppFileXML->sequence);
 				$suppFileDAO->insertSuppFile($suppFile);
 
-				$this->restoreDataOjectSettings($suppFileDAO, $suppFileXML->settings, 'article_supp_file_settings', 'supp_id', $suppFile->getId());
+				$this->restoreDataObjectSettings($suppFileDAO, $suppFileXML->settings, 'article_supp_file_settings', 'supp_id', $suppFile->getId());
 			}
 
 
@@ -667,7 +670,7 @@ class XMLDisassembler {
 						$articleGalleyDAO->insertGalleyImage($articleGalley->getId(), $imageId);
 					}
 				}
-				$this->restoreDataOjectSettings($articleGalleyDAO, $authorXML->settings, 'article_galley_settings', 'galley_id', $articleGalley->getId());
+				$this->restoreDataObjectSettings($articleGalleyDAO, $authorXML->settings, 'article_galley_settings', 'galley_id', $articleGalley->getId());
 			}
 
 			$noteDAO =& DAORegistry::getDAO('NoteDAO');
@@ -812,7 +815,7 @@ class XMLDisassembler {
 				$eventLog->setIsTranslated((int)$eventLogXML->isTranslated);
 				$articleEventLogDAO->insertObject($eventLog);
 
-				$this->restoreDataOjectSettings($articleEventLogDAO, $eventLogXML->settings, 'event_log_settings', 'log_id', $eventLog->getId());
+				$this->restoreDataObjectSettings($articleEventLogDAO, $eventLogXML->settings, 'event_log_settings', 'log_id', $eventLog->getId());
 			}
 
 			$article->setSubmissionFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->submissionFileId));
@@ -842,7 +845,7 @@ class XMLDisassembler {
 		}
 	}
 
-	function restoreDataOjectSettings($dao, &$settingsNode, $tableName, $idFieldName, $newIdFieldValue) {
+	function restoreDataObjectSettings($dao, &$settingsNode, $tableName, $idFieldName, $newIdFieldValue) {
 		$dao->update("DELETE FROM $tableName WHERE $idFieldName=?", $newIdFieldValue);
 
 		$updateArray = array();
@@ -855,6 +858,18 @@ class XMLDisassembler {
 				$updateArray['locale'] = (string) $settingXML['locale'];
 			} else {
 				unset($updateArray['locale']);
+			}
+			if (isset($settingAttrs['assocId'])) {
+				$assocType = (int)$settingAttrs['assocType'];
+				if ($assocType == ASSOC_TYPE_JOURNAL) {
+					$updateArray['assoc_type'] = ASSOC_TYPE_JOURNAL;
+					if ((int) $settingXML['assoc_id'] != 0) {
+						$updateArray['assoc_id'] = $this->journal->getId();
+					}
+				}
+			} else {
+				unset($updateArray['assoc_type']);
+				unset($updateArray['assoc_id']);
 			}
 			$updateArray['setting_type'] = (string) $settingXML['type'];
 			$updateArray['setting_value'] = (string) $settingXML;

@@ -142,7 +142,7 @@ class XMLAssembler {
 				$this->writeElement($writer, 'role', $role->getRoleId());
 			}
 
-			$this->exportDataObjectSettings($userDAO, $writer, 'user_settings', 'user_id', $user->getId());
+			$this->exportUserSettings($userDAO, $writer, $user->getId());
 			$writer->endElement();
 			$writer->flush();
 		}
@@ -727,6 +727,34 @@ class XMLAssembler {
 			$this->writeAttribute($writer, 'name', $row['setting_name']);
 			$this->writeAttribute($writer, 'type', $row['setting_type']);
 			$this->writeAttribute($writer, 'locale', $row['locale']);
+			$writer->writeCData($row['setting_value']);
+			$writer->endElement();
+			unset($row);
+			$writer->flush();
+			$result->MoveNext();
+		}
+
+		$result->Close();
+		unset($result);
+
+		$writer->endElement();
+		$writer->flush();
+	}
+
+	function exportUserSettings($userDAO, &$writer, $userId) {
+		$result =& $userDAO->retrieve(
+			"SELECT setting_name, setting_value, setting_type, locale, assoc_type, assoc_id FROM user_settings WHERE user_id = ?", $userId
+		);
+
+		$writer->startElement('settings');
+		while (!$result->EOF) {
+			$row =& $result->getRowAssoc(false);
+			$writer->startElement('setting');
+			$this->writeAttribute($writer, 'name', $row['setting_name']);
+			$this->writeAttribute($writer, 'type', $row['setting_type']);
+			$this->writeAttribute($writer, 'locale', $row['locale']);
+			$this->writeAttribute($writer, 'assocType', $row['assoc_type']);
+			$this->writeAttribute($writer, 'assocId', $row['assoc_id']);
 			$writer->writeCData($row['setting_value']);
 			$writer->endElement();
 			unset($row);
