@@ -81,8 +81,11 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	function executeCLI($scriptName, &$args) {
 		$command = array_shift($args);
 		$tarFile = array_shift($args);
-
-		AppLocale::requireComponents(LOCALE_COMPONENT_APPLICATION_COMMON);
+		AppLocale::requireComponents(LOCALE_COMPONENT_OJS_DEFAULT, 
+			LOCALE_COMPONENT_APPLICATION_COMMON, 
+			LOCALE_COMPONENT_OJS_MANAGER,
+			LOCALE_COMPONENT_OJS_AUTHOR,
+			LOCALE_COMPONENT_PKP_USER);
 
 		$journalDao =& DAORegistry::getDAO('JournalDAO');
 

@@ -36,8 +36,7 @@ class IdTranslationTable {
 			if ($oldId === 0) {
 				return 0;
 			}
-			$objectName = array_search($objectClass, $translationTable);
-
+			$objectName = array_search($objectClass, $this->supportedObjectClassesNames);
 			throw new Exception(__('plugins.importexport.fullJournalTransfer.error.unkownObject', array("objectName" => $objectName, "id" => $oldId)));
 		}
 
