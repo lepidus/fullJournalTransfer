@@ -70,6 +70,10 @@ class XMLDisassembler {
 			$this->nextElement();
 		}
 
+		assert($xml->name == 'announcements');
+		$logger->log("Importing announcements\n");
+		$this->importAnnouncements();
+
 		assert($xml->name == 'reviewForms');
 		$logger->log("Importing review forms\n");
 		$this->importReviewForms();
@@ -138,6 +142,39 @@ class XMLDisassembler {
 		$this->restoreDataObjectSettings($journalSettingsDao, $journalConfigXML->settings, "journal_settings", "journal_id", $journal->getId());
 
 		$this->journal = $journal;
+	}
+
+	function importAnnouncements() {
+		assert($this->xml->name == 'announcements');
+		$journal = $this->journal;
+
+		$announcementTypeDAO =& DAORegistry::getDAO('AnnouncementTypeDAO');
+		$announcementDAO =& DAORegistry::getDAO('AnnouncementDAO');
+
+		$this->nextElement();
+		while($this->xml->name == 'announcementType') {
+			$announcementTypeXML = $this->getCurrentElementAsDom();
+
+			$announcementType = new AnnouncementType();
+			$announcementType->setAssocType(ASSOC_TYPE_JOURNAL);
+			$announcementType->setAssocId($this->journal->getId());
+			$announcementTypeDao->insertObject($announcementType);
+			$this->restoreDataObjectSettings($announcementTypeDAO, $announcementTypeXML->settings, 'announcement_type_settings', 'type_id', $announcementType->getId());
+
+			foreach ($announcementTypeXML->announcement as $announcementXML) {
+				$announcement = new Announcement();
+
+				$announcement->setAssocType(ASSOC_TYPE_JOURNAL);
+				$announcement->setAssocId($this->journal->getId());
+				$announcement->setTypeId($announcementType->getId());
+				$announcement->setDateExpire($announcementXML->dateExpire);
+				$announcement->setDatePosted($announcementXML->datePosted);
+				$reviewFormElementDao->insertObject($reviewFormElement);
+
+				$this->restoreDataObjectSettings($reviewFormElementDao, $announcementXML->settings, 'announcement_settings', 'announcement_id', $announcement->getId());
+			}
+			$this->nextElement();
+		}
 	}
 
 	function importReviewForms() {

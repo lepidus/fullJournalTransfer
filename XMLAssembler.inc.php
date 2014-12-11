@@ -16,6 +16,7 @@ class XMLAssembler {
 		$writer->startElement('journal');
 		$writer->setIndent(true);
 		$this->exportJournalConfig($writer);
+		$this->exportAnnouncements($writer);
 		$this->exportReviewForms($writer);
 		$this->exportUsers($writer);
 		$this->exportGroups($writer);
@@ -39,6 +40,44 @@ class XMLAssembler {
 
 		$journalSettingsDao =& DAORegistry::getDAO('JournalSettingsDAO');
 		$this->exportDataObjectSettings($journalSettingsDao, $writer, "journal_settings", "journal_id", $journal->getId());
+
+		$writer->endElement();
+		$writer->flush();
+	}
+
+	function exportAnnouncements($writer) {
+		$journal = $this->journal;
+		$writer->startElement('announcements');
+
+		$announcementTypeDAO =& DAORegistry::getDAO('AnnouncementTypeDAO');
+		$announcementDAO =& DAORegistry::getDAO('AnnouncementDAO');
+		$announcementTypes =& $announcementTypeDAO->getByAssocId(ASSOC_TYPE_JOURNAL, $journal->getId());
+
+		while (!$announcementTypes->eof()) {
+			$announcementType =& $announcementTypes->next();
+			
+			$writer->startElement('announcementType');
+			
+			$this->writeElement($writer, 'oldId', $announcementType->getId());
+
+			$announcements =& $announcementDAO->getByTypeId($announcementType->getId());
+			foreach ($announcements as $announcement) {
+				$writer->startElement('announcement');
+
+				$this->writeElement($writer, 'oldId', $announcement->getId());
+				$this->writeElement($writer, 'dateExpire', $announcement->getDateExpire());
+				$this->writeElement($writer, 'datePosted', $announcement->getDatePosted());
+
+				$this->exportDataObjectSettings($announcementDAO, $writer, 'announcement_settings', 'announcement_id', $announcement->getId());
+				$writer->endElement();
+				$writer->flush();
+			}
+
+			$this->exportDataObjectSettings($announcementTypeDAO, $writer, 'announcement_type_settings', 'type_id', $announcementType->getId());
+
+			$writer->endElement();
+			$writer->flush();
+		}
 
 		$writer->endElement();
 		$writer->flush();
