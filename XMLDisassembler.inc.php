@@ -685,7 +685,6 @@ class XMLDisassembler {
 
 			$noteDAO =& DAORegistry::getDAO('NoteDAO');
 			foreach ($articleXML->articleNote as $articleNoteXML) {
-				// $writer->writeElement('oldId', $articleNote->getId());
 				$articleNote = new Note();
 				$articleNote->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$articleNoteXML->userId));
 				$articleNote->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleNoteXML->fileId));
@@ -828,10 +827,22 @@ class XMLDisassembler {
 				$this->restoreDataObjectSettings($articleEventLogDAO, $eventLogXML->settings, 'event_log_settings', 'log_id', $eventLog->getId());
 			}
 
-			$article->setSubmissionFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->submissionFileId));
-			$article->setRevisedFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->revisedFileId));
-			$article->setReviewFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->reviewFileId));
-			$article->setEditorFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->editorFileId));
+			try {
+				$article->setSubmissionFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->submissionFileId));
+			} catch (Exception $e) {
+			}
+			try {
+				$article->setRevisedFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->revisedFileId));
+			} catch (Exception $e) {
+			}
+			try {
+				$article->setReviewFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->reviewFileId));
+			} catch (Exception $e) {
+			}
+			try {
+				$article->setEditorFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->editorFileId));
+			} catch (Exception $e) {
+			}
 			$articleDAO->updateArticle($article);
 
 			$this->nextElement();
