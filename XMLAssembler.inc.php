@@ -51,7 +51,7 @@ class XMLAssembler {
 
 		$announcementTypeDAO =& DAORegistry::getDAO('AnnouncementTypeDAO');
 		$announcementDAO =& DAORegistry::getDAO('AnnouncementDAO');
-		$announcementTypes =& $announcementTypeDAO->getByAssocId(ASSOC_TYPE_JOURNAL, $journal->getId());
+		$announcementTypes =& $announcementTypeDAO->getByAssoc(ASSOC_TYPE_JOURNAL, $journal->getId());
 
 		while (!$announcementTypes->eof()) {
 			$announcementType =& $announcementTypes->next();
@@ -61,7 +61,8 @@ class XMLAssembler {
 			$this->writeElement($writer, 'oldId', $announcementType->getId());
 
 			$announcements =& $announcementDAO->getByTypeId($announcementType->getId());
-			foreach ($announcements as $announcement) {
+			while (!$announcements->eof()) {
+				$announcement =& $announcements->next();
 				$writer->startElement('announcement');
 
 				$this->writeElement($writer, 'oldId', $announcement->getId());

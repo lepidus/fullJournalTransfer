@@ -158,7 +158,7 @@ class XMLDisassembler {
 			$announcementType = new AnnouncementType();
 			$announcementType->setAssocType(ASSOC_TYPE_JOURNAL);
 			$announcementType->setAssocId($this->journal->getId());
-			$announcementTypeDao->insertObject($announcementType);
+			$announcementTypeDAO->insertAnnouncementType($announcementType);
 			$this->restoreDataObjectSettings($announcementTypeDAO, $announcementTypeXML->settings, 'announcement_type_settings', 'type_id', $announcementType->getId());
 
 			foreach ($announcementTypeXML->announcement as $announcementXML) {
@@ -167,11 +167,11 @@ class XMLDisassembler {
 				$announcement->setAssocType(ASSOC_TYPE_JOURNAL);
 				$announcement->setAssocId($this->journal->getId());
 				$announcement->setTypeId($announcementType->getId());
-				$announcement->setDateExpire($announcementXML->dateExpire);
-				$announcement->setDatePosted($announcementXML->datePosted);
-				$reviewFormElementDao->insertObject($reviewFormElement);
+				$announcement->setDateExpire((string) $announcementXML->dateExpire);
+				$announcement->setDatePosted((string) $announcementXML->datePosted);
+				$announcementDAO->insertAnnouncement($announcement);
 
-				$this->restoreDataObjectSettings($reviewFormElementDao, $announcementXML->settings, 'announcement_settings', 'announcement_id', $announcement->getId());
+				$this->restoreDataObjectSettings($announcementDAO, $announcementXML->settings, 'announcement_settings', 'announcement_id', $announcement->getId());
 			}
 			$this->nextElement();
 		}
@@ -422,7 +422,7 @@ class XMLDisassembler {
 			$oldIssueId = (int)$issueXML->oldId;
 
 			$issueDAO->insertIssue($issue);
-			$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), (int)$issueXML->customOrder);
+			//$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), (int)$issueXML->customOrder);
 			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE, $oldIssueId, $issue->getId());
 			$this->restoreDataObjectSettings($issueDAO, $issueXML->settings, 'issue_settings', 'issue_id', $issue->getId());
 
