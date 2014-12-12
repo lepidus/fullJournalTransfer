@@ -95,7 +95,6 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 
 		switch ($command) {
 			case 'import':
-				AppLocale::requireComponents(LOCALE_COMPONENT_OJS_EDITOR, LOCALE_COMPONENT_OJS_AUTHOR);
 				import('classes.file.TemporaryFileManager');
 				if (!file_exists($tarFile)) {
 					echo __('plugins.importexport.fullJournalTransfer.import.error') . "\n";
