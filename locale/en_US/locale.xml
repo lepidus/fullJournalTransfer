@@ -34,7 +34,6 @@ Comandos:
 
 	<message key="plugins.importexport.fullJournalTransfer.terms.article_file">Arquivo de um artigo</message>
 	<message key="plugins.importexport.fullJournalTransfer.terms.email_log">Log de mensagem de email</message>
-	<message key="plugins.importexport.fullJournalTransfer.terms.issue">Edição</message>
 	<message key="plugins.importexport.fullJournalTransfer.terms.issue_file">Arquivo de uma edição</message>
 	<message key="plugins.importexport.fullJournalTransfer.terms.issue_galley">Documento publicado de uma edição</message>
 

@@ -42,7 +42,7 @@ class XMLDisassembler {
 												__('plugins.importexport.fullJournalTransfer.terms.email_log') => INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG,
 												__('user.group') => INTERNAL_TRANSFER_OBJECT_GROUP,
 												__('plugins.importexport.fullJournalTransfer.terms.issue_file') => INTERNAL_TRANSFER_OBJECT_ISSUE_FILE,
-												__('plugins.importexport.fullJournalTransfer.terms.issue') => INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY
+												__('plugins.importexport.fullJournalTransfer.terms.issue_galley') => INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY
 											)
 										);
 		$this->publicFolderPath = $publicFolderPath;
