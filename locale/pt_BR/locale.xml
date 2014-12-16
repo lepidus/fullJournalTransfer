@@ -2,15 +2,11 @@
 <!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
 
 <!--
-  * plugins.importexport.fullJournalTransfer/locale/pt_BR/locale.xml
-  *
-  * Copyright (c) 2013-2014 Simon Fraser University Library
-  * Copyright (c) 2003-2014 John Willinsky
-  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
-  *
-  * Localization strings for the pt_BR locale.
-  *
-  -->
+ * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia 
+ * Author: Giovani Pieri <giovani@lepidus.com.br>
+ *
+ * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ -->
  
 <locale name="pt_BR" full_name="Português do Brasil">
 	<message key="plugins.importexport.fullJournalTransfer.displayName">Exportação de conteúdo revista</message>
