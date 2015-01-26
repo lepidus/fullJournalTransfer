@@ -151,8 +151,31 @@ class XMLAssembler {
 				SELECT r.user_id FROM roles AS r WHERE r.journal_id = ?
 				UNION
 				SELECT gm.user_id FROM group_memberships AS gm INNER JOIN groups AS g ON gm.group_id=g.group_id WHERE g.assoc_id = ?
+				UNION
+				SELECT se.user_id FROM section_editors AS se WHERE se.journal_id = ?
+				UNION
+				SELECT a.user_id FROM articles AS a WHERE a.journal_id = ?
+				UNION
+				SELECT ea.editor_id FROM edit_assignments AS ea INNER JOIN articles AS a ON ea.article_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT ed.editor_id FROM edit_decisions AS ed INNER JOIN articles AS a ON ed.article_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT ra.reviewer_id FROM review_assignments AS ra INNER JOIN articles AS a ON ra.submission_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT s.user_id FROM signoffs AS s INNER JOIN articles AS a ON s.assoc_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT el.sender_id FROM email_log AS el INNER JOIN articles AS a ON el.assoc_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT evenl.user_id FROM event_log AS evenl INNER JOIN articles AS a ON evenl.assoc_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT ac.author_id FROM article_comments AS ac INNER JOIN articles AS a ON ac.article_id=a.article_id WHERE a.journal_id = ?
+				UNION
+				SELECT an.user_id FROM article_notes AS an INNER JOIN articles AS a ON an.article_id=a.article_id WHERE a.journal_id = ?
 			)',
-			array($this->journal->getId(), $this->journal->getId()),
+			array($this->journal->getId(), $this->journal->getId(), $this->journal->getId(),
+				$this->journal->getId(), $this->journal->getId(), $this->journal->getId(),
+				$this->journal->getId(), $this->journal->getId(), $this->journal->getId(),
+				$this->journal->getId(), $this->journal->getId(), $this->journal->getId()),
 			null
 		);
 
