@@ -117,12 +117,9 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 					return true;
 				} else {
 					echo __('plugins.importexport.fullJournalTransfer.cliError') . "\n";
+					print_r($errors);
 					foreach ($errors as $error) {
-						if (count($error) == 1) {
-							echo __($error[0]);
-						} else {
-							echo __($error[0], $errorArgs[1]);
-						}
+						echo $error;
 					}
 					return false;
 				}
@@ -230,7 +227,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 		return $xmlAbsolutePath;
 	}
 
-	function handleImport($tarFile, $errors) {
+	function handleImport($tarFile, &$errors) {
 		$this->import('XMLDisassembler');
 		$this->import('IdTranslationTable');
 		$this->import('FullJournalTransferLogger');
@@ -254,7 +251,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 		if (!file_exists($xmlFileName) || !file_exists($journalFolderPath) ||
 				!file_exists($publicFolderPath) || !file_exists($siteFolderPath)) {
 			unlink($tarFile);
-			$errors[] = array('plugins.importexport.fullJournalTransfer.import.error.invalidPackage');
+			$errors[] = array(__('plugins.importexport.fullJournalTransfer.import.error.invalidPackage'));
 			return $errors;
 		}
 
@@ -266,7 +263,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 		} catch (Exception $e) {
 			$this->_removeTemporaryFiles(array($xmlFileName, $journalFolderPath,
 											$publicFolderPath, $siteFolderPath));
-			$errors[] = array($e->getMessage());
+			$errors = array($e->getMessage());
 			return false;
 		}
 
@@ -277,9 +274,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	function _checkForTar() {
 		$tarBinary = Config::getVar('cli', 'tar');
 		if (empty($tarBinary) || !is_executable($tarBinary)) {
-			$result = array(
-				array('manager.plugins.tarCommandNotFound')
-			);
+			$result = array(__('manager.plugins.tarCommandNotFound'));
 		} else {
 			$result = true;
 		}
@@ -294,9 +289,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 			$fileManager->mkdir($tmpPath);
 		}
 		if (!is_writable($tmpPath)) {
-			$errors = array(
-				array('plugins.importexport.common.export.error.outputFileNotWritable', $tmpPath)
-			);
+			$errors = array(__('plugins.importexport.common.export.error.outputFileNotWritable', $tmpPath));
 			return $errors;
 		}
 		return realpath($tmpPath) . '/';
