@@ -117,7 +117,6 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 					return true;
 				} else {
 					echo __('plugins.importexport.fullJournalTransfer.cliError') . "\n";
-					print_r($errors);
 					foreach ($errors as $error) {
 						echo $error;
 					}
