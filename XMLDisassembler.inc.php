@@ -763,7 +763,11 @@ class XMLDisassembler {
 				$reviewAssignment = new ReviewAssignment();
 				$reviewAssignment->setSubmissionId($article->getId());
 				$reviewAssignment->setReviewerId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$reviewAssignmentXML->reviewerId));
-				$reviewAssignment->setReviewerFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$reviewAssignmentXML->reviewerFileId));
+				try {
+					$reviewAssignment->setReviewerFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$reviewAssignmentXML->reviewerFileId));
+				} catch (Exception $e) {
+					$this->logger->log("Arquivo do artigo $oldArticleId não encontrado. ID: " . (int)$reviewAssignmentXML->reviewerFileId . "\n");
+				}
 				$reviewAssignment->setReviewFormId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, (int)$reviewAssignmentXML->reviewFormId));
 				$reviewAssignment->setReviewRoundId((int)$reviewAssignmentXML->reviewRoundId);
 				$reviewAssignment->setStageId((int)$reviewAssignmentXML->stageId);
