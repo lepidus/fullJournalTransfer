@@ -400,11 +400,10 @@ class XMLAssembler {
 				$writer->startElement('sectionEditor');
 				$user = $sectionEditor['user'];
 				$this->writeElement($writer, 'userId', $user->getId());
-				$this->writeElement($writer, 'userId', $user->getId());
 				$this->writeElement($writer, 'canReview', $sectionEditor['canReview']);
 				$this->writeElement($writer, 'canEdit', $sectionEditor['canEdit']);
 
-				$writer->endElement('sectionEditor');
+				$writer->endElement();
 			}
 
 			$this->exportDataObjectSettings($sectionDAO, $writer, 'section_settings', 'section_id', $section->getId());
