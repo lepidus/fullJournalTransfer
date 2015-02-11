@@ -386,7 +386,7 @@ class XMLDisassembler {
 				$userId = $this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$sectionEditorXML->userId);
 				$canReview = (int)$sectionEditorXML->canReview;
 				$canEdit = (int)$sectionEditorXML->canEdit;
-				$sectionEditorDAO->insertEditor($this->journal->getId(), $section->getId(), $userId, $canReview, $canEdit);
+				$sectionEditorsDAO->insertEditor($this->journal->getId(), $section->getId(), $userId, $canReview, $canEdit);
 			}
 			$this->nextElement();
 		}
