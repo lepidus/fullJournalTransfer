@@ -170,7 +170,7 @@ class XMLAssembler {
 				UNION
 				SELECT ac.author_id FROM article_comments AS ac INNER JOIN articles AS a ON ac.article_id=a.article_id WHERE a.journal_id = ?
 				UNION
-				SELECT an.user_id FROM article_notes AS an INNER JOIN articles AS a ON an.article_id=a.article_id WHERE a.journal_id = ?
+				SELECT n.user_id FROM notes AS n INNER JOIN articles AS a ON n.assoc_id=a.article_id WHERE a.journal_id = ?
 			)',
 			array($this->journal->getId(), $this->journal->getId(), $this->journal->getId(),
 				$this->journal->getId(), $this->journal->getId(), $this->journal->getId(),
