@@ -949,10 +949,11 @@ class XMLDisassembler {
 	function generateUsername(&$user) {
 		$userDao =& DAORegistry::getDAO('UserDAO');
 		$baseUsername = $user->getUsername();
-		for ($username = $baseUsername, $i=1; $userDao->userExistsByUsername($username, true); $i++) {
+		for ($username = $baseUsername, $i=1; $userDao->userExistsByUsername($username, null, true); $i++) {
 			$username = $baseUsername . $i;
 		}
 		$user->setUsername($username);
+		echo $username . "\n";
 	}
 
 	function generateJournalPath(&$journal) {
