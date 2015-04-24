@@ -724,7 +724,7 @@ class XMLDisassembler {
 						$articleGalleyDAO->insertGalleyImage($articleGalley->getId(), $imageId);
 					}
 				}
-				$this->restoreDataObjectSettings($articleGalleyDAO, $authorXML->settings, 'article_galley_settings', 'galley_id', $articleGalley->getId());
+				$this->restoreDataObjectSettings($articleGalleyDAO, $articleGalleyXML->settings, 'article_galley_settings', 'galley_id', $articleGalley->getId());
 			}
 
 			$noteDAO =& DAORegistry::getDAO('NoteDAO');
