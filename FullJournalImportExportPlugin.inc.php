@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia 
+ * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia
  * Author: Giovani Pieri <giovani@lepidus.com.br>
  *
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
@@ -10,9 +10,9 @@
 
 import('classes.plugins.ImportExportPlugin');
 
-class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
+class FullJournalImportExportPlugin extends ImportExportPlugin {
 
-	function FullJournalTransferImportExportPlugin() {
+	function FullJournalImportExportPlugin() {
 		parent::ImportExportPlugin();
 	}
 
@@ -23,20 +23,20 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	}
 
 	function getName() {
-		return 'FullJournalTransferImportExportPlugin';
+		return 'FullJournalImportExportPlugin';
 	}
 
 	function getDisplayName() {
-		return __('plugins.importexport.fullJournalTransfer.displayName');
+		return __('plugins.importexport.fullJournal.displayName');
 	}
 
 	function getDescription() {
-		return __('plugins.importexport.fullJournalTransfer.description');
+		return __('plugins.importexport.fullJournal.description');
 	}
 
 	function display(&$args, $request) {
 		parent::display($args, $request);
-		
+
 		$templateMgr =& TemplateManager::getManager();
 		$journal =& $request->getJournal();
 
@@ -63,7 +63,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 					$temporaryFile = $temporaryFileManager->handleUpload('importFile', $user->getId());
 				}
 				if (!$temporaryFile) {
-					$templateMgr->assign('error', 'plugins.importexport.fullJournalTransfer.error.uploadFailed');
+					$templateMgr->assign('error', 'plugins.importexport.fullJournal.error.uploadFailed');
 					return $templateMgr->display($this->getTemplatePath() . 'importError.tpl');
 				}
 
@@ -85,8 +85,8 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	function executeCLI($scriptName, &$args) {
 		$command = array_shift($args);
 		$tarFile = array_shift($args);
-		AppLocale::requireComponents(LOCALE_COMPONENT_OJS_DEFAULT, 
-			LOCALE_COMPONENT_APPLICATION_COMMON, 
+		AppLocale::requireComponents(LOCALE_COMPONENT_OJS_DEFAULT,
+			LOCALE_COMPONENT_APPLICATION_COMMON,
 			LOCALE_COMPONENT_OJS_MANAGER,
 			LOCALE_COMPONENT_OJS_AUTHOR,
 			LOCALE_COMPONENT_PKP_USER);
@@ -101,18 +101,18 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 			case 'import':
 				import('classes.file.TemporaryFileManager');
 				if (!file_exists($tarFile)) {
-					echo __('plugins.importexport.fullJournalTransfer.import.error') . "\n";
-					echo __('plugins.importexport.fullJournalTransfer.cliError.fileNotFound', array('tarFile' => $tarFile)) . "\n";
+					echo __('plugins.importexport.fullJournal.import.error') . "\n";
+					echo __('plugins.importexport.fullJournal.cliError.fileNotFound', array('tarFile' => $tarFile)) . "\n";
 					return false;
 				}
 
 				@set_time_limit(0);
 				$errors = array();
 				if ($this->handleImport($tarFile, $errors)) {
-					echo __('plugins.importexport.fullJournalTransfer.import.success.description') . "\n";
+					echo __('plugins.importexport.fullJournal.import.success.description') . "\n";
 					return true;
 				} else {
-					echo __('plugins.importexport.fullJournalTransfer.cliError') . "\n";
+					echo __('plugins.importexport.fullJournal.cliError') . "\n";
 					foreach ($errors as $error) {
 						echo $error;
 					}
@@ -124,8 +124,8 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 				$journal =& $journalDao->getJournalByPath($journalPath);
 				if (!$journal) {
 					if ($journalPath != '') {
-						echo __('plugins.importexport.fullJournalTransfer.cliError') . "\n";
-						echo __('plugins.importexport.fullJournalTransfer.error.unknownJournal', array('journalPath' => $journalPath)) . "\n\n";
+						echo __('plugins.importexport.fullJournal.cliError') . "\n";
+						echo __('plugins.importexport.fullJournal.error.unknownJournal', array('journalPath' => $journalPath)) . "\n\n";
 					}
 					$this->usage($scriptName);
 					return;
@@ -135,8 +135,8 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 					$errors = array();
 					$this->handleExport($journal, $errors, $tarFile);
 					if (!empty($errors)) {
-						echo __('plugins.importexport.fullJournalTransfer.cliError') . "\n";
-						echo __('plugins.importexport.fullJournalTransfer.export.error.couldNotWrite', array('fileName' => $tarFile)) . "\n\n";
+						echo __('plugins.importexport.fullJournal.cliError') . "\n";
+						echo __('plugins.importexport.fullJournal.export.error.couldNotWrite', array('fileName' => $tarFile)) . "\n\n";
 					}
 					return;
 				}
@@ -148,7 +148,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	}
 
 	function usage($scriptName) {
-		echo __('plugins.importexport.fullJournalTransfer.cliUsage', array(
+		echo __('plugins.importexport.fullJournal.cliUsage', array(
 			'scriptName' => $scriptName,
 			'pluginName' => $this->getName()
 		)) . "\n";
@@ -225,7 +225,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	function handleImport($tarFile, &$errors) {
 		$this->import('XMLDisassembler');
 		$this->import('IdTranslationTable');
-		$this->import('FullJournalTransferLogger');
+		$this->import('FullJournalImportExportLogger');
 
 		$errors = $this->_checkForTar();
 		if (is_array($errors)) {
@@ -246,7 +246,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 		if (!file_exists($xmlFileName) || !file_exists($journalFolderPath) ||
 				!file_exists($publicFolderPath) || !file_exists($siteFolderPath)) {
 			unlink($tarFile);
-			$errors[] = array(__('plugins.importexport.fullJournalTransfer.import.error.invalidPackage'));
+			$errors[] = array(__('plugins.importexport.fullJournal.import.error.invalidPackage'));
 			return $errors;
 		}
 
@@ -278,7 +278,7 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	}
 
 	function _getTmpPath() {
-		$tmpPath = Config::getVar('files', 'files_dir') . '/fullJournalTransfer';
+		$tmpPath = Config::getVar('files', 'files_dir') . '/fullJournalImportExport';
 		if (!file_exists($tmpPath)) {
 			$fileManager = new FileManager();
 			$fileManager->mkdir($tmpPath);

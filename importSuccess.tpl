@@ -5,11 +5,11 @@
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *}
 {strip}
-{assign var="pageTitle" value="plugins.importexport.fullJournalTransfer.import.success"}
+{assign var="pageTitle" value="plugins.importexport.fullJournal.import.success"}
 {include file="common/header.tpl"}
 {/strip}
 <div id="importSuccess">
-<p>{translate key="plugins.importexport.fullJournalTransfer.import.success.description"}</p>
+<p>{translate key="plugins.importexport.fullJournal.import.success.description"}</p>
 </div>
 
 {include file="common/footer.tpl"}

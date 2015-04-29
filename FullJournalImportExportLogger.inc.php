@@ -7,17 +7,17 @@
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  */
 
-abstract class FullJournalTransferLogger {
+abstract class FullJournalLogger {
 	abstract function log($string, $data=array());
 }
 
-class FullJournalTransferStdOutLogger extends FullJournalTransferLogger {
+class FullJournalTransferStdOutLogger extends FullJournalLogger {
 	function log($string, $data=array()) {
 		printf($string, $data);
 	}
 }
 
-class NullFullJournalTransferLogger extends FullJournalTransferLogger {
+class NullFullJournalLogger extends FullJournalLogger {
 	function log($string, $data=array()) {
 	}
 }

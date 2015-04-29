@@ -5,11 +5,11 @@
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *}
 {strip}
-{assign var="pageTitle" value="plugins.importexport.fullJournalTransfer.import.error"}
+{assign var="pageTitle" value="plugins.importexport.fullJournal.import.error"}
 {include file="common/header.tpl"}
 {/strip}
 <div id="importError">
-<p>{translate key="plugins.importexport.fullJournalTransfer.import.error.description"}</p>
+<p>{translate key="plugins.importexport.fullJournal.import.error.description"}</p>
 {if $error}
 	<!-- A single error occurred. -->
 	<p>{translate key=$error}</p>

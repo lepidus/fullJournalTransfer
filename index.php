@@ -7,8 +7,8 @@
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  */
 
-require_once('FullJournalTransferImportExportPlugin.inc.php');
+require_once('FullJournalImportExportPlugin.inc.php');
 
-return new FullJournalTransferImportExportPlugin();
+return new FullJournalImportExportPlugin();
 
 ?>

@@ -36,7 +36,7 @@ class XMLDisassembler {
 
 		$this->xml = new XMLReader();
 		$this->xml->open($inputFile);
-		$this->logger = new NullFullJournalTransferLogger();
+		$this->logger = new NullFullJournalLogger();
 
 		$this->idTranslationTable = new IdTranslationTable(
 											array(
@@ -45,11 +45,11 @@ class XMLDisassembler {
 												__('common.user') => INTERNAL_TRANSFER_OBJECT_USER, 
 												__('section.section') => INTERNAL_TRANSFER_OBJECT_SECTION, 
 												__('issue.issue') => INTERNAL_TRANSFER_OBJECT_ISSUE, 
-												__('plugins.importexport.fullJournalTransfer.terms.article_file') => INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, 
-												__('plugins.importexport.fullJournalTransfer.terms.email_log') => INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG,
+												__('plugins.importexport.fullJournal.terms.article_file') => INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, 
+												__('plugins.importexport.fullJournal.terms.email_log') => INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG,
 												__('user.group') => INTERNAL_TRANSFER_OBJECT_GROUP,
-												__('plugins.importexport.fullJournalTransfer.terms.issue_file') => INTERNAL_TRANSFER_OBJECT_ISSUE_FILE,
-												__('plugins.importexport.fullJournalTransfer.terms.issue_galley') => INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY
+												__('plugins.importexport.fullJournal.terms.issue_file') => INTERNAL_TRANSFER_OBJECT_ISSUE_FILE,
+												__('plugins.importexport.fullJournal.terms.issue_galley') => INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY
 											)
 										);
 		$this->publicFolderPath = $publicFolderPath;
