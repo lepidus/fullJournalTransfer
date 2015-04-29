@@ -779,11 +779,6 @@ class XMLAssembler {
 				$writer->endElement();
 			}
 			$writer->endElement();
-
-
-			// review_rounds
-			//article_xml_galleys ->> Plugin
-
 			$writer->endElement();
 		}
 		$writer->endElement();
