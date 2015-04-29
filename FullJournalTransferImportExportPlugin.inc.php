@@ -35,21 +35,19 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 	}
 
 	function display(&$args, $request) {
-		$templateMgr =& TemplateManager::getManager();
 		parent::display($args, $request);
-
+		
+		$templateMgr =& TemplateManager::getManager();
 		$journal =& $request->getJournal();
 
 		switch (array_shift($args)) {
 			case 'export':
 				@set_time_limit(0);
-
 				$errors = array();
 				$success = $this->handleExport($journal, $errors);
 				if ($success === false) {
 					return $errors;
 				}
-
 				break;
 
 			case 'import':
@@ -64,14 +62,12 @@ class FullJournalTransferImportExportPlugin extends ImportExportPlugin {
 					$user = Request::getUser();
 					$temporaryFile = $temporaryFileManager->handleUpload('importFile', $user->getId());
 				}
-
 				if (!$temporaryFile) {
 					$templateMgr->assign('error', 'plugins.importexport.fullJournalTransfer.error.uploadFailed');
 					return $templateMgr->display($this->getTemplatePath() . 'importError.tpl');
 				}
 
 				@set_time_limit(0);
-
 				$errors = array();
 				if ($this->handleImport($temporaryFile->getFilePath(), $errors)) {
 					return $templateMgr->display($this->getTemplatePath() . 'importSuccess.tpl');
