@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia 
+ * Copyright (c) 2014 Instituto Brasileiro de Informação em Ciência e Tecnologia
  * Author: Giovani Pieri <giovani@lepidus.com.br>
  *
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
@@ -40,12 +40,12 @@ class XMLDisassembler {
 
 		$this->idTranslationTable = new IdTranslationTable(
 											array(
-												__('manager.reviewForms') => INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, 
-												__('manager.reviewFormElements') => INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT, 
-												__('common.user') => INTERNAL_TRANSFER_OBJECT_USER, 
-												__('section.section') => INTERNAL_TRANSFER_OBJECT_SECTION, 
-												__('issue.issue') => INTERNAL_TRANSFER_OBJECT_ISSUE, 
-												__('plugins.importexport.fullJournal.terms.article_file') => INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, 
+												__('manager.reviewForms') => INTERNAL_TRANSFER_OBJECT_REVIEW_FORM,
+												__('manager.reviewFormElements') => INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT,
+												__('common.user') => INTERNAL_TRANSFER_OBJECT_USER,
+												__('section.section') => INTERNAL_TRANSFER_OBJECT_SECTION,
+												__('issue.issue') => INTERNAL_TRANSFER_OBJECT_ISSUE,
+												__('plugins.importexport.fullJournal.terms.article_file') => INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE,
 												__('plugins.importexport.fullJournal.terms.email_log') => INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG,
 												__('user.group') => INTERNAL_TRANSFER_OBJECT_GROUP,
 												__('plugins.importexport.fullJournal.terms.issue_file') => INTERNAL_TRANSFER_OBJECT_ISSUE_FILE,
@@ -263,7 +263,7 @@ class XMLDisassembler {
 				$user->setMailingAddress((string)$userXML->mailingAddress);
 				$user->setBillingAddress((string)$userXML->billingAddress);
 				$user->setCountry((string)$userXML->country);
-			
+
 				$locales = array();
 				foreach (explode(':', (string)$userXML->locales) as $locale) {
 					if (AppLocale::isLocaleValid($locale) && in_array($locale, $siteSupportedLocales)) {
@@ -425,7 +425,7 @@ class XMLDisassembler {
 			$issue->setShowTitle((int)$issueXML->showTitle);
 			$issue->setStyleFileName((string)$issueXML->styleFileName);
 			$issue->setOriginalStyleFileName((string)$issueXML->originalStyleFileName);
-			
+
 			$oldIssueId = (int)$issueXML->oldId;
 
 			$issueDAO->insertIssue($issue);
@@ -442,7 +442,7 @@ class XMLDisassembler {
 					$destFile = 'cover_issue_' . $issue->getId() . "_$locale.$extension";
 					$publicFileManager->copyJournalFile($this->journal->getId(), $sourceFile, $destFile);
 					unlink($sourceFile);
-					
+
 					$issue->setFileName($destFile, $locale);
 					$issueDAO->updateIssue($issue);
 				}
@@ -462,7 +462,7 @@ class XMLDisassembler {
 			$issueFileManager = new IssueFileManager($issue->getId());
 			foreach ($issueXML->issueFile as $issueFileXML) {
 				$issueFile = new IssueFile();
-				
+
 				$issueFile->setIssueId($issue->getId());
 				$issueFile->setFileName((string)$issueFileXML->fileName);
 				$issueFile->setFileType((string)$issueFileXML->fileType);
@@ -537,7 +537,7 @@ class XMLDisassembler {
 
 			$article->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int) $articleXML->userId));
 			$article->setSectionId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_SECTION, (int) $articleXML->sectionId));
-			
+
 			$article->setLocale((string) $articleXML->locale);
 			$article->setLanguage((string) $articleXML->language);
 			$article->setCommentsToEditor((string) $articleXML->commentsToEditor);
@@ -566,7 +566,7 @@ class XMLDisassembler {
 					$destFile = 'cover_issue_' . $article->getId() . "_$locale.$extension";
 					$publicFileManager->copyJournalFile($this->journal->getId(), $sourceFile, $destFile);
 					unlink($sourceFile);
-					
+
 					$article->setFileName($destFile, $locale);
 					$articleDAO->updateArticle($article);
 				}
@@ -747,7 +747,7 @@ class XMLDisassembler {
 			foreach ($articleXML->editAssignment as $editAssignmentXML) {
 				$editAssignment = new EditAssignment();
 				$editAssignment->setArticleId($article->getId());
-	
+
 				$editAssignment->setEditorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$editAssignmentXML->editorId));
 				$editAssignment->setCanReview((int)$editAssignmentXML->canReview);
 				$editAssignment->setCanEdit((int)$editAssignmentXML->canEdit);
@@ -820,7 +820,7 @@ class XMLDisassembler {
 				$signoff->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$signoffXML->userId));
 				$signoff->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$signoffXML->fileId));
 				$signoff->setUserGroupId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_GROUP, (int)$signoffXML->userGroupId));
-				
+
 				$signoff->setSymbolic((string)$signoffXML->symbolic);
 				$signoff->setFileRevision((int)$signoffXML->fileRevision);
 				$signoff->setDateUnderway((string)$signoffXML->dateUnderway);
@@ -833,11 +833,11 @@ class XMLDisassembler {
 			$editorSubmissionDAO =& DAORegistry::getDAO('EditorSubmissionDAO');
 			foreach ($articleXML->editDecisions as $editDecisionXML) {
 				$editDecisions =& $editorSubmissionDAO->update(
-					'INSERT INTO edit_decisions (article_id, round, editor_id, decision, date_decided) values (?, ?, ?, ?, ?)', 
-					array($article->getId(), 
-						(string)$editDecisionXML->round, 
-						$this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$editDecisionXML->editorId), 
-						(string)$editDecisionXML->decision, 
+					'INSERT INTO edit_decisions (article_id, round, editor_id, decision, date_decided) values (?, ?, ?, ?, ?)',
+					array($article->getId(),
+						(string)$editDecisionXML->round,
+						$this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$editDecisionXML->editorId),
+						(string)$editDecisionXML->decision,
 						(string)$editDecisionXML->dateDecided)
 				);
 			}
@@ -853,7 +853,7 @@ class XMLDisassembler {
 				$publishedArticle->setAccessStatus((int)$publishedArticleXML->accessStatus);
 				$publishedArticleDAO->insertPublishedArticle($publishedArticle);
 			}
-			
+
 			$articleEventLogDAO =& DAORegistry::getDAO('ArticleEventLogDAO');
 			$eventLogsXML =& iterator_to_array($articleXML->eventLogs->eventLog);
 			$eventLogsXML = array();
@@ -953,7 +953,6 @@ class XMLDisassembler {
 			$username = $baseUsername . $i;
 		}
 		$user->setUsername($username);
-		echo $username . "\n";
 	}
 
 	function generateJournalPath(&$journal) {
