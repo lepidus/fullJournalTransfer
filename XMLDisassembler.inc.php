@@ -953,7 +953,6 @@ class XMLDisassembler {
 			$username = $baseUsername . $i;
 		}
 		$user->setUsername($username);
-		echo $username . "\n";
 	}
 
 	function generateJournalPath(&$journal) {
