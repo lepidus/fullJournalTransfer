@@ -851,12 +851,26 @@ class XMLAssembler {
 
 	function writeElement($xmlWriter, $element, $value) {
 		if (!is_null($value)) {
+			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
+				$value = String::utf8_normalize($value);
+				$value = String::utf8_bad_strip($value);
+			} else if (!String::utf8_compliant($value)) {
+				$value = String::utf8_bad_strip($value);
+			}
+
 			$xmlWriter->writeElement($element, $value);
 		}
 	}
 
 	function writeAttribute($xmlWriter, $element, $value) {
 		if (!is_null($value)) {
+			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
+				$value = String::utf8_normalize($value);
+				$value = String::utf8_bad_strip($value);
+			} else if (!String::utf8_compliant($value)) {
+				$value = String::utf8_bad_strip($value);
+			}
+
 			$xmlWriter->writeAttribute($element, $value);
 		}
 	}
