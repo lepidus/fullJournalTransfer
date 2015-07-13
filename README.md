@@ -18,10 +18,10 @@ Usage
 The recommended way for use this journal is through the command line, using the importExport.php script available in the tools folder of the OJS install directory.
 
 For exporting:
-    > php tools/importExport.php FullJournalImportExportPlugin export <filename>.tar.gz <journalPath>
+    > php tools/importExport.php FullJournalImportExportPlugin export \<filename\>.tar.gz \<journalPath\>
 
 For importing:
-    > php tools/importExport.php FullJournalImportExportPlugin import <filename>.tar.gz
+    > php tools/importExport.php FullJournalImportExportPlugin import \<filename\>.tar.gz
 
 License
 -------
