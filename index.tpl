@@ -5,7 +5,7 @@
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *}
 {strip}
-{assign var="pageTitle" value="plugins.importexport.native.displayName"}
+{assign var="pageTitle" value="plugins.importexport.fullJournal.displayName"}
 {include file="common/header.tpl"}
 {/strip}
 
@@ -13,7 +13,7 @@
 
 <h3>{translate key="plugins.importexport.fullJournal.export"}</h3>
 <ul class="plain">
-	<li>&#187; <a href="{plugin_url path="export"}">{translate key="plugins.importexport.fullJournal.exportJournal"}</a></li>
+	<li>&#187; <a href="{plugin_url path="export"}">{translate key="common.export"}</a></li>
 </ul>
 
 <h3>{translate key="plugins.importexport.fullJournal.import"}</h3>
