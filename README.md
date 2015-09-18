@@ -15,7 +15,7 @@ Installation
 
 Usage
 ------------
-The recommended way for use this journal is through the command line, using the importExport.php script available in the tools folder of the OJS install directory.
+The recommended way to use this plugin is through the command line, using the importExport.php script available in the tools folder of the OJS install directory.
 
 For exporting:
     > php importExport.php FullJournalImportExportPlugin export <filename>.tar.gz <journalPath>
