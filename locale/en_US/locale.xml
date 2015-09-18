@@ -9,7 +9,7 @@
  -->
  
 <locale name="en_US" full_name="U.S. English">
-	<message key="plugins.importexport.fullJournal.displayName">Export Journal Content</message>
+	<message key="plugins.importexport.fullJournal.displayName">Full Journal Transfer</message>
 	<message key="plugins.importexport.fullJournal.description">Allows you to import and export journals.</message>
 
 	<message key="plugins.importexport.fullJournal.cliUsage">Usage: {$scriptName} {$pluginName} [command]
@@ -21,7 +21,6 @@ Commands:
 	<message key="plugins.importexport.fullJournal.import.success.description">Journal has been imported successfully.</message>
 
 	<message key="plugins.importexport.fullJournal.export">Export Journal</message>
-	<message key="plugins.importexport.fullJournal.exportJournal">Export</message>
 	<message key="plugins.importexport.fullJournal.import">Import Journal</message>
 	<message key="plugins.importexport.fullJournal.import.description">This plugin supports importing revised data for periodic transfer between sites.</message>
 	<message key="plugins.importexport.fullJournal.import.error">Import Error</message>
