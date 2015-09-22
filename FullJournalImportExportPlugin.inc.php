@@ -307,8 +307,11 @@ class FullJournalImportExportPlugin extends ImportExportPlugin {
 
 	function tarFiles($targetPath, $targetFile, $sourceFiles) {
 		assert($this->_checkedForTar);
-
-		$tarCommand = Config::getVar('cli', 'tar') . ' -cJf ' . escapeshellarg($targetFile);
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN') {
+    	$tarCommand = Config::getVar('cli', 'tar') . ' -cJf ' . escapeshellarg($targetFile);
+		} else {
+    	$tarCommand = Config::getVar('cli', 'tar') . ' -czf ' . escapeshellarg($targetFile);
+		}
 
 		// Transform original path into relative path.
 		foreach($sourceFiles as $originFile=>$nameInTar) {
@@ -332,9 +335,15 @@ class FullJournalImportExportPlugin extends ImportExportPlugin {
 
 	function _untarFile($targetPath, $targetFile) {
 		assert($this->_checkedForTar);
-		exec(Config::getVar('cli', 'tar') . ' -xf ' . escapeshellarg($targetFile) . ' -C ' . escapeshellarg($targetPath));
+		$path_parts = pathinfo($targetFile);
+		switch($path_parts['extension'])
+		{
+		  case "gz":
+		  exec(Config::getVar('cli', 'tar') . ' -xzf ' . escapeshellarg($targetFile) . ' -C ' . escapeshellarg($targetPath));
+		  case "xz":
+		  exec(Config::getVar('cli', 'tar') . ' -xJf ' . escapeshellarg($targetFile) . ' -C ' . escapeshellarg($targetPath));
+		}
 	}
-
 }
 
 ?>
