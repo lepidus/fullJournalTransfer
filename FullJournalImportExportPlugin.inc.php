@@ -308,9 +308,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin {
 	function tarFiles($targetPath, $targetFile, $sourceFiles) {
 		assert($this->_checkedForTar);
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN') {
-    	$tarCommand = Config::getVar('cli', 'tar') . ' -cJf ' . escapeshellarg($targetFile);
+    			$tarCommand = Config::getVar('cli', 'tar') . ' -cJf ' . escapeshellarg($targetFile);
 		} else {
-    	$tarCommand = Config::getVar('cli', 'tar') . ' -czf ' . escapeshellarg($targetFile);
+    			$tarCommand = Config::getVar('cli', 'tar') . ' -czf ' . escapeshellarg($targetFile);
 		}
 
 		// Transform original path into relative path.
