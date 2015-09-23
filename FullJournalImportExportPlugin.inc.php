@@ -188,13 +188,29 @@ class FullJournalImportExportPlugin extends ImportExportPlugin {
 		$exportFiles[$sitePublicPath] = "sitePublic";
 
 		// Package the files up as a single tar before going on.
+<<<<<<< HEAD
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN') {
+			$finalExportFileName = $tmpPath . $journal->getPath() . ".tar.xz";
+		} else {
+			$finalExportFileName = $tmpPath . $journal->getPath() . ".tar.gz";
+		}
+=======
 		$finalExportFileName = $tmpPath . $journal->getPath() . ".tar.xz";
+>>>>>>> origin/bettercompression
 		$this->tarFiles($tmpPath, $finalExportFileName, $exportFiles);
 
 		if (is_null($outputFile)) {
 			header('Content-Type: application/x-gtar');
 			header('Cache-Control: private');
+<<<<<<< HEAD
+			if (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN') {
+	    	header('Content-Disposition: attachment; filename="' . $journal->getPath() . '.tar.xz"');
+			} else {
+	    	header('Content-Disposition: attachment; filename="' . $journal->getPath() . '.tar.gz"');
+			}
+=======
 			header('Content-Disposition: attachment; filename="' . $journal->getPath() . '.tar.xz"');
+>>>>>>> origin/bettercompression
 			readfile($finalExportFileName);
 		} else {
 			$outputFileExtension = '.tar.xz';
@@ -308,9 +324,15 @@ class FullJournalImportExportPlugin extends ImportExportPlugin {
 	function tarFiles($targetPath, $targetFile, $sourceFiles) {
 		assert($this->_checkedForTar);
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN') {
+<<<<<<< HEAD
+    	$tarCommand = Config::getVar('cli', 'tar') . ' -cJf ' . escapeshellarg($targetFile);
+		} else {
+    	$tarCommand = Config::getVar('cli', 'tar') . ' -czf ' . escapeshellarg($targetFile);
+=======
     			$tarCommand = Config::getVar('cli', 'tar') . ' -cJf ' . escapeshellarg($targetFile);
 		} else {
     			$tarCommand = Config::getVar('cli', 'tar') . ' -czf ' . escapeshellarg($targetFile);
+>>>>>>> origin/bettercompression
 		}
 
 		// Transform original path into relative path.
