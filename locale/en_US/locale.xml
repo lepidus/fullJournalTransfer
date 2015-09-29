@@ -9,39 +9,35 @@
  -->
  
 <locale name="en_US" full_name="U.S. English">
-	<message key="plugins.importexport.fullJournal.displayName">Exportação de conteúdo revista</message>
-	<message key="plugins.importexport.fullJournal.description">Permite importar e exportar revistas.</message>
+	<message key="plugins.importexport.fullJournal.displayName">Full Journal Transfer</message>
+	<message key="plugins.importexport.fullJournal.description">Allows you to import and export journals.</message>
 
-	<message key="plugins.importexport.fullJournal.cliUsage"><![CDATA[Uso: {$scriptName} {$pluginName} [comando]
+	<message key="plugins.importexport.fullJournal.cliUsage">Usage: {$scriptName} {$pluginName} [command]
 
-Comandos:
+Commands:
 	import [tarFileName]
-	export [tarFileName] [journal_path]
+	export [tarFileName] [journal_path]</message>
+	<message key="plugins.importexport.fullJournal.import.success">Import Successful</message>
+	<message key="plugins.importexport.fullJournal.import.success.description">Journal has been imported successfully.</message>
 
-]]></message>
-	<message key="plugins.importexport.fullJournal.import.success">Importação bem sucedida</message>
-	<message key="plugins.importexport.fullJournal.import.success.description">Revista foi importada com sucesso.</message>
+	<message key="plugins.importexport.fullJournal.export">Export Journal</message>
+	<message key="plugins.importexport.fullJournal.import">Import Journal</message>
+	<message key="plugins.importexport.fullJournal.import.description">This plugin supports importing revised data for periodic transfer between sites.</message>
+	<message key="plugins.importexport.fullJournal.import.error">Import Error</message>
+	<message key="plugins.importexport.fullJournal.import.error.description">One or more errors occurred during the journal's import process. Make sure that the file is in the correct format. The details of the errors are listed below.</message>
+	<message key="plugins.importexport.fullJournal.import.error.invalidPackage">Invalid Package</message>
 
-	<message key="plugins.importexport.fullJournal.export">Exportar Revista</message>
-	<message key="plugins.importexport.fullJournal.exportJournal">Exportar</message>
-	<message key="plugins.importexport.fullJournal.import">Importar Revista</message>
-	<message key="plugins.importexport.fullJournal.import.description"><![CDATA[Este plugin suporta a importação de dados de revista para transferência de periódicos entre portais.]]></message>
-	<message key="plugins.importexport.fullJournal.import.error">Erro na importação</message>
-	<message key="plugins.importexport.fullJournal.import.error.description">Um ou mais erros ocorreram durante o processo de importação da revista. Certifique-se que o arquivo esteja no formato correto. O detalhamento dos erros está listado a seguir.</message>
-	<message key="plugins.importexport.fullJournal.import.error.invalidPackage">Arquivo inválido</message>
+	<message key="plugins.importexport.fullJournal.error.uploadFailed">Upload failed.</message>
 
-	<message key="plugins.importexport.fullJournal.cliError">ERRO:</message>
-	<message key="plugins.importexport.fullJournal.cliError.fileNotFound">Arquivo "{$tarFile}" não foi encontrado</message>
+	<message key="plugins.importexport.fullJournal.cliError">ERROR:</message>
+	<message key="plugins.importexport.fullJournal.cliError.fileNotFound">File "{$tarFile}" was not found</message>
 
-	<message key="plugins.importexport.fullJournal.error.unkownObject">Revista sendo importada faz referência a {$objectName} com código desconhecido (código {$id}).</message>
+	<message key="plugins.importexport.fullJournal.error.unknownJournal">Journal path "{$journalPath}" does not exist.</message>
+	<message key="plugins.importexport.fullJournal.export.error.couldNotWrite">Could not write to the file "{$fileName}".</message>
 
-	<message key="plugins.importexport.fullJournal.error.unknownJournal">Caminho da revista, "{$journalPath}", não existe.</message>
-	<message key="plugins.importexport.fullJournal.export.error.couldNotWrite">Não foi possível escrever no arquivo "{$fileName}".</message>
-	<message key="plugins.importexport.fullJournal.import.error.couldNotWriteFile">Não foi possivel salvar cópia de "{$originalName}".</message>
-
-	<message key="plugins.importexport.fullJournal.terms.article_file">Arquivo de um artigo</message>
-	<message key="plugins.importexport.fullJournal.terms.email_log">Log de mensagem de email</message>
-	<message key="plugins.importexport.fullJournal.terms.issue_file">Arquivo de uma edição</message>
-	<message key="plugins.importexport.fullJournal.terms.issue_galley">Documento publicado de uma edição</message>
+	<message key="plugins.importexport.fullJournal.terms.article_file">Article file</message>
+	<message key="plugins.importexport.fullJournal.terms.email_log">Email message log</message>
+	<message key="plugins.importexport.fullJournal.terms.issue_file">Issue file</message>
+	<message key="plugins.importexport.fullJournal.terms.issue_galley">Issue galley</message>
 
 </locale>
