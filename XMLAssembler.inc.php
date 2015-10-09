@@ -747,7 +747,7 @@ class XMLAssembler {
 						$writer->startElement('setting');
 						$this->writeAttribute($writer, 'name', $row['setting_name']);
 						$this->writeAttribute($writer, 'type', $row['setting_type']);
-						$writer->text($row['setting_value']);
+						$this->writeText($writer, $row['setting_value']);
 						$writer->endElement();
 						unset($row);
 						$events->MoveNext();
@@ -789,7 +789,7 @@ class XMLAssembler {
 		foreach ($data as $locale=>$data) {
 			$writer->startElement('title');
 			$this->writeAttribute($writer, 'locale', $locale);
-			$writer->text($locale);
+			$this->writeText($writer, $locale);
 			$writer->endElement();
 		}
 	}
@@ -807,7 +807,7 @@ class XMLAssembler {
 			$this->writeAttribute($writer, 'name', $row['setting_name']);
 			$this->writeAttribute($writer, 'type', $row['setting_type']);
 			$this->writeAttribute($writer, 'locale', $row['locale']);
-			$writer->text($row['setting_value']);
+			$this->writeText($writer, $row['setting_value']);
 			$writer->endElement();
 			unset($row);
 			$writer->flush();
@@ -835,7 +835,7 @@ class XMLAssembler {
 			$this->writeAttribute($writer, 'locale', $row['locale']);
 			$this->writeAttribute($writer, 'assocType', $row['assoc_type']);
 			$this->writeAttribute($writer, 'assocId', $row['assoc_id']);
-			$writer->text($row['setting_value']);
+			$this->writeText($writer, $row['setting_value']);
 			$writer->endElement();
 			unset($row);
 			$writer->flush();
@@ -874,6 +874,20 @@ class XMLAssembler {
 			$xmlWriter->writeAttribute($element, $value);
 		}
 	}
+
+	function writeText($xmlWriter, $value) {
+		if (!is_null($value)) {
+			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
+				$value = String::utf8_normalize($value);
+				$value = String::utf8_bad_strip($value);
+			} else if (!String::utf8_compliant($value)) {
+				$value = String::utf8_bad_strip($value);
+			}
+
+			$xmlWriter->text($value);
+		}
+	}
+
 
 
 }
