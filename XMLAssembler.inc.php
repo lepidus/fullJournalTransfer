@@ -517,10 +517,9 @@ class XMLAssembler {
 				unset($author);
 			}
 
-
 			$articleCommentDAO =& DAORegistry::getDAO('ArticleCommentDAO');
 			$articleComments = $articleCommentDAO->getArticleComments($article->getId());
-			foreach ($articleComments as $articleComment) {
+			foreach ($articleComments as $articleComment) { /* @var $articleComment ArticleComment */
 				$writer->startElement('articleComment');
 
 				$this->writeElement($writer, 'oldId', $articleComment->getId());
@@ -533,11 +532,11 @@ class XMLAssembler {
 				$this->writeElement($writer, 'datePosted', $articleComment->getDatePosted());
 				$this->writeElement($writer, 'dateModified', $articleComment->getDateModified());
 				$this->writeElement($writer, 'viewable', $articleComment->getViewable());
+				$this->writeElement($writer, 'assocId', $articleComment->getAssocId());
 
 				$writer->endElement();
 				unset($articleComment);
 			}
-
 
 			$articleGalleyDAO =& DAORegistry::getDAO('ArticleGalleyDAO');
 			$articleGalleys = $articleGalleyDAO->getGalleysByArticle($article->getId());

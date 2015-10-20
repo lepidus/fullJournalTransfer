@@ -17,6 +17,7 @@ DEFINE("INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG", 7);
 DEFINE("INTERNAL_TRANSFER_OBJECT_GROUP", 8);
 DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE_FILE", 9);
 DEFINE("INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY", 10);
+DEFINE("INTERNAL_TRANSFER_OBJECT_REVIEW", 11);
 
 class XMLDisassembler {
 	var $logger;
@@ -49,7 +50,8 @@ class XMLDisassembler {
 												__('plugins.importexport.fullJournal.terms.email_log') => INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG,
 												__('user.group') => INTERNAL_TRANSFER_OBJECT_GROUP,
 												__('plugins.importexport.fullJournal.terms.issue_file') => INTERNAL_TRANSFER_OBJECT_ISSUE_FILE,
-												__('plugins.importexport.fullJournal.terms.issue_galley') => INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY
+												__('plugins.importexport.fullJournal.terms.issue_galley') => INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY,
+												__('submission.review') => INTERNAL_TRANSFER_OBJECT_REVIEW
 											)
 										);
 		$this->publicFolderPath = $publicFolderPath;
@@ -680,24 +682,6 @@ class XMLDisassembler {
 				$this->restoreDataObjectSettings($suppFileDAO, $suppFileXML->settings, 'article_supp_file_settings', 'supp_id', $suppFile->getId());
 			}
 
-
-			$articleCommentDAO =& DAORegistry::getDAO('ArticleCommentDAO');
-			foreach ($articleXML->articleComment as $articleCommentXML) {
-				$articleComment = new ArticleComment();
-				$articleComment->setArticleId($article->getId());
-				$articleComment->setAssocId($article->getId());
-
-				$articleComment->setCommentType((int) $articleCommentXML->commentType);
-				$articleComment->setRoleId((int) $articleCommentXML->roleId);
-				$articleComment->setAuthorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$articleCommentXML->authorId));
-				$articleComment->setCommentTitle((string)$articleCommentXML->commentTitle);
-				$articleComment->setComments((string)$articleCommentXML->comments);
-				$articleComment->setDatePosted((string)$articleCommentXML->datePosted);
-				$articleComment->setDateModified((string)$articleCommentXML->dateModified);
-				$articleComment->setViewable((int)$articleCommentXML->viewable);
-				$articleCommentDAO->insertArticleComment($articleComment);
-			}
-
 			$articleGalleyDAO =& DAORegistry::getDAO('ArticleGalleyDAO');
 			foreach ($articleXML->articleGalley as $articleGalleyXML) {
 				$articleGalley = null;
@@ -795,6 +779,7 @@ class XMLDisassembler {
 				$reviewAssignment->setReviewMethod((int)$reviewAssignmentXML->reviewMethod);
 				$reviewAssignment->setUnconsidered((int)$reviewAssignmentXML->unconsidered);
 				$reviewAssignmentDAO->insertObject($reviewAssignment);
+				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW, (int)$reviewAssignmentXML->oldId, $reviewAssignment->getId());
 
 				foreach ($reviewAssignmentXML->formResponses->formResponse as $formResponseXML) {
 					$reviewFormResponseDAO->update(
@@ -810,6 +795,34 @@ class XMLDisassembler {
 						)
 					);
 				}
+			}
+
+			$articleCommentDAO =& DAORegistry::getDAO('ArticleCommentDAO');
+			foreach ($articleXML->articleComment as $articleCommentXML) {
+				$articleComment = new ArticleComment();
+				$articleComment->setArticleId($article->getId());
+				$articleComment->setCommentType((int) $articleCommentXML->commentType);
+
+				switch ($articleComment->getCommentType()) {
+					case COMMENT_TYPE_EDITOR_DECISION:
+					case COMMENT_TYPE_COPYEDIT:
+					case COMMENT_TYPE_LAYOUT:
+					case COMMENT_TYPE_PROOFREAD:
+						$articleComment->setAssocId($article->getId());
+						break;
+					case COMMENT_TYPE_PEER_REVIEW:
+						$articleComment->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW, (int) $articleCommentXML->assocId));
+						break;
+				}
+
+				$articleComment->setRoleId((int) $articleCommentXML->roleId);
+				$articleComment->setAuthorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$articleCommentXML->authorId));
+				$articleComment->setCommentTitle((string)$articleCommentXML->commentTitle);
+				$articleComment->setComments((string)$articleCommentXML->comments);
+				$articleComment->setDatePosted((string)$articleCommentXML->datePosted);
+				$articleComment->setDateModified((string)$articleCommentXML->dateModified);
+				$articleComment->setViewable((int)$articleCommentXML->viewable);
+				$articleCommentDAO->insertArticleComment($articleComment);
 			}
 
 			$signoffDAO =& DAORegistry::getDAO('SignoffDAO');
