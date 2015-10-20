@@ -603,6 +603,25 @@ class XMLAssembler {
 				unset($editAssignment);
 			}
 
+			$sectionEditorSubmissionDAO =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
+			$reviewRounds =& $sectionEditorSubmissionDAO->retrieveRange(
+				'SELECT DISTINCT r.* FROM	review_rounds r WHERE r.submission_id = ?',
+				array($article->getId()),
+				null
+			);
+
+			$writer->startElement('reviewRounds');
+			while (!$reviewRounds->EOF) {
+				$row = $reviewRounds->GetRowAssoc(false);
+				$writer->startElement('reviewRound');
+				$this->writeElement($writer, 'round', $row['round']);
+				$this->writeElement($writer, 'reviewRevision', $row['review_revision']);
+				$writer->endElement();
+
+				$reviewRounds->MoveNext();
+			}
+			$writer->endElement();
+
 			$reviewAssignmentsDAO =& DAORegistry::getDAO('ReviewAssignmentDAO');
 			$reviewFormResponseDAO =& DAORegistry::getDAO('ReviewFormResponseDAO');
 			$reviewAssignments = $reviewAssignmentsDAO->getReviewAssignmentsByArticleId($article->getId());

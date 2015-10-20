@@ -741,6 +741,11 @@ class XMLDisassembler {
 				$editAssignmentDAO->insertEditAssignment($editAssignment);
 			}
 
+			$sectionEditorSubmissionDAO =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
+			foreach ($articleXML->reviewRounds->reviewRound as $reviewRoundXML) {
+				$sectionEditorSubmissionDAO->createReviewRound($article->getId(), (int)$reviewRoundXML->round, (int)$reviewRoundXML->reviewRevision);
+			}
+
 			$reviewAssignmentDAO =& DAORegistry::getDAO('ReviewAssignmentDAO');
 			$reviewFormResponseDAO =& DAORegistry::getDAO('ReviewFormResponseDAO');
 			foreach ($articleXML->reviewAssignment as $reviewAssignmentXML) {
