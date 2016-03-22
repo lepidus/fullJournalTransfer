@@ -143,7 +143,7 @@ class XMLAssembler {
 		$result =& $userDAO->retrieveRange(
 			'SELECT DISTINCT u.*
 			FROM	users u
-				LEFT JOIN controlled_vocabs cv ON (cv.symbolic = "interest")
+				LEFT JOIN controlled_vocabs cv ON (cv.symbolic = \'interest\')
 				LEFT JOIN user_interests ui ON (ui.user_id = u.user_id)
 				LEFT JOIN controlled_vocab_entries cve ON (cve.controlled_vocab_id = cv.controlled_vocab_id AND ui.controlled_vocab_entry_id = cve.controlled_vocab_entry_id)
 				LEFT JOIN controlled_vocab_entry_settings cves ON (cves.controlled_vocab_entry_id = cve.controlled_vocab_entry_id)
