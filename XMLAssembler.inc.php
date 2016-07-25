@@ -87,6 +87,21 @@ class XMLAssembler {
 			$writer->flush();
 		}
 
+		$result = $announcementDAO->retrieveRange('SELECT * FROM announcements WHERE type_id is NULL or type_id=0 ORDER BY announcement_id ASC');
+		$announcements = new DAOResultFactory($result, $announcementDAO, '_returnAnnouncementFromRow');
+		while (!$announcements->eof()) {
+			$announcement =& $announcements->next();
+			$writer->startElement('announcement');
+
+			$this->writeElement($writer, 'oldId', $announcement->getId());
+			$this->writeElement($writer, 'dateExpire', $announcement->getDateExpire());
+			$this->writeElement($writer, 'datePosted', $announcement->getDatePosted());
+
+			$this->exportDataObjectSettings($announcementDAO, $writer, 'announcement_settings', 'announcement_id', $announcement->getId());
+			$writer->endElement();
+			$writer->flush();
+		}
+
 		$writer->endElement();
 		$writer->flush();
 	}

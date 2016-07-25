@@ -161,21 +161,36 @@ class XMLDisassembler {
 		$announcementDAO =& DAORegistry::getDAO('AnnouncementDAO');
 
 		$this->nextElement();
-		while($this->xml->name == 'announcementType') {
-			$announcementTypeXML = $this->getCurrentElementAsDom();
+		while($this->xml->name == 'announcementType' || $this->xml->name == 'announcement') {
+			$isAnnouncementType = $this->xml->name == 'announcementType';
 
-			$announcementType = new AnnouncementType();
-			$announcementType->setAssocType(ASSOC_TYPE_JOURNAL);
-			$announcementType->setAssocId($this->journal->getId());
-			$announcementTypeDAO->insertAnnouncementType($announcementType);
-			$this->restoreDataObjectSettings($announcementTypeDAO, $announcementTypeXML->settings, 'announcement_type_settings', 'type_id', $announcementType->getId());
+			if ($isAnnouncementType) {
+				$announcementTypeXML = $this->getCurrentElementAsDom();
 
-			foreach ($announcementTypeXML->announcement as $announcementXML) {
+				$announcementType = new AnnouncementType();
+				$announcementType->setAssocType(ASSOC_TYPE_JOURNAL);
+				$announcementType->setAssocId($this->journal->getId());
+				$announcementTypeDAO->insertAnnouncementType($announcementType);
+				$this->restoreDataObjectSettings($announcementTypeDAO, $announcementTypeXML->settings, 'announcement_type_settings', 'type_id', $announcementType->getId());
+
+				foreach ($announcementTypeXML->announcement as $announcementXML) {
+					$announcement = new Announcement();
+
+					$announcement->setAssocType(ASSOC_TYPE_JOURNAL);
+					$announcement->setAssocId($this->journal->getId());
+					$announcement->setTypeId($announcementType->getId());
+					$announcement->setDateExpire($this->getChildValueAsString($announcementXML, "dateExpire"));
+					$announcement->setDatePosted($this->getChildValueAsString($announcementXML, "datePosted"));
+					$announcementDAO->insertAnnouncement($announcement);
+
+					$this->restoreDataObjectSettings($announcementDAO, $announcementXML->settings, 'announcement_settings', 'announcement_id', $announcement->getId());
+				}
+			} else {
+				$announcementXML = $this->getCurrentElementAsDom();
 				$announcement = new Announcement();
 
 				$announcement->setAssocType(ASSOC_TYPE_JOURNAL);
 				$announcement->setAssocId($this->journal->getId());
-				$announcement->setTypeId($announcementType->getId());
 				$announcement->setDateExpire($this->getChildValueAsString($announcementXML, "dateExpire"));
 				$announcement->setDatePosted($this->getChildValueAsString($announcementXML, "datePosted"));
 				$announcementDAO->insertAnnouncement($announcement);
