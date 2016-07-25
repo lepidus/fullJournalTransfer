@@ -116,9 +116,9 @@ class XMLDisassembler {
 		$journalDao =& DAORegistry::getDAO("JournalDAO");
 		$journal = new Journal();
 
-		$journal->setPath((string)$journalConfigXML->path);
-		$journal->setEnabled((int)$journalConfigXML->enabled);
-		$journal->setPrimaryLocale((string)$journalConfigXML->primaryLocale);
+		$journal->setPath($this->getChildValueAsString($journalConfigXML, "path"));
+		$journal->setEnabled($this->getChildValueAsInt($journalConfigXML, "enabled"));
+		$journal->setPrimaryLocale($this->getChildValueAsString($journalConfigXML, "primaryLocale"));
 		$this->generateJournalPath($journal);
 		$journalId = $journalDao->insertJournal($journal);
 		$journalDao->resequenceJournals();
@@ -176,8 +176,8 @@ class XMLDisassembler {
 				$announcement->setAssocType(ASSOC_TYPE_JOURNAL);
 				$announcement->setAssocId($this->journal->getId());
 				$announcement->setTypeId($announcementType->getId());
-				$announcement->setDateExpire((string) $announcementXML->dateExpire);
-				$announcement->setDatePosted((string) $announcementXML->datePosted);
+				$announcement->setDateExpire($this->getChildValueAsString($announcementXML, "dateExpire"));
+				$announcement->setDatePosted($this->getChildValueAsString($announcementXML, "datePosted"));
 				$announcementDAO->insertAnnouncement($announcement);
 
 				$this->restoreDataObjectSettings($announcementDAO, $announcementXML->settings, 'announcement_settings', 'announcement_id', $announcement->getId());
@@ -198,22 +198,22 @@ class XMLDisassembler {
 			$reviewFormXML = $this->getCurrentElementAsDom();
 
 			$reviewForm = new ReviewForm();
-			$reviewForm->setSequence((int)$reviewFormXML->sequence);
-			$reviewForm->setActive((int)$reviewFormXML->active);
+			$reviewForm->setSequence($this->getChildValueAsInt($reviewFormXML, "sequence"));
+			$reviewForm->setActive($this->getChildValueAsInt($reviewFormXML, "active"));
 			$reviewForm->setAssocType(ASSOC_TYPE_JOURNAL);
 			$reviewForm->setAssocId($this->journal->getId());
 			$reviewFormDao->insertObject($reviewForm);
-			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, (int)$reviewFormXML->oldId, $reviewForm->getId());
+			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, $this->getChildValueAsInt($reviewFormXML, "oldId"), $reviewForm->getId());
 
 			foreach ($reviewFormXML->reviewElement as $reviewElementXML) {
 				$reviewFormElement = new ReviewFormElement();
 				$reviewFormElement->setReviewFormId($reviewForm->getId());
-				$reviewFormElement->setSequence((int)$reviewElementXML->sequence);
-				$reviewFormElement->setElementType((int)$reviewElementXML->elementType);
-				$reviewFormElement->setRequired((int)$reviewElementXML->required);
-				$reviewFormElement->setIncluded((int)$reviewElementXML->included);
+				$reviewFormElement->setSequence($this->getChildValueAsInt($reviewElementXML, "sequence"));
+				$reviewFormElement->setElementType($this->getChildValueAsInt($reviewElementXML, "elementType"));
+				$reviewFormElement->setRequired($this->getChildValueAsInt($reviewElementXML, "required"));
+				$reviewFormElement->setIncluded($this->getChildValueAsInt($reviewElementXML, "included"));
 				$reviewFormElementDao->insertObject($reviewFormElement);
-				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT, (int)$reviewElementXML->oldId, $reviewFormElement->getId());
+				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT, $this->getChildValueAsInt($reviewElementXML, "oldId"), $reviewFormElement->getId());
 
 				$this->restoreDataObjectSettings($reviewFormElementDao, $reviewElementXML->settings, 'review_form_element_settings', 'review_form_element_id', $reviewFormElement->getId());
 			}
@@ -239,8 +239,8 @@ class XMLDisassembler {
 		while($this->xml->name == 'user') {
 			$userXML = $this->getCurrentElementAsDom();
 
-			$username = (string)$userXML->username;
-			$email = (string)$userXML->email;
+			$username = $this->getChildValueAsString($userXML, "username");
+			$email = $this->getChildValueAsString($userXML, "email");
 
 			$userByEmail = $userDAO->getUserByEmail($email);
 
@@ -249,40 +249,40 @@ class XMLDisassembler {
 				$user = $userByEmail;
 			} else {
 				$user = new User();
-				$user->setUsername((string)$userXML->username);
-				$user->setPassword((string)$userXML->password);
-				$user->setSalutation((string)$userXML->salutation);
-				$user->setFirstName((string)$userXML->firstName);
-				$user->setMiddleName((string)$userXML->middleName);
-				$user->setInitials((string)$userXML->initials);
-				$user->setLastName((string)$userXML->lastName);
-				$user->setSuffix((string)$userXML->suffix);
-				$user->setGender((string)$userXML->gender);
-				$user->setEmail((string)$userXML->email);
-				$user->setUrl((string)$userXML->url);
-				$user->setPhone((string)$userXML->phone);
-				$user->setFax((string)$userXML->fax);
-				$user->setMailingAddress((string)$userXML->mailingAddress);
-				$user->setBillingAddress((string)$userXML->billingAddress);
-				$user->setCountry((string)$userXML->country);
+				$user->setUsername($this->getChildValueAsString($userXML, "username"));
+				$user->setPassword($this->getChildValueAsString($userXML, "password"));
+				$user->setSalutation($this->getChildValueAsString($userXML, "salutation"));
+				$user->setFirstName($this->getChildValueAsString($userXML, "firstName"));
+				$user->setMiddleName($this->getChildValueAsString($userXML, "middleName"));
+				$user->setInitials($this->getChildValueAsString($userXML, "initials"));
+				$user->setLastName($this->getChildValueAsString($userXML, "lastName"));
+				$user->setSuffix($this->getChildValueAsString($userXML, "suffix"));
+				$user->setGender($this->getChildValueAsString($userXML, "gender"));
+				$user->setEmail($this->getChildValueAsString($userXML, "email"));
+				$user->setUrl($this->getChildValueAsString($userXML, "url"));
+				$user->setPhone($this->getChildValueAsString($userXML, "phone"));
+				$user->setFax($this->getChildValueAsString($userXML, "fax"));
+				$user->setMailingAddress($this->getChildValueAsString($userXML, "mailingAddress"));
+				$user->setBillingAddress($this->getChildValueAsString($userXML, "billingAddress"));
+				$user->setCountry($this->getChildValueAsString($userXML, "country"));
 			
 				$locales = array();
-				foreach (explode(':', (string)$userXML->locales) as $locale) {
+				foreach (explode(':', $this->getChildValueAsString($userXML, "locales")) as $locale) {
 					if (AppLocale::isLocaleValid($locale) && in_array($locale, $siteSupportedLocales)) {
 						array_push($locales, $locale);
 					}
 				}
 				$user->setLocales($locales);
-				$user->setDateLastEmail((string)$userXML->dateLastEmail);
-				$user->setDateRegistered((string)$userXML->dateRegistered);
-				$user->setDateValidated((string)$userXML->dateValidated);
-				$user->setDateLastLogin((string)$userXML->dateLastLogin);
-				$user->setMustChangePassword((int)$userXML->mustChangePassword);
-				$user->setDisabled((int)$userXML->disabled);
-				$user->setDisabledReason((string)$userXML->disabledReason);
-				$user->setAuthId((int)$userXML->authId);
-				$user->setAuthStr((string)$userXML->authStr);
-				$user->setInlineHelp((int)$userXML->inlineHelp);
+				$user->setDateLastEmail($this->getChildValueAsString($userXML, "dateLastEmail"));
+				$user->setDateRegistered($this->getChildValueAsString($userXML, "dateRegistered"));
+				$user->setDateValidated($this->getChildValueAsString($userXML, "dateValidated"));
+				$user->setDateLastLogin($this->getChildValueAsString($userXML, "dateLastLogin"));
+				$user->setMustChangePassword($this->getChildValueAsInt($userXML, "mustChangePassword"));
+				$user->setDisabled($this->getChildValueAsInt($userXML, "disabled"));
+				$user->setDisabledReason($this->getChildValueAsString($userXML, "disabledReason"));
+				$user->setAuthId($this->getChildValueAsInt($userXML, "authId"));
+				$user->setAuthStr($this->getChildValueAsString($userXML, "authStr"));
+				$user->setInlineHelp($this->getChildValueAsInt($userXML, "inlineHelp"));
 
 				$this->generateUsername($user);
 
@@ -310,7 +310,7 @@ class XMLDisassembler {
 				$interestManager->setInterestsForUser($user, $interests);
 			}
 
-			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_USER, (int)$userXML->oldId, $user->getId());
+			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($userXML, "oldId"), $user->getId());
 
 			foreach ($userXML->role as $roleXML) {
 				$role = new Role();
@@ -345,9 +345,9 @@ class XMLDisassembler {
 			foreach ($groupXML->groupMembership as $groupMembershipXML) {
 				$groupMembership = new GroupMembership();
 				$groupMembership->setGroupId($group->getId());
-				$groupMembership->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$groupMembershipXML->userId));
-				$groupMembership->setSequence((int)$groupMembershipXML->sequence);
-				$groupMembership->setAboutDisplayed((int)$groupMembershipXML->aboutDisplayed);
+				$groupMembership->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($groupMembershipXML, "userId")));
+				$groupMembership->setSequence($this->getChildValueAsInt($groupMembershipXML, "sequence"));
+				$groupMembership->setAboutDisplayed($this->getChildValueAsInt($groupMembershipXML, "aboutDisplayed"));
 				$groupMembershipDao->insertMembership($groupMembership);
 			}
 			$this->restoreDataObjectSettings($groupDao, $groupXML->settings, 'group_settings', 'group_id', $group->getId());
@@ -368,26 +368,26 @@ class XMLDisassembler {
 
 			$section = new Section();
 			$section->setJournalId($this->journal->getId());
-			$section->setReviewFormId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, (int)$sectionXML->reviewFormId));
-			$section->setSequence((int)$sectionXML->sequence);
-			$section->setMetaIndexed((string)$sectionXML->metaIndexed);
-			$section->setMetaReviewed((string)$sectionXML->metaReviewed);
-			$section->setAbstractsNotRequired((int)$sectionXML->abstractsNotRequired);
-			$section->setEditorRestricted((int)$sectionXML->editorRestricted);
-			$section->setHideTitle((int)$sectionXML->hideTitle);
-			$section->setHideAuthor((int)$sectionXML->hideAuthor);
-			$section->setHideAbout((int)$sectionXML->hideAbout);
-			$section->setDisableComments((int)$sectionXML->disableComments);
-			$section->setAbstractWordCount((int)$sectionXML->wordCount);
+			$section->setReviewFormId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, $this->getChildValueAsInt($sectionXML, "reviewFormId")));
+			$section->setSequence($this->getChildValueAsInt($sectionXML, "sequence"));
+			$section->setMetaIndexed($this->getChildValueAsString($sectionXML, "metaIndexed"));
+			$section->setMetaReviewed($this->getChildValueAsString($sectionXML, "metaReviewed"));
+			$section->setAbstractsNotRequired($this->getChildValueAsInt($sectionXML, "abstractsNotRequired"));
+			$section->setEditorRestricted($this->getChildValueAsInt($sectionXML, "editorRestricted"));
+			$section->setHideTitle($this->getChildValueAsInt($sectionXML, "hideTitle"));
+			$section->setHideAuthor($this->getChildValueAsInt($sectionXML, "hideAuthor"));
+			$section->setHideAbout($this->getChildValueAsInt($sectionXML, "hideAbout"));
+			$section->setDisableComments($this->getChildValueAsInt($sectionXML, "disableComments"));
+			$section->setAbstractWordCount($this->getChildValueAsInt($sectionXML, "wordCount"));
 			$sectionDAO->insertSection($section);
 
-			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_SECTION, (int)$sectionXML->oldId, $section->getId());
+			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_SECTION, $this->getChildValueAsInt($sectionXML, "oldId"), $section->getId());
 			$this->restoreDataObjectSettings($sectionDAO, $sectionXML->settings, 'section_settings', 'section_id', $section->getId());
 
 			foreach ($sectionXML->sectionEditor as $sectionEditorXML) {
-				$userId = $this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$sectionEditorXML->userId);
-				$canReview = (int)$sectionEditorXML->canReview;
-				$canEdit = (int)$sectionEditorXML->canEdit;
+				$userId = $this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($sectionEditorXML, "userId"));
+				$canReview = $this->getChildValueAsInt($sectionEditorXML, "canReview");
+				$canEdit = $this->getChildValueAsInt($sectionEditorXML, "canEdit");
 				$sectionEditorsDAO->insertEditor($this->journal->getId(), $section->getId(), $userId, $canReview, $canEdit);
 			}
 			$this->nextElement();
@@ -411,27 +411,27 @@ class XMLDisassembler {
 
 			$issue = new Issue();
 			$issue->setJournalId($this->journal->getId());
-			$issue->setVolume((int)$issueXML->volume);
-			$issue->setNumber((string)$issueXML->number);
-			$issue->setYear((int)$issueXML->year);
-			$issue->setPublished((int)$issueXML->published);
-			$issue->setCurrent((int)$issueXML->current);
-			$issue->setDatePublished((string)$issueXML->datePublished);
-			$issue->setDateNotified((string)$issueXML->dateNotified);
-			$issue->setLastModified((string)$issueXML->lastModified);
-			$issue->setAccessStatus((int)$issueXML->accessStatus);
-			$issue->setOpenAccessDate((string)$issueXML->openAccessDate);
-			$issue->setShowVolume((int)$issueXML->showVolume);
-			$issue->setShowNumber((int)$issueXML->showNumber);
-			$issue->setShowYear((int)$issueXML->showYear);
-			$issue->setShowTitle((int)$issueXML->showTitle);
-			$issue->setStyleFileName((string)$issueXML->styleFileName);
-			$issue->setOriginalStyleFileName((string)$issueXML->originalStyleFileName);
+			$issue->setVolume($this->getChildValueAsInt($issueXML, "volume"));
+			$issue->setNumber($this->getChildValueAsString($issueXML, "number"));
+			$issue->setYear($this->getChildValueAsInt($issueXML, "year"));
+			$issue->setPublished($this->getChildValueAsInt($issueXML, "published"));
+			$issue->setCurrent($this->getChildValueAsInt($issueXML, "current"));
+			$issue->setDatePublished($this->getChildValueAsString($issueXML, "datePublished"));
+			$issue->setDateNotified($this->getChildValueAsString($issueXML, "dateNotified"));
+			$issue->setLastModified($this->getChildValueAsString($issueXML, "lastModified"));
+			$issue->setAccessStatus($this->getChildValueAsInt($issueXML, "accessStatus"));
+			$issue->setOpenAccessDate($this->getChildValueAsString($issueXML, "openAccessDate"));
+			$issue->setShowVolume($this->getChildValueAsInt($issueXML, "showVolume"));
+			$issue->setShowNumber($this->getChildValueAsInt($issueXML, "showNumber"));
+			$issue->setShowYear($this->getChildValueAsInt($issueXML, "showYear"));
+			$issue->setShowTitle($this->getChildValueAsInt($issueXML, "showTitle"));
+			$issue->setStyleFileName($this->getChildValueAsString($issueXML, "styleFileName"));
+			$issue->setOriginalStyleFileName($this->getChildValueAsString($issueXML, "originalStyleFileName"));
 			
-			$oldIssueId = (int)$issueXML->oldId;
+			$oldIssueId = $this->getChildValueAsInt($issueXML, "oldId");
 
 			$issueDAO->insertIssue($issue);
-			//$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), (int)$issueXML->customOrder);
+			//$issueDAO->insertCustomIssueOrder($this->journal->getId(), $issue->getId(), $this->getChildValueAsInt($issueXML, "customOrder"));
 			$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE, $oldIssueId, $issue->getId());
 			$this->restoreDataObjectSettings($issueDAO, $issueXML->settings, 'issue_settings', 'issue_id', $issue->getId());
 
@@ -466,13 +466,13 @@ class XMLDisassembler {
 				$issueFile = new IssueFile();
 				
 				$issueFile->setIssueId($issue->getId());
-				$issueFile->setFileName((string)$issueFileXML->fileName);
-				$issueFile->setFileType((string)$issueFileXML->fileType);
-				$issueFile->setFileSize((int)$issueFileXML->fileSize);
-				$issueFile->setContentType((string)$issueFileXML->contentType);
-				$issueFile->setOriginalFileName((string)$issueFileXML->originalFileName);
-				$issueFile->setDateUploaded((string)$issueFileXML->dateUploaded);
-				$issueFile->setDateModified((string)$issueFileXML->dateModified);
+				$issueFile->setFileName($this->getChildValueAsString($issueFileXML, "fileName"));
+				$issueFile->setFileType($this->getChildValueAsString($issueFileXML, "fileType"));
+				$issueFile->setFileSize($this->getChildValueAsInt($issueFileXML, "fileSize"));
+				$issueFile->setContentType($this->getChildValueAsString($issueFileXML, "contentType"));
+				$issueFile->setOriginalFileName($this->getChildValueAsString($issueFileXML, "originalFileName"));
+				$issueFile->setDateUploaded($this->getChildValueAsString($issueFileXML, "dateUploaded"));
+				$issueFile->setDateModified($this->getChildValueAsString($issueFileXML, "dateModified"));
 
 				$issueFileDAO->insertIssueFile($issueFile);
 
@@ -490,20 +490,20 @@ class XMLDisassembler {
 
 				$issueFile->setFileName($newFileName);
 				$issueFileDAO->updateIssueFile($issueFile);
-				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE_FILE, (int)$issueFileXML->oldId, $issueFile->getId());
+				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE_FILE, $this->getChildValueAsInt($issueFileXML, "oldId"), $issueFile->getId());
 			}
 
 			foreach ($issueXML->issueGalley as $issueGalleyXML) {
 				$issueGalley = new issueGalley();
 
 				$issueGalley->setIssueId($issue->getId());
-				$issueGalley->setLocale((string)$issueGalleyXML->locale);
-				$issueGalley->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ISSUE_FILE, (int)$issueGalleyXML->fileId));
-				$issueGalley->setLabel((string)$issueGalleyXML->label);
-				$issueGalley->setSequence((int)$issueGalleyXML->sequence);
+				$issueGalley->setLocale($this->getChildValueAsString($issueGalleyXML, "locale"));
+				$issueGalley->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ISSUE_FILE, $this->getChildValueAsInt($issueGalleyXML, "fileId")));
+				$issueGalley->setLabel($this->getChildValueAsString($issueGalleyXML, "label"));
+				$issueGalley->setSequence($this->getChildValueAsInt($issueGalleyXML, "sequence"));
 
 				$issueGalleyDAO->insertGalley($issueGalley);
-				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY, (int)$issueGalleyXML->oldId, $issueGalley->getId());
+				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ISSUE_GALLEY, $this->getChildValueAsInt($issueGalleyXML, "oldId"), $issueGalley->getId());
 				$this->restoreDataObjectSettings($issueGalleyDAO, $issueGalleyXML->settings, 'issue_galley_settings', 'galley_id', $issueGalley->getId());
 			}
 
@@ -540,23 +540,23 @@ class XMLDisassembler {
 			$article->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int) $articleXML->userId));
 			$article->setSectionId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_SECTION, (int) $articleXML->sectionId));
 			
-			$article->setLocale((string) $articleXML->locale);
-			$article->setLanguage((string) $articleXML->language);
-			$article->setCommentsToEditor((string) $articleXML->commentsToEditor);
-			$article->setCitations((string) $articleXML->citations);
-			$article->setDateSubmitted((string) $articleXML->dateSubmitted);
-			$article->setDateStatusModified((string) $articleXML->dateStatusModified);
-			$article->setLastModified((string) $articleXML->lastModified);
+			$article->setLocale($this->getChildValueAsString($articleXML, "locale"));
+			$article->setLanguage($this->getChildValueAsString($articleXML, "language"));
+			$article->setCommentsToEditor($this->getChildValueAsString($articleXML, "commentsToEditor"));
+			$article->setCitations($this->getChildValueAsString($articleXML, "citations"));
+			$article->setDateSubmitted($this->getChildValueAsString($articleXML, "dateSubmitted"));
+			$article->setDateStatusModified($this->getChildValueAsString($articleXML, "dateStatusModified"));
+			$article->setLastModified($this->getChildValueAsString($articleXML, "lastModified"));
 			$article->setStatus((int) $articleXML->status);
 			$article->setSubmissionProgress((int) $articleXML->submissionProgress);
 			$article->setCurrentRound((int) $articleXML->currentRound);
-			$article->setPages((string) $articleXML->pages);
+			$article->setPages($this->getChildValueAsString($articleXML, "pages"));
 			$article->setFastTracked((int) $articleXML->fastTracked);
 			$article->setHideAuthor((int) $articleXML->hideAuthor);
 			$article->setCommentsStatus((int) $articleXML->commentsStatus);
 			$articleDAO->insertArticle($article);
 
-			$oldArticleId = (int)$articleXML->oldId;
+			$oldArticleId = $this->getChildValueAsInt($articleXML, "oldId");
 			$this->restoreDataObjectSettings($articleDAO, $articleXML->settings, 'article_settings', 'article_id', $article->getId());
 
 			$article =& $articleDAO->getArticle($article->getId()); // Reload article with restored settings
@@ -580,16 +580,16 @@ class XMLDisassembler {
 				$author = new Author();
 
 				$author->setArticleId($article->getId());
-				$author->setFirstName((string) $authorXML->firstName);
-				$author->setMiddleName((string) $authorXML->middleName);
-				$author->setLastName((string) $authorXML->lastName);
-				$author->setSuffix((string) $authorXML->suffix);
-				$author->setCountry((string) $authorXML->country);
-				$author->setEmail((string) $authorXML->email);
-				$author->setUrl((string) $authorXML->url);
-				$author->setUserGroupId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_GROUP, (int)$authorXML->userGroupId));
-				$author->setPrimaryContact((int) $authorXML->primaryContact);
-				$author->setSequence((int) $authorXML->sequence);
+				$author->setFirstName($this->getChildValueAsString($authorXML, "firstName"));
+				$author->setMiddleName($this->getChildValueAsString($authorXML, "middleName"));
+				$author->setLastName($this->getChildValueAsString($authorXML, "lastName"));
+				$author->setSuffix($this->getChildValueAsString($authorXML, "suffix"));
+				$author->setCountry($this->getChildValueAsString($authorXML, "country"));
+				$author->setEmail($this->getChildValueAsString($authorXML, "email"));
+				$author->setUrl($this->getChildValueAsString($authorXML, "url"));
+				$author->setUserGroupId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_GROUP, $this->getChildValueAsInt($authorXML, "userGroupId")));
+				$author->setPrimaryContact($this->getChildValueAsInt($authorXML, "primaryContact"));
+				$author->setSequence($this->getChildValueAsInt($authorXML, "sequence"));
 				$authorDAO->insertAuthor($author);
 
 				$this->restoreDataObjectSettings($authorDAO, $authorXML->settings, 'author_settings', 'author_id', $author->getId());
@@ -605,18 +605,18 @@ class XMLDisassembler {
 				$emailLog = new ArticleEmailLogEntry();
 				$emailLog->setAssocType(ASSOC_TYPE_ARTICLE);
 				$emailLog->setAssocId($article->getId());
-				$emailLog->setSenderId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$emailLogXML->senderId));
-				$emailLog->setDateSent((string)$emailLogXML->dateSent);
-				$emailLog->setIPAddress((string)$emailLogXML->IPAddress);
-				$emailLog->setEventType((int)$emailLogXML->eventType);
-				$emailLog->setFrom((string)$emailLogXML->from);
-				$emailLog->setRecipients((string)$emailLogXML->recipients);
-				$emailLog->setCcs((string)$emailLogXML->ccs);
-				$emailLog->setBccs((string)$emailLogXML->bccs);
-				$emailLog->setSubject((string)$emailLogXML->subject);
-				$emailLog->setBody((string)$emailLogXML->body);
+				$emailLog->setSenderId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($emailLogXML, "senderId")));
+				$emailLog->setDateSent($this->getChildValueAsString($emailLogXML, "dateSent"));
+				$emailLog->setIPAddress($this->getChildValueAsString($emailLogXML, "IPAddress"));
+				$emailLog->setEventType($this->getChildValueAsInt($emailLogXML, "eventType"));
+				$emailLog->setFrom($this->getChildValueAsString($emailLogXML, "from"));
+				$emailLog->setRecipients($this->getChildValueAsString($emailLogXML, "recipients"));
+				$emailLog->setCcs($this->getChildValueAsString($emailLogXML, "ccs"));
+				$emailLog->setBccs($this->getChildValueAsString($emailLogXML, "bccs"));
+				$emailLog->setSubject($this->getChildValueAsString($emailLogXML, "subject"));
+				$emailLog->setBody($this->getChildValueAsString($emailLogXML, "body"));
 				$articleEmailLogDAO->insertObject($emailLog);
-				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG, (int)$emailLogXML->oldId, $emailLog->getId());
+				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG, $this->getChildValueAsInt($emailLogXML, "oldId"), $emailLog->getId());
 			}
 
 			$articleFileDAO =& DAORegistry::getDAO('ArticleFileDAO');
@@ -624,22 +624,22 @@ class XMLDisassembler {
 				try {
 					$articleFile = new ArticleFile();
 					$articleFile->setArticleId($article->getId());
-					$articleFile->setSourceFileId((int) $articleFileXML->sourceFileId);
-					$articleFile->setSourceRevision((int) $articleFileXML->sourceRevision);
-					$articleFile->setRevision((int) $articleFileXML->revision);
-					$articleFile->setFileName((string) $articleFileXML->fileName);
-					$articleFile->setFileType((string) $articleFileXML->fileType);
-					$articleFile->setFileSize((string) $articleFileXML->fileSize);
-					$articleFile->setOriginalFileName((string) $articleFileXML->originalFileName);
-					$articleFile->setFileStage((int) $articleFileXML->fileStage);
-					$articleFile->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG, (int) $articleFileXML->assocId));
-					$articleFile->setDateUploaded((string) $articleFileXML->dateUploaded);
-					$articleFile->setDateModified((string) $articleFileXML->dateModified);
-					$articleFile->setRound((int) $articleFileXML->round);
-					$articleFile->setViewable((int) $articleFileXML->viewable);
+					$articleFile->setSourceFileId($this->getChildValueAsInt($articleFileXML, "sourceFileId"));
+					$articleFile->setSourceRevision($this->getChildValueAsInt($articleFileXML, "sourceRevision"));
+					$articleFile->setRevision($this->getChildValueAsInt($articleFileXML, "revision"));
+					$articleFile->setFileName($this->getChildValueAsString($articleFileXML, "fileName"));
+					$articleFile->setFileType($this->getChildValueAsString($articleFileXML, "fileType"));
+					$articleFile->setFileSize($this->getChildValueAsString($articleFileXML, "fileSize"));
+					$articleFile->setOriginalFileName($this->getChildValueAsString($articleFileXML, "originalFileName"));
+					$articleFile->setFileStage($this->getChildValueAsInt($articleFileXML, "fileStage"));
+					$articleFile->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_EMAIL_LOG, $this->getChildValueAsInt($articleFileXML, "assocId")));
+					$articleFile->setDateUploaded($this->getChildValueAsString($articleFileXML, "dateUploaded"));
+					$articleFile->setDateModified($this->getChildValueAsString($articleFileXML, "dateModified"));
+					$articleFile->setRound($this->getChildValueAsInt($articleFileXML, "round"));
+					$articleFile->setViewable($this->getChildValueAsInt($articleFileXML, "viewable"));
 					$articleFileDAO->insertArticleFile($articleFile);
 
-					$oldArticleFileId = (int)$articleFileXML->oldId;
+					$oldArticleFileId = $this->getChildValueAsInt($articleFileXML, "oldId");
 
 					$oldFileName = $articleFile->getFileName();
 					$stagePath = $articleFileManager->fileStageToPath($articleFile->getFileStage());
@@ -669,14 +669,14 @@ class XMLDisassembler {
 			foreach ($articleXML->suppFile as $suppFileXML) {
 				$suppFile =& new SuppFile();
 				$suppFile->setArticleId($article->getId());
-				$suppFile->setRemoteURL((string) $suppFileXML->remoteURL);
-				$suppFile->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int) $suppFileXML->fileId));
-				$suppFile->setType((string) $suppFileXML->type);
-				$suppFile->setDateCreated((string) $suppFileXML->dateCreated);
-				$suppFile->setLanguage((string) $suppFileXML->language);
-				$suppFile->setShowReviewers((int) $suppFileXML->showReviewers);
-				$suppFile->setDateSubmitted((string) $suppFileXML->dateSubmitted);
-				$suppFile->setSequence((int) $suppFileXML->sequence);
+				$suppFile->setRemoteURL($this->getChildValueAsString($suppFileXML, "remoteURL"));
+				$suppFile->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($suppFileXML, "fileId")));
+				$suppFile->setType($this->getChildValueAsString($suppFileXML, "type"));
+				$suppFile->setDateCreated($this->getChildValueAsString($suppFileXML, "dateCreated"));
+				$suppFile->setLanguage($this->getChildValueAsString($suppFileXML, "language"));
+				$suppFile->setShowReviewers($this->getChildValueAsInt($suppFileXML, "showReviewers"));
+				$suppFile->setDateSubmitted($this->getChildValueAsString($suppFileXML, "dateSubmitted"));
+				$suppFile->setSequence($this->getChildValueAsInt($suppFileXML, "sequence"));
 				$suppFileDAO->insertSuppFile($suppFile);
 
 				$this->restoreDataObjectSettings($suppFileDAO, $suppFileXML->settings, 'article_supp_file_settings', 'supp_id', $suppFile->getId());
@@ -692,13 +692,13 @@ class XMLDisassembler {
 				}
 
 				$articleGalley->setArticleId($article->getId());
-				$articleGalley->setLocale((string)$articleGalleyXML->locale);
-				$articleGalley->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleGalleyXML->fileId));
-				$articleGalley->setLabel((string)$articleGalleyXML->label);
-				$articleGalley->setSequence((int)$articleGalleyXML->sequence);
-				$articleGalley->setRemoteURL((string)$articleGalleyXML->remoteURL);
+				$articleGalley->setLocale($this->getChildValueAsString($articleGalleyXML, "locale"));
+				$articleGalley->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleGalleyXML, "fileId")));
+				$articleGalley->setLabel($this->getChildValueAsString($articleGalleyXML, "label"));
+				$articleGalley->setSequence($this->getChildValueAsInt($articleGalleyXML, "sequence"));
+				$articleGalley->setRemoteURL($this->getChildValueAsString($articleGalleyXML, "remoteURL"));
 				if ($articleGalley instanceof ArticleHTMLGalley) {
-					$articleGalley->setStyleFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleGalleyXML->styleFileId));
+					$articleGalley->setStyleFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleGalleyXML, "styleFileId")));
 				}
 				$articleGalleyDAO->insertGalley($articleGalley);
 
@@ -714,16 +714,16 @@ class XMLDisassembler {
 			$noteDAO =& DAORegistry::getDAO('NoteDAO');
 			foreach ($articleXML->articleNote as $articleNoteXML) {
 				$articleNote = new Note();
-				$articleNote->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$articleNoteXML->userId));
-				$articleNote->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleNoteXML->fileId));
+				$articleNote->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($articleNoteXML, "userId")));
+				$articleNote->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleNoteXML, "fileId")));
 
 				$articleNote->setAssocType(ASSOC_TYPE_ARTICLE);
 				$articleNote->setAssocId($article->getId());
 
-				$articleNote->setDateCreated((string)$articleNoteXML->dateCreated);
-				$articleNote->setDateModified((string)$articleNoteXML->dateModified);
-				$articleNote->setContents((string)$articleNoteXML->contents);
-				$articleNote->setTitle((string)$articleNoteXML->title);
+				$articleNote->setDateCreated($this->getChildValueAsString($articleNoteXML, "dateCreated"));
+				$articleNote->setDateModified($this->getChildValueAsString($articleNoteXML, "dateModified"));
+				$articleNote->setContents($this->getChildValueAsString($articleNoteXML, "contents"));
+				$articleNote->setTitle($this->getChildValueAsString($articleNoteXML, "title"));
 				$noteDAO->insertObject($articleNote);
 			}
 
@@ -732,18 +732,18 @@ class XMLDisassembler {
 				$editAssignment = new EditAssignment();
 				$editAssignment->setArticleId($article->getId());
 	
-				$editAssignment->setEditorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$editAssignmentXML->editorId));
-				$editAssignment->setCanReview((int)$editAssignmentXML->canReview);
-				$editAssignment->setCanEdit((int)$editAssignmentXML->canEdit);
-				$editAssignment->setDateUnderway((string)$editAssignmentXML->dateUnderway);
-				$editAssignment->setDateNotified((string)$editAssignmentXML->dateNotified);
+				$editAssignment->setEditorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($editAssignmentXML, "editorId")));
+				$editAssignment->setCanReview($this->getChildValueAsInt($editAssignmentXML, "canReview"));
+				$editAssignment->setCanEdit($this->getChildValueAsInt($editAssignmentXML, "canEdit"));
+				$editAssignment->setDateUnderway($this->getChildValueAsString($editAssignmentXML, "dateUnderway"));
+				$editAssignment->setDateNotified($this->getChildValueAsString($editAssignmentXML, "dateNotified"));
 
 				$editAssignmentDAO->insertEditAssignment($editAssignment);
 			}
 
 			$sectionEditorSubmissionDAO =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
 			foreach ($articleXML->reviewRounds->reviewRound as $reviewRoundXML) {
-				$sectionEditorSubmissionDAO->createReviewRound($article->getId(), (int)$reviewRoundXML->round, (int)$reviewRoundXML->reviewRevision);
+				$sectionEditorSubmissionDAO->createReviewRound($article->getId(), $this->getChildValueAsInt($reviewRoundXML, "round"), $this->getChildValueAsInt($reviewRoundXML, "reviewRevision"));
 			}
 
 			$reviewAssignmentDAO =& DAORegistry::getDAO('ReviewAssignmentDAO');
@@ -751,40 +751,40 @@ class XMLDisassembler {
 			foreach ($articleXML->reviewAssignment as $reviewAssignmentXML) {
 				$reviewAssignment = new ReviewAssignment();
 				$reviewAssignment->setSubmissionId($article->getId());
-				$reviewAssignment->setReviewerId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$reviewAssignmentXML->reviewerId));
+				$reviewAssignment->setReviewerId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($reviewAssignmentXML, "reviewerId")));
 				try {
-					$reviewAssignment->setReviewerFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$reviewAssignmentXML->reviewerFileId));
+					$reviewAssignment->setReviewerFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($reviewAssignmentXML, "reviewerFileId")));
 				} catch (Exception $e) {
-					$this->logger->log("Arquivo do artigo $oldArticleId não encontrado. ID: " . (int)$reviewAssignmentXML->reviewerFileId . "\n");
+					$this->logger->log("Arquivo do artigo $oldArticleId não encontrado. ID: " . $this->getChildValueAsInt($reviewAssignmentXML, "reviewerFileId") . "\n");
 				}
-				$reviewAssignment->setReviewFormId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, (int)$reviewAssignmentXML->reviewFormId));
-				$reviewAssignment->setReviewRoundId((int)$reviewAssignmentXML->reviewRoundId);
-				$reviewAssignment->setStageId((int)$reviewAssignmentXML->stageId);
-				$reviewAssignment->setReviewerFullName((string)$reviewAssignmentXML->reviewerFullName);
-				$reviewAssignment->setCompetingInterests((string)$reviewAssignmentXML->competingInterests);
-				$reviewAssignment->setRegretMessage((string)$reviewAssignmentXML->regretMessage);
-				$reviewAssignment->setRecommendation((string)$reviewAssignmentXML->recommendation);
-				$reviewAssignment->setDateAssigned((string)$reviewAssignmentXML->dateAssigned);
-				$reviewAssignment->setDateNotified((string)$reviewAssignmentXML->dateNotified);
-				$reviewAssignment->setDateConfirmed((string)$reviewAssignmentXML->dateConfirmed);
-				$reviewAssignment->setDateCompleted((string)$reviewAssignmentXML->dateCompleted);
-				$reviewAssignment->setDateAcknowledged((string)$reviewAssignmentXML->dateAcknowledged);
-				$reviewAssignment->setDateDue((string)$reviewAssignmentXML->dateDue);
-				$reviewAssignment->setDateResponseDue((string)$reviewAssignmentXML->dateResponseDue);
-				$reviewAssignment->setLastModified((string)$reviewAssignmentXML->lastModified);
-				$reviewAssignment->setDeclined((int)$reviewAssignmentXML->declined);
-				$reviewAssignment->setReplaced((int)$reviewAssignmentXML->replaced);
-				$reviewAssignment->setCancelled((int)$reviewAssignmentXML->cancelled);
-				$reviewAssignment->setQuality((int)$reviewAssignmentXML->quality);
-				$reviewAssignment->setDateRated((string)$reviewAssignmentXML->dateRated);
-				$reviewAssignment->setDateReminded((string)$reviewAssignmentXML->dateReminded);
-				$reviewAssignment->setReminderWasAutomatic((int)$reviewAssignmentXML->reminderWasAutomatic);
-				$reviewAssignment->setRound((int)$reviewAssignmentXML->round);
-				$reviewAssignment->setReviewRevision((int)$reviewAssignmentXML->reviewRevision);
-				$reviewAssignment->setReviewMethod((int)$reviewAssignmentXML->reviewMethod);
-				$reviewAssignment->setUnconsidered((int)$reviewAssignmentXML->unconsidered);
+				$reviewAssignment->setReviewFormId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM, $this->getChildValueAsInt($reviewAssignmentXML, "reviewFormId")));
+				$reviewAssignment->setReviewRoundId($this->getChildValueAsInt($reviewAssignmentXML, "reviewRoundId"));
+				$reviewAssignment->setStageId($this->getChildValueAsInt($reviewAssignmentXML, "stageId"));
+				$reviewAssignment->setReviewerFullName($this->getChildValueAsString($reviewAssignmentXML, "reviewerFullName"));
+				$reviewAssignment->setCompetingInterests($this->getChildValueAsString($reviewAssignmentXML, "competingInterests"));
+				$reviewAssignment->setRegretMessage($this->getChildValueAsString($reviewAssignmentXML, "regretMessage"));
+				$reviewAssignment->setRecommendation($this->getChildValueAsString($reviewAssignmentXML, "recommendation"));
+				$reviewAssignment->setDateAssigned($this->getChildValueAsString($reviewAssignmentXML, "dateAssigned"));
+				$reviewAssignment->setDateNotified($this->getChildValueAsString($reviewAssignmentXML, "dateNotified"));
+				$reviewAssignment->setDateConfirmed($this->getChildValueAsString($reviewAssignmentXML, "dateConfirmed"));
+				$reviewAssignment->setDateCompleted($this->getChildValueAsString($reviewAssignmentXML, "dateCompleted"));
+				$reviewAssignment->setDateAcknowledged($this->getChildValueAsString($reviewAssignmentXML, "dateAcknowledged"));
+				$reviewAssignment->setDateDue($this->getChildValueAsString($reviewAssignmentXML, "dateDue"));
+				$reviewAssignment->setDateResponseDue($this->getChildValueAsString($reviewAssignmentXML, "dateResponseDue"));
+				$reviewAssignment->setLastModified($this->getChildValueAsString($reviewAssignmentXML, "lastModified"));
+				$reviewAssignment->setDeclined($this->getChildValueAsInt($reviewAssignmentXML, "declined"));
+				$reviewAssignment->setReplaced($this->getChildValueAsInt($reviewAssignmentXML, "replaced"));
+				$reviewAssignment->setCancelled($this->getChildValueAsInt($reviewAssignmentXML, "cancelled"));
+				$reviewAssignment->setQuality($this->getChildValueAsInt($reviewAssignmentXML, "quality"));
+				$reviewAssignment->setDateRated($this->getChildValueAsString($reviewAssignmentXML, "dateRated"));
+				$reviewAssignment->setDateReminded($this->getChildValueAsString($reviewAssignmentXML, "dateReminded"));
+				$reviewAssignment->setReminderWasAutomatic($this->getChildValueAsInt($reviewAssignmentXML, "reminderWasAutomatic"));
+				$reviewAssignment->setRound($this->getChildValueAsInt($reviewAssignmentXML, "round"));
+				$reviewAssignment->setReviewRevision($this->getChildValueAsInt($reviewAssignmentXML, "reviewRevision"));
+				$reviewAssignment->setReviewMethod($this->getChildValueAsInt($reviewAssignmentXML, "reviewMethod"));
+				$reviewAssignment->setUnconsidered($this->getChildValueAsInt($reviewAssignmentXML, "unconsidered"));
 				$reviewAssignmentDAO->insertObject($reviewAssignment);
-				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW, (int)$reviewAssignmentXML->oldId, $reviewAssignment->getId());
+				$this->idTranslationTable->register(INTERNAL_TRANSFER_OBJECT_REVIEW, $this->getChildValueAsInt($reviewAssignmentXML, "oldId"), $reviewAssignment->getId());
 
 				foreach ($reviewAssignmentXML->formResponses->formResponse as $formResponseXML) {
 					$reviewFormResponseDAO->update(
@@ -793,10 +793,10 @@ class XMLDisassembler {
 							VALUES
 							(?, ?, ?, ?)',
 						array(
-							$this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT, (int)$formResponseXML->reviewFormElementId),
+							$this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW_FORM_ELEMENT, $this->getChildValueAsInt($formResponseXML, "reviewFormElementId")),
 							$reviewAssignment->getId(),
-							(string)$formResponseXML->responseType,
-							(string)$formResponseXML->responseValue
+							$this->getChildValueAsString($formResponseXML, "responseType"),
+							$this->getChildValueAsString($formResponseXML, "responseValue")
 						)
 					);
 				}
@@ -806,7 +806,7 @@ class XMLDisassembler {
 			foreach ($articleXML->articleComment as $articleCommentXML) {
 				$articleComment = new ArticleComment();
 				$articleComment->setArticleId($article->getId());
-				$articleComment->setCommentType((int) $articleCommentXML->commentType);
+				$articleComment->setCommentType($this->getChildValueAsInt($articleCommentXML, "commentType"));
 
 				switch ($articleComment->getCommentType()) {
 					case COMMENT_TYPE_EDITOR_DECISION:
@@ -816,17 +816,17 @@ class XMLDisassembler {
 						$articleComment->setAssocId($article->getId());
 						break;
 					case COMMENT_TYPE_PEER_REVIEW:
-						$articleComment->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW, (int) $articleCommentXML->assocId));
+						$articleComment->setAssocId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_REVIEW, $this->getChildValueAsInt($articleCommentXML, "assocId")));
 						break;
 				}
 
-				$articleComment->setRoleId((int) $articleCommentXML->roleId);
-				$articleComment->setAuthorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$articleCommentXML->authorId));
-				$articleComment->setCommentTitle((string)$articleCommentXML->commentTitle);
-				$articleComment->setComments((string)$articleCommentXML->comments);
-				$articleComment->setDatePosted((string)$articleCommentXML->datePosted);
-				$articleComment->setDateModified((string)$articleCommentXML->dateModified);
-				$articleComment->setViewable((int)$articleCommentXML->viewable);
+				$articleComment->setRoleId($this->getChildValueAsInt($articleCommentXML, "roleId"));
+				$articleComment->setAuthorId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($articleCommentXML, "authorId")));
+				$articleComment->setCommentTitle($this->getChildValueAsString($articleCommentXML, "commentTitle"));
+				$articleComment->setComments($this->getChildValueAsString($articleCommentXML, "comments"));
+				$articleComment->setDatePosted($this->getChildValueAsString($articleCommentXML, "datePosted"));
+				$articleComment->setDateModified($this->getChildValueAsString($articleCommentXML, "dateModified"));
+				$articleComment->setViewable($this->getChildValueAsInt($articleCommentXML, "viewable"));
 				$articleCommentDAO->insertArticleComment($articleComment);
 			}
 
@@ -835,16 +835,16 @@ class XMLDisassembler {
 				$signoff = new Signoff();
 				$signoff->setAssocType(ASSOC_TYPE_ARTICLE);
 				$signoff->setAssocId($article->getId());
-				$signoff->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$signoffXML->userId));
-				$signoff->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$signoffXML->fileId));
-				$signoff->setUserGroupId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_GROUP, (int)$signoffXML->userGroupId));
+				$signoff->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($signoffXML, "userId")));
+				$signoff->setFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($signoffXML, "fileId")));
+				$signoff->setUserGroupId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_GROUP, $this->getChildValueAsInt($signoffXML, "userGroupId")));
 				
-				$signoff->setSymbolic((string)$signoffXML->symbolic);
-				$signoff->setFileRevision((int)$signoffXML->fileRevision);
-				$signoff->setDateUnderway((string)$signoffXML->dateUnderway);
-				$signoff->setDateNotified((string)$signoffXML->dateNotified);
-				$signoff->setDateCompleted((string)$signoffXML->dateCompleted);
-				$signoff->setDateAcknowledged((string)$signoffXML->dateAcknowledged);
+				$signoff->setSymbolic($this->getChildValueAsString($signoffXML, "symbolic"));
+				$signoff->setFileRevision($this->getChildValueAsInt($signoffXML, "fileRevision"));
+				$signoff->setDateUnderway($this->getChildValueAsString($signoffXML, "dateUnderway"));
+				$signoff->setDateNotified($this->getChildValueAsString($signoffXML, "dateNotified"));
+				$signoff->setDateCompleted($this->getChildValueAsString($signoffXML, "dateCompleted"));
+				$signoff->setDateAcknowledged($this->getChildValueAsString($signoffXML, "dateAcknowledged"));
 				$signoffDAO->insertObject($signoff);
 			}
 
@@ -853,10 +853,10 @@ class XMLDisassembler {
 				$editDecisions =& $editorSubmissionDAO->update(
 					'INSERT INTO edit_decisions (article_id, round, editor_id, decision, date_decided) values (?, ?, ?, ?, ?)', 
 					array($article->getId(), 
-						(string)$editDecisionXML->round, 
-						$this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$editDecisionXML->editorId), 
-						(string)$editDecisionXML->decision, 
-						(string)$editDecisionXML->dateDecided)
+						$this->getChildValueAsString($editDecisionXML, "round"), 
+						$this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($editDecisionXML, "editorId")), 
+						$this->getChildValueAsString($editDecisionXML, "decision"), 
+						$this->getChildValueAsString($editDecisionXML, "dateDecided"))
 				);
 			}
 
@@ -865,10 +865,10 @@ class XMLDisassembler {
 				$publishedArticleXML = $articleXML->publishedArticle;
 				$publishedArticle = new PublishedArticle();
 				$publishedArticle->setId($article->getId());
-				$publishedArticle->setIssueId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ISSUE, (int)$publishedArticleXML->issueId));
-				$publishedArticle->setDatePublished((string)$publishedArticleXML->datePublished);
-				$publishedArticle->setSeq((int)$publishedArticleXML->seq);
-				$publishedArticle->setAccessStatus((int)$publishedArticleXML->accessStatus);
+				$publishedArticle->setIssueId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ISSUE, $this->getChildValueAsInt($publishedArticleXML, "issueId")));
+				$publishedArticle->setDatePublished($this->getChildValueAsString($publishedArticleXML, "datePublished"));
+				$publishedArticle->setSeq($this->getChildValueAsInt($publishedArticleXML, "seq"));
+				$publishedArticle->setAccessStatus($this->getChildValueAsInt($publishedArticleXML, "accessStatus"));
 				$publishedArticleDAO->insertPublishedArticle($publishedArticle);
 			}
 			
@@ -882,31 +882,31 @@ class XMLDisassembler {
 				$eventLog = new ArticleEventLogEntry();
 				$eventLog->setAssocType(ASSOC_TYPE_ARTICLE);
 				$eventLog->setAssocId($article->getId());
-				$eventLog->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, (int)$eventLogXML->userId));
-				$eventLog->setDateLogged((string)$eventLogXML->dateLogged);
-				$eventLog->setIPAddress((string)$eventLogXML->IPAddress);
-				$eventLog->setEventType((int)$eventLogXML->eventType);
-				$eventLog->setMessage((string)$eventLogXML->message);
-				$eventLog->setIsTranslated((int)$eventLogXML->isTranslated);
+				$eventLog->setUserId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_USER, $this->getChildValueAsInt($eventLogXML, "userId")));
+				$eventLog->setDateLogged($this->getChildValueAsString($eventLogXML, "dateLogged"));
+				$eventLog->setIPAddress($this->getChildValueAsString($eventLogXML, "IPAddress"));
+				$eventLog->setEventType($this->getChildValueAsInt($eventLogXML, "eventType"));
+				$eventLog->setMessage($this->getChildValueAsString($eventLogXML, "message"));
+				$eventLog->setIsTranslated($this->getChildValueAsInt($eventLogXML, "isTranslated"));
 				$articleEventLogDAO->insertObject($eventLog);
 
 				$this->restoreDataObjectSettings($articleEventLogDAO, $eventLogXML->settings, 'event_log_settings', 'log_id', $eventLog->getId());
 			}
 
 			try {
-				$article->setSubmissionFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->submissionFileId));
+				$article->setSubmissionFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleXML, "submissionFileId")));
 			} catch (Exception $e) {
 			}
 			try {
-				$article->setRevisedFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->revisedFileId));
+				$article->setRevisedFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleXML, "revisedFileId")));
 			} catch (Exception $e) {
 			}
 			try {
-				$article->setReviewFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->reviewFileId));
+				$article->setReviewFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleXML, "reviewFileId")));
 			} catch (Exception $e) {
 			}
 			try {
-				$article->setEditorFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, (int)$articleXML->editorFileId));
+				$article->setEditorFileId($this->idTranslationTable->resolve(INTERNAL_TRANSFER_OBJECT_ARTICLE_FILE, $this->getChildValueAsInt($articleXML, "editorFileId")));
 			} catch (Exception $e) {
 			}
 			$articleDAO->updateArticle($article);
@@ -995,6 +995,21 @@ class XMLDisassembler {
 		$this->xml->next();
 		return $simpleXml;
 	}
+
+	function getChildValueAsInt($dom, $child) {
+		if (isset($dom->$child)) {
+			return (int)$dom->$child;
+		}
+		return null;
+	}
+
+	function getChildValueAsString($dom, $child) {
+		if (isset($dom->$child)) {
+			return (string)$dom->$child;
+		}
+		return null;
+	}
+
 
 }
 
