@@ -1,9 +1,9 @@
-Full Journal Transfer plugin for OJS 2.4.6
+Full Journal Transfer plugin for OJS 2.4.6+
 =======
 
 About
 -----
-This is an import/export plugin for OJS 2.4.6 for transfering journals among OJS portals. The content of a journal is transfered in the process, including articles in review, submitted articles, email and event log.
+This is an import/export plugin for OJS 2.4.6, 2.4.7, 2.4.8 and 2.4.8.1 for transfering journals among OJS portals. The content of a journal is transfered in the process, including articles in review, submitted articles, email and event log.
 
 System Requirements
 -------------------
@@ -18,10 +18,14 @@ Usage
 The recommended way to use this plugin is through the command line, using the importExport.php script available in the tools folder of the OJS install directory.
 
 For exporting:
-    > php tools/importExport.php FullJournalImportExportPlugin export \<filename\>.tar.gz \<journalPath\>
+
+    > php tools/importExport.php FullJournalImportExportPlugin export <filename>.tar.gz <journalPath>
 
 For importing:
-    > php tools/importExport.php FullJournalImportExportPlugin import \<filename\>.tar.gz
+
+    > php tools/importExport.php FullJournalImportExportPlugin import <filename>.tar.gz
+
+    > php tools/rebuildSearchIndex.php
 
 License
 -------
@@ -37,4 +41,6 @@ Developed by Lepidus Tecnologia.
 
 Contact/Support
 ---------------
-Please email the authors for support, bugfixes, or comments.
+http://forum.pkp.sfu.ca/c/questions (english)
+
+http://forum.ibict.br/c/ojs-seer (portuguese)
