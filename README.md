@@ -1,0 +1,1 @@
+### O Projeto está sendo mantido exclusivamente no [github](https://github.com/lepidus/fullJournalTransfer)
