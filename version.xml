@@ -11,7 +11,7 @@
 <version>
 	<application>fullJournalTransfer</application>
 	<type>plugins.importexport</type>
-	<release>1.1.0.0</release>
-	<date>2019-01-14</date>
+	<release>1.2.0.0</release>
+	<date>2019-01-29</date>
     <class>FullJournalImportExportPlugin</class>
 </version>

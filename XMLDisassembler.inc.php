@@ -28,7 +28,32 @@ class XMLDisassembler {
 	var $publicFolderPath;
 	var $journalFolderPath;
 	var $siteFolderPath;
+	var $apacheRedirect = [];
+	var $nginxRedirect = [];
+	var $oldName;
 
+	function createApacheRedirect($array,$journalName){
+		$f = fopen("/tmp/{$journalName}.apache.redirect",'w+');
+		fwrite($f,"##Redirects \n");
+		fwrite($f,"<IfModule mod_rewrite.c>\n");
+		fwrite($f,"RewriteEngine On\n");
+
+		foreach($array as $string){
+			fwrite($f,$string);
+		}
+		fwrite($f,"</IfModule>\n");
+		fclose($f);
+
+	}
+
+	function createNginxRedirect($array,$journalName){
+		$f = fopen("/tmp/{$journalName}.nginx.redirect",'w+');
+		fwrite($f,"##Redirects \n");
+		foreach($array as $string){
+			fwrite($f,$string);
+		}
+		fclose($f);
+	}
 	function XMLDisassembler($inputFile, $publicFolderPath, $siteFolderPath, $journalFolderPath) {
 		import('classes.file.JournalFileManager');
 		import('classes.file.ArticleFileManager');
@@ -115,6 +140,8 @@ class XMLDisassembler {
 
 		$journalDao =& DAORegistry::getDAO("JournalDAO");
 		$journal = new Journal();
+
+		$this->oldName = $this->getChildValueAsString($journalConfigXML, "path");
 
 		$journal->setPath($this->getChildValueAsString($journalConfigXML, "path"));
 		$journal->setEnabled($this->getChildValueAsInt($journalConfigXML, "enabled"));
@@ -575,6 +602,19 @@ class XMLDisassembler {
 			$this->restoreDataObjectSettings($articleDAO, $articleXML->settings, 'article_settings', 'article_id', $article->getId());
 
 			$article =& $articleDAO->getArticle($article->getId()); // Reload article with restored settings
+
+			import("lib.pkp.classes.config.Config");
+			$Config = new Config;
+			
+			//creating the article redirect
+			array_push($this->apacheRedirect,"Redirect 301 /{$this->oldName}/article/view/{$oldArticleId} {$Config->getVar("general","base_url")}/{$this->journal->getPath()}/article/view/{$article->getId()}\n");
+			array_push($this->apacheRedirect,"Redirect 301 /{$this->oldName}/article/view/{$oldArticleId}/(.*)$ {$Config->getVar("general","base_url")}/{$this->journal->getPath()}/article/view/{$article->getId()}\n");
+			
+			array_push($this->nginxRedirect,
+				"location /{$this->oldName}/article/view/{$oldArticleId} { \n\trewrite ^(.*)\$ {$Config->getVar("general","base_url")}/{$this->journal->getPath()}/article/view/{$article->getId()} redirect;\n}\n");
+			array_push($this->nginxRedirect,
+				"location /{$this->oldName}/article/view/{$oldArticleId}/^(.*)\$ { \n\trewrite ^(.*)\$ {$Config->getVar("general","base_url")}/{$this->journal->getPath()}/article/view/{$article->getId()} redirect;\n}\n");
+			
 			$covers = $article->getFileName(null);
 			if ($covers) {
 				foreach ($covers as $locale => $oldCoverFileName) {
@@ -928,6 +968,8 @@ class XMLDisassembler {
 
 			$this->nextElement();
 		}
+		$this->createApacheRedirect($this->apacheRedirect,$this->oldName);
+		$this->createNginxRedirect($this->nginxRedirect,$this->oldName);
 	}
 
 	function restorePublicFolder() {

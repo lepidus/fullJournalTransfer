@@ -899,11 +899,11 @@ class XMLAssembler {
 
 	function writeElement($xmlWriter, $element, $value) {
 		if (!is_null($value)) {
-			if (Config::getVar('i18n', 'charset_normalization') && !PKPString::utf8_compliant($value)) {
-				$value = PKPString::utf8_normalize($value);
-				$value = PKPString::utf8_bad_strip($value);
-			} else if (!PKPString::utf8_compliant($value)) {
-				$value = PKPString::utf8_bad_strip($value);
+			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
+				$value = String::utf8_normalize($value);
+				$value = String::utf8_bad_strip($value);
+			} else if (!String::utf8_compliant($value)) {
+				$value = String::utf8_bad_strip($value);
 			}
 
 			$xmlWriter->writeElement($element, $value);
@@ -912,11 +912,11 @@ class XMLAssembler {
 
 	function writeAttribute($xmlWriter, $element, $value) {
 		if (!is_null($value)) {
-			if (Config::getVar('i18n', 'charset_normalization') && !PKPString::utf8_compliant($value)) {
-				$value = PKPString::utf8_normalize($value);
-				$value = PKPString::utf8_bad_strip($value);
-			} else if (!PKPString::utf8_compliant($value)) {
-				$value = PKPString::utf8_bad_strip($value);
+			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
+				$value = String::utf8_normalize($value);
+				$value = String::utf8_bad_strip($value);
+			} else if (!String::utf8_compliant($value)) {
+				$value = String::utf8_bad_strip($value);
 			}
 
 			$xmlWriter->writeAttribute($element, $value);
@@ -925,11 +925,11 @@ class XMLAssembler {
 
 	function writeText($xmlWriter, $value) {
 		if (!is_null($value)) {
-			if (Config::getVar('i18n', 'charset_normalization') && !PKPString::utf8_compliant($value)) {
-				$value = PKPString::utf8_normalize($value);
-				$value = PKPString::utf8_bad_strip($value);
-			} else if (!PKPString::utf8_compliant($value)) {
-				$value = PKPString::utf8_bad_strip($value);
+			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
+				$value = String::utf8_normalize($value);
+				$value = String::utf8_bad_strip($value);
+			} else if (!String::utf8_compliant($value)) {
+				$value = String::utf8_bad_strip($value);
 			}
 
 			$xmlWriter->text($value);
