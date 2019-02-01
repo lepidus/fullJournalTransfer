@@ -516,11 +516,18 @@ class XMLAssembler {
 			foreach ($suppFiles as $suppFile) {
 				$writer->startElement('suppFile');
 
+				if(empty($suppFile->getDateCreated()) || !$this->validateDate($suppFile->getDateCreated(),'Y-m-d')):
+					$dateCreated = $suppFile->getDateSubmitted();
+					echo "Data Em formato inválido.\nA data será trocada pela data da submissão.\nID do arquivo Suplementar:{$suppFile->getId()}\n";
+				else:
+					$dateCreated = $suppFile->getDateCreated();
+				endif;
+
 				$this->writeElement($writer, 'oldId', $suppFile->getId());
 				$this->writeElement($writer, 'remoteURL', $suppFile->getRemoteURL());
 				$this->writeElement($writer, 'fileId', $suppFile->getFileId());
 				$this->writeElement($writer, 'type', $suppFile->getType());
-				$this->writeElement($writer, 'dateCreated', $suppFile->getDateCreated());
+				$this->writeElement($writer, 'dateCreated', $dateCreated );
 				$this->writeElement($writer, 'language', $suppFile->getLanguage());
 				$this->writeElement($writer, 'showReviewers', $suppFile->getShowReviewers());
 				$this->writeElement($writer, 'dateSubmitted', $suppFile->getDateSubmitted());
@@ -590,10 +597,18 @@ class XMLAssembler {
 			while (!$articleNotes->eof()) {
 				$articleNote = $articleNotes->next();
 				$writer->startElement('articleNote');
+				if(empty($articleNote->getDateCreated()) || !$this->validateDate($articleNote->getDateCreated(),'Y-m-d')):
+					$dateCreated = $articleNote->getDateModified();
+					echo "Data Em formato inválido.\n
+					A data será trocada pela data da submissão.\n
+					ID da Nota de Artigo:{$articleNote->getId()}\n";
+				else:
+					$dateCreated = $articleNote->getDateCreated();
+				endif;
 
 				$this->writeElement($writer, 'oldId', $articleNote->getId());
 				$this->writeElement($writer, 'userId', $articleNote->getUserId());
-				$this->writeElement($writer, 'dateCreated', $articleNote->getDateCreated());
+				$this->writeElement($writer, 'dateCreated', $dateCreated);
 				$this->writeElement($writer, 'dateModified', $articleNote->getDateModified());
 				$this->writeElement($writer, 'contents', $articleNote->getContents());
 				$this->writeElement($writer, 'title', $articleNote->getTitle());
@@ -921,6 +936,10 @@ class XMLAssembler {
 		}
 	}
 
+	function validateDate($date, $format = 'Y-m-d H:i:s'){
+	    $d = DateTime::createFromFormat($format, $date);
+	    return $d && $d->format($format) == $date;
+	}
 
 
 }
