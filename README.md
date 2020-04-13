@@ -3,11 +3,18 @@ Full Journal Transfer plugin for OJS 2.4.6+
 
 About
 -----
-This is an import/export plugin for OJS 2.4.6, 2.4.7, 2.4.8 and 2.4.8.1 for transfering journals among OJS portals. The content of a journal is transfered in the process, including articles in review, submitted articles, email and event log.
+This is an import/export plugin for OJS 2.4.6 or above (the last tested was 2.4.8-4) for transfering journals among OJS portals. The content of a journal is transfered in the process, including articles in review, submitted articles, email and event log.
 
 System Requirements
 -------------------
-This plugin requires OJS 2.4.6 in both OJS instances (the one importing and the one exporting). 
+This plugin requires OJS 2.4.6 or above. OJS 3.x is not supported.
+
+Although the plugin supports several versions, both the source and destination OJS must be the same to use it.
+
+Example:
+Origin and destination 2.4.8-1 version, supported
+Origin and destination 2.4.7 version, supported
+Origin 2.4.8-4 version and destination 2.4.7 version, not supported
 
 Installation
 ------------
