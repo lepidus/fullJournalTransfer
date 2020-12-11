@@ -10,10 +10,16 @@
 class XMLAssembler {
 	var $outputFolder;
 	var $journal;
+	var $PKPStringClass;
 
 	function XMLAssembler($outputFolder, $journal) {
 		$this->outputFolder = $outputFolder;
 		$this->journal = $journal;
+		if (class_exists('PKPString')) {
+		    $this->PKPStringClass = 'PKPString';
+        } else {
+		    $this->PKPStringClass = 'String';
+        }
 	}
 
 	function exportJournal() {
@@ -899,11 +905,12 @@ class XMLAssembler {
 
 	function writeElement($xmlWriter, $element, $value) {
 		if (!is_null($value)) {
-			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
-				$value = String::utf8_normalize($value);
-				$value = String::utf8_bad_strip($value);
-			} else if (!String::utf8_compliant($value)) {
-				$value = String::utf8_bad_strip($value);
+			$PKPStringClass = $this->PKPStringClass;
+		    if (Config::getVar('i18n', 'charset_normalization') && !$PKPStringClass::utf8_compliant($value)) {
+				$value = $PKPStringClass::utf8_normalize($value);
+				$value = $PKPStringClass::utf8_bad_strip($value);
+			} else if (!$PKPStringClass::utf8_compliant($value)) {
+				$value = $PKPStringClass::utf8_bad_strip($value);
 			}
 
 			$xmlWriter->writeElement($element, $value);
@@ -912,11 +919,12 @@ class XMLAssembler {
 
 	function writeAttribute($xmlWriter, $element, $value) {
 		if (!is_null($value)) {
-			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
-				$value = String::utf8_normalize($value);
-				$value = String::utf8_bad_strip($value);
-			} else if (!String::utf8_compliant($value)) {
-				$value = String::utf8_bad_strip($value);
+            $PKPStringClass = $this->PKPStringClass;
+            if (Config::getVar('i18n', 'charset_normalization') && !$PKPStringClass::utf8_compliant($value)) {
+				$value = $PKPStringClass::utf8_normalize($value);
+				$value = $PKPStringClass::utf8_bad_strip($value);
+			} else if (!$PKPStringClass::utf8_compliant($value)) {
+				$value = $PKPStringClass::utf8_bad_strip($value);
 			}
 
 			$xmlWriter->writeAttribute($element, $value);
@@ -925,11 +933,12 @@ class XMLAssembler {
 
 	function writeText($xmlWriter, $value) {
 		if (!is_null($value)) {
-			if (Config::getVar('i18n', 'charset_normalization') && !String::utf8_compliant($value)) {
-				$value = String::utf8_normalize($value);
-				$value = String::utf8_bad_strip($value);
-			} else if (!String::utf8_compliant($value)) {
-				$value = String::utf8_bad_strip($value);
+            $PKPStringClass = $this->PKPStringClass;
+			if (Config::getVar('i18n', 'charset_normalization') && !$PKPStringClass::utf8_compliant($value)) {
+				$value = $PKPStringClass::utf8_normalize($value);
+				$value = $PKPStringClass::utf8_bad_strip($value);
+			} else if (!$PKPStringClass::utf8_compliant($value)) {
+				$value = $PKPStringClass::utf8_bad_strip($value);
 			}
 
 			$xmlWriter->text($value);
