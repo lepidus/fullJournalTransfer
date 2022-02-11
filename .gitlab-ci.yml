@@ -1,0 +1,22 @@
+variables:
+    SECRET_DETECTION_REPORT_FILE: "gl-secret-detection-report.json"
+
+include:
+    - template: Security/Secret-Detection.gitlab-ci.yml
+
+stages:
+    - secret-detection
+    - secret-detection-eval
+
+secret_detection:
+    stage: secret-detection
+    artifacts:
+        paths:
+            - $SECRET_DETECTION_REPORT_FILE
+
+secret_detection_eval:
+    stage: secret-detection-eval
+    script:
+        - apt update -qq && apt install jq -yqq
+        - if [ "$(jq ".vulnerabilities | length" $SECRET_DETECTION_REPORT_FILE)" -gt 0 ]; then echo "Vulnerabilidades encontradas!" && exit 1; fi
+    allow_failure: false
