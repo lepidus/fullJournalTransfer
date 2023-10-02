@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
+
+<!--
+ * Copyright (c) 2019-2023 Lepidus Tecnologia
+ *
+ * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
+ -->
+
+<version>
+	<application>fullJournalTransfer</application>
+	<type>plugins.importexport</type>
+	<release>2.0.0.0</release>
+	<date>2023-10-02</date>
+    <class>FullJournalImportExportPlugin</class>
+</version>
