@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<announcement xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" assoc_type="256" assoc_id="12" date_expire="2023-01-01" date_posted="2023-10-03 19:05:32.000" xsi:schemaLocation="http://pkp.sfu.ca native.xsd">
+    <id type="internal" advice="ignore">21</id>
+    <title locale="en_US">Test Announcement</title>
+    <descriptionShort locale="en_US">&lt;p&gt;Announcement for test&lt;/p&gt;</descriptionShort>
+    <description locale="en_US">&lt;p&gt;A announcement created for test purpose&lt;/p&gt;</description>
+</announcement>

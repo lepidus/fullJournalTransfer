@@ -1,0 +1,61 @@
+<?php
+
+import('lib.pkp.tests.PKPTestCase');
+import('lib.pkp.classes.announcement.Announcement');
+import('classes.journal.Journal');
+import('plugins.importexport.native.NativeImportExportDeployment');
+import('plugins.importexport.fullJournalTransfer.FullJournalImportExportPlugin');
+import('plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter');
+
+class AnnouncementNativeXmlFilterTest extends PKPTestCase
+{
+    private function createTestAnnouncement($data)
+    {
+        $announcement = new Announcement();
+        $announcement->setAllData($data);
+        return $announcement;
+    }
+
+    private function getTestXml($sampleFile)
+    {
+        $fileContent = file_get_contents(__DIR__ . '/fixtures/' . $sampleFile);
+        $xml = new DOMDocument('1.0');
+        $xml->loadXML($fileContent);
+
+        return $xml;
+    }
+
+    public function testCreateAnnouncementNode()
+    {
+        $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
+        $nativeExportGroup = $filterGroupDAO->getObjectBySymbolic('announcement=>native-xml');
+        $nativeExportFilter = new AnnouncementNativeXmlFilter($nativeExportGroup);
+        $nativeExportFilter->setDeployment(new NativeImportExportDeployment(new Journal(), null));
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $announcement = $this->createTestAnnouncement([
+            'id' => 21,
+            'assocId' => 12,
+            'assocType' => ASSOC_TYPE_JOURNAL,
+            'typeId' => null,
+            'dateExpire' => '2023-01-01',
+            'datePosted' => \Core::getCurrentDate(),
+            'title' => [
+                'en-US' => 'Test Announcement'
+            ],
+            'descriptionShort' => [
+                'en_US' => '<p>Announcement for test</p>'
+            ],
+            'description' => [
+                'en_US' => '<p>A announcement created for test purpose</p>'
+            ]
+        ]);
+
+        $announcementNode = $nativeExportFilter->createAnnouncementNode($doc, $announcement);
+
+        $this->assertEquals($this->getTestXml('announcement.xml'), $announcementNode);
+    }
+}
