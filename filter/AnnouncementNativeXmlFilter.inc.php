@@ -19,10 +19,8 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
             $announcementNode->setAttribute('type_id', $announcement->getTypeId());
         }
 
-        $announcementNode->setAttribute('assoc_type', $announcement->getAssocType());
-        $announcementNode->setAttribute('assoc_id', $announcement->getAssocId());
         $announcementNode->setAttribute('date_expire', $announcement->getDateExpire());
-        $announcementNode->setAttribute('date_posted', $announcement->getDatePosted());
+        $announcementNode->setAttribute('date_posted', $announcement->getDatetimePosted());
 
         $announcementNode->setAttribute('id', $announcement->getId());
 

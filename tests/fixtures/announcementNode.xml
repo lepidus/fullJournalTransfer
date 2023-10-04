@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<announcement xmlns="http://pkp.sfu.ca" assoc_type="256" assoc_id="12" date_expire="2023-01-01" date_posted="2023-10-04" id="21">
+<announcement xmlns="http://pkp.sfu.ca" date_expire="2023-02-01" date_posted="2023-01-01 12:00:00.000" type_id="1" id="21">
 	<title locale="en_US">Test Announcement</title>
 	<descriptionShort locale="en_US">&lt;p&gt;Announcement for test&lt;/p&gt;</descriptionShort>
 	<description locale="en_US">&lt;p&gt;A announcement created for test purpose&lt;/p&gt;</description>

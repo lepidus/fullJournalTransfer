@@ -40,9 +40,9 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             'id' => 21,
             'assocId' => 12,
             'assocType' => ASSOC_TYPE_JOURNAL,
-            'typeId' => null,
-            'dateExpire' => '2023-01-01',
-            'datePosted' => \Core::getCurrentDate(),
+            'typeId' => 1,
+            'dateExpire' => '2023-02-01',
+            'datePosted' => '2023-01-01 12:00:00.000',
             'title' => [
                 'en_US' => 'Test Announcement'
             ],
