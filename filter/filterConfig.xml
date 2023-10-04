@@ -29,12 +29,8 @@
 	</filterGroups>
 	<filters>
 		<filter
-			inGroup="announcemente=>native-xml"
-			class="plugins.importexport.native.filter.AnnouncementeNativeXmlFilter"
-			isTemplate="0" />
-		<filter
-			inGroup="native-xml=>Announcemente"
-			class="plugins.importexport.native.filter.NativeXmlAnnouncementeFilter"
+			inGroup="announcement=>native-xml"
+			class="plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter"
 			isTemplate="0" />
 	</filters>
 </filterConfig>

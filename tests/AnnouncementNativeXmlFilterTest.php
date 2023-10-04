@@ -16,13 +16,13 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
         return $announcement;
     }
 
-    private function getTestXml($sampleFile)
+    private function getSampleXml($sampleFile)
     {
         $fileContent = file_get_contents(__DIR__ . '/fixtures/' . $sampleFile);
         $xml = new DOMDocument('1.0');
         $xml->loadXML($fileContent);
 
-        return $xml;
+        return $xml->saveXML();
     }
 
     public function testCreateAnnouncementNode()
@@ -44,7 +44,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             'dateExpire' => '2023-01-01',
             'datePosted' => \Core::getCurrentDate(),
             'title' => [
-                'en-US' => 'Test Announcement'
+                'en_US' => 'Test Announcement'
             ],
             'descriptionShort' => [
                 'en_US' => '<p>Announcement for test</p>'
@@ -56,6 +56,10 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
 
         $announcementNode = $nativeExportFilter->createAnnouncementNode($doc, $announcement);
 
-        $this->assertEquals($this->getTestXml('announcement.xml'), $announcementNode);
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('announcementNode.xml'),
+            $doc->saveXML($announcementNode),
+            "actual xml is equal to expected xml"
+        );
     }
 }
