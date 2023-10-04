@@ -15,14 +15,16 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
 
         $announcementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
 
+        $announcementNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'id', $announcement->getId()));
+        $node->setAttribute('type', 'internal');
+        $node->setAttribute('advice', 'ignore');
+
         if ($announcement->getTypeId()) {
             $announcementNode->setAttribute('type_id', $announcement->getTypeId());
         }
 
         $announcementNode->setAttribute('date_expire', $announcement->getDateExpire());
         $announcementNode->setAttribute('date_posted', $announcement->getDatetimePosted());
-
-        $announcementNode->setAttribute('id', $announcement->getId());
 
         $this->createLocalizedNodes($doc, $announcementNode, 'title', $announcement->getTitle(null));
         $this->createLocalizedNodes($doc, $announcementNode, 'descriptionShort', $announcement->getDescriptionShort(null));
