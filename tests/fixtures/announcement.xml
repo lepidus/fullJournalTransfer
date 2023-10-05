@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<announcements xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca native.xsd">
+<announcements xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
 	<announcement type_id="1">
 		<id advice="ignore" type="internal">21</id>
 		<date_expire>2023-02-01</date_expire>

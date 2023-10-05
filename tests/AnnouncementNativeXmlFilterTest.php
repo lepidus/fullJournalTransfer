@@ -3,8 +3,7 @@
 import('lib.pkp.tests.PKPTestCase');
 import('lib.pkp.classes.announcement.Announcement');
 import('classes.journal.Journal');
-import('plugins.importexport.native.NativeImportExportDeployment');
-import('plugins.importexport.fullJournalTransfer.FullJournalImportExportPlugin');
+import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 import('plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter');
 
 class AnnouncementNativeXmlFilterTest extends PKPTestCase
@@ -14,7 +13,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
         $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
         $nativeExportGroup = $filterGroupDAO->getObjectBySymbolic('announcement=>native-xml');
         $nativeExportFilter = new AnnouncementNativeXmlFilter($nativeExportGroup);
-        $nativeExportFilter->setDeployment(new NativeImportExportDeployment(new Journal(), null));
+        $nativeExportFilter->setDeployment(new FullJournalImportExportDeployment(new Journal(), null));
 
         return $nativeExportFilter;
     }
