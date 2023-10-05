@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filterConfig SYSTEM "../../../../lib/pkp/dtd/filterConfig.dtd">
+
+<!--
+  * filterConfig.xml
+  *
+  * Copyright (c) 2014-2021 Simon Fraser University
+  * Copyright (c) 2003-2021 John Willinsky
+  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
+  *
+  * Filter Configuration.
+  -->
+<filterConfig>
+	<filterGroups>
+        <!-- Announcement native XML output -->
+		<filterGroup
+        symbolic="announcement=>native-xml"
+        displayName="plugins.importexport.native.displayName"
+        description="plugins.importexport.native.description"
+        inputType="class::classes.announcement.Announcement"
+        outputType="xml::schema(plugins/importexport/native/native.xsd)" />
+        <!-- Announcement native XML input -->
+        <filterGroup
+            symbolic="native-xml=>Announcement"
+            displayName="plugins.importexport.native.displayName"
+            description="plugins.importexport.native.description"
+            inputType="xml::schema(plugins/importexport/native/native.xsd)"
+            outputType="class::classes.announcement.Announcement" />
+	</filterGroups>
+	<filters>
+		<filter
+			inGroup="announcement=>native-xml"
+			class="plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter"
+			isTemplate="0" />
+	</filters>
+</filterConfig>
