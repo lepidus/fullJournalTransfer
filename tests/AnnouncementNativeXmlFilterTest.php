@@ -35,41 +35,6 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
         return $xml->saveXML();
     }
 
-    public function testCreateAnnouncementNode()
-    {
-        $nativeExportFilter = $this->getNativeExportFilter();
-
-        $doc = new DOMDocument('1.0');
-        $doc->preserveWhiteSpace = false;
-        $doc->formatOutput = true;
-
-        $announcement = $this->createTestAnnouncement([
-            'id' => 21,
-            'assocId' => 12,
-            'assocType' => ASSOC_TYPE_JOURNAL,
-            'typeId' => 1,
-            'dateExpire' => '2023-02-01',
-            'datePosted' => '2023-01-01 12:00:00.000',
-            'title' => [
-                'en_US' => 'Test Announcement'
-            ],
-            'descriptionShort' => [
-                'en_US' => '<p>Announcement for test</p>'
-            ],
-            'description' => [
-                'en_US' => '<p>A announcement created for test purpose</p>'
-            ]
-        ]);
-
-        $announcementNode = $nativeExportFilter->createAnnouncementNode($doc, $announcement);
-
-        $this->assertXmlStringEqualsXmlString(
-            $this->getSampleXml('announcementNode.xml'),
-            $doc->saveXML($announcementNode),
-            "actual xml is equal to expected xml"
-        );
-    }
-
     public function testAddDateElements()
     {
         $nativeExportFilter = $this->getNativeExportFilter();
@@ -101,6 +66,92 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedAnnouncementNode),
             $doc->saveXML($actualAnnouncementNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateAnnouncementNode()
+    {
+        $nativeExportFilter = $this->getNativeExportFilter();
+        $deployment = $nativeExportFilter->getDeployment();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedAnnouncementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
+        $expectedAnnouncementNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'id', 21));
+        $node->setAttribute('type', 'internal');
+        $node->setAttribute('advice', 'ignore');
+
+        $expectedAnnouncementNode->setAttribute('type_id', 1);
+        $expectedAnnouncementNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'date_expire',
+            strftime('%Y-%m-%d', strtotime('2023-02-01'))
+        ));
+        $expectedAnnouncementNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'date_posted',
+            strftime('%Y-%m-%d %H:%M:%S', strtotime('2023-01-01 12:00:00.000'))
+        ));
+        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'title', ['en_US' => 'Test Announcement']);
+        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'descriptionShort', ['en_US' => '<p>Announcement for test</p>']);
+        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description', ['en_US' => '<p>A announcement created for test purpose</p>']);
+
+        $announcement = $this->createTestAnnouncement([
+            'id' => 21,
+            'assocId' => 12,
+            'assocType' => ASSOC_TYPE_JOURNAL,
+            'typeId' => 1,
+            'dateExpire' => '2023-02-01',
+            'datePosted' => '2023-01-01 12:00:00.000',
+            'title' => [
+                'en_US' => 'Test Announcement'
+            ],
+            'descriptionShort' => [
+                'en_US' => '<p>Announcement for test</p>'
+            ],
+            'description' => [
+                'en_US' => '<p>A announcement created for test purpose</p>'
+            ]
+        ]);
+
+        $actualAnnouncementNode = $nativeExportFilter->createAnnouncementNode($doc, $announcement);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedAnnouncementNode),
+            $doc->saveXML($actualAnnouncementNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateCompleteAnnouncementXml()
+    {
+        $nativeExportFilter = $this->getNativeExportFilter();
+        $announcements = [$this->createTestAnnouncement([
+            'id' => 21,
+            'assocId' => 12,
+            'assocType' => ASSOC_TYPE_JOURNAL,
+            'typeId' => 1,
+            'dateExpire' => '2023-02-01',
+            'datePosted' => '2023-01-01 12:00:00.000',
+            'title' => [
+                'en_US' => 'Test Announcement'
+            ],
+            'descriptionShort' => [
+                'en_US' => '<p>Announcement for test</p>'
+            ],
+            'description' => [
+                'en_US' => '<p>A announcement created for test purpose</p>'
+            ]
+        ])];
+
+        $doc = $nativeExportFilter->process($announcements, true);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('announcement.xml'),
+            $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
     }

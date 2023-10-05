@@ -20,6 +20,24 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.native.filter.AnnouncementNativeXmlFilter';
     }
 
+    public function &process(&$announcements)
+    {
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $deployment = $this->getDeployment();
+
+        $rootNode = $doc->createElementNS($deployment->getNamespace(), 'announcements');
+        foreach ($announcements as $announcement) {
+            $rootNode->appendChild($this->createAnnouncementNode($doc, $announcement));
+        }
+        $doc->appendChild($rootNode);
+        $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+
+        return $doc;
+    }
+
     public function createAnnouncementNode($doc, $announcement)
     {
         $deployment = $this->getDeployment();
