@@ -9,6 +9,16 @@ import('plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFil
 
 class AnnouncementNativeXmlFilterTest extends PKPTestCase
 {
+    private function getNativeExportFilter()
+    {
+        $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
+        $nativeExportGroup = $filterGroupDAO->getObjectBySymbolic('announcement=>native-xml');
+        $nativeExportFilter = new AnnouncementNativeXmlFilter($nativeExportGroup);
+        $nativeExportFilter->setDeployment(new NativeImportExportDeployment(new Journal(), null));
+
+        return $nativeExportFilter;
+    }
+
     private function createTestAnnouncement($data)
     {
         $announcement = new Announcement();
@@ -27,10 +37,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
 
     public function testCreateAnnouncementNode()
     {
-        $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
-        $nativeExportGroup = $filterGroupDAO->getObjectBySymbolic('announcement=>native-xml');
-        $nativeExportFilter = new AnnouncementNativeXmlFilter($nativeExportGroup);
-        $nativeExportFilter->setDeployment(new NativeImportExportDeployment(new Journal(), null));
+        $nativeExportFilter = $this->getNativeExportFilter();
 
         $doc = new DOMDocument('1.0');
         $doc->preserveWhiteSpace = false;
@@ -59,6 +66,41 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('announcementNode.xml'),
             $doc->saveXML($announcementNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testAddDateElements()
+    {
+        $nativeExportFilter = $this->getNativeExportFilter();
+        $deployment = $nativeExportFilter->getDeployment();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedAnnouncementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
+        $expectedAnnouncementNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'date_expire',
+            strftime('%Y-%m-%d', strtotime('2023-02-01'))
+        ));
+        $expectedAnnouncementNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'date_posted',
+            strftime('%Y-%m-%d %H:%M:%S', strtotime('2023-01-01 12:00:00.000'))
+        ));
+
+        $announcement = $this->createTestAnnouncement([
+            'dateExpire' => '2023-02-01',
+            'datePosted' => '2023-01-01 12:00:00.000',
+        ]);
+        $actualAnnouncementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
+        $nativeExportFilter->addDates($doc, $actualAnnouncementNode, $announcement);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedAnnouncementNode),
+            $doc->saveXML($actualAnnouncementNode),
             "actual xml is equal to expected xml"
         );
     }

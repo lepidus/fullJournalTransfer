@@ -9,6 +9,17 @@ import('lib.pkp.plugins.importexport.native.filter.NativeExportFilter');
 
 class AnnouncementNativeXmlFilter extends NativeExportFilter
 {
+    public function __construct($filterGroup)
+    {
+        $this->setDisplayName('Native XML announcement export');
+        parent::__construct($filterGroup);
+    }
+
+    public function getClassName()
+    {
+        return 'plugins.importexport.native.filter.AnnouncementNativeXmlFilter';
+    }
+
     public function createAnnouncementNode($doc, $announcement)
     {
         $deployment = $this->getDeployment();
@@ -23,13 +34,33 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
             $announcementNode->setAttribute('type_id', $announcement->getTypeId());
         }
 
-        $announcementNode->setAttribute('date_expire', $announcement->getDateExpire());
-        $announcementNode->setAttribute('date_posted', $announcement->getDatetimePosted());
+        $this->addDates($doc, $announcementNode, $announcement);
 
         $this->createLocalizedNodes($doc, $announcementNode, 'title', $announcement->getTitle(null));
         $this->createLocalizedNodes($doc, $announcementNode, 'descriptionShort', $announcement->getDescriptionShort(null));
         $this->createLocalizedNodes($doc, $announcementNode, 'description', $announcement->getDescription(null));
 
         return $announcementNode;
+    }
+
+    public function addDates($doc, $announcementNode, $announcement)
+    {
+        $deployment = $this->getDeployment();
+
+        if ($announcement->getDateExpire()) {
+            $announcementNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'date_expire',
+                strftime('%Y-%m-%d', strtotime($announcement->getDateExpire()))
+            ));
+        }
+
+        if ($announcement->getDatePosted()) {
+            $announcementNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'date_posted',
+                strftime('%Y-%m-%d %H:%M:%S', strtotime($announcement->getDatetimePosted()))
+            ));
+        }
     }
 }
