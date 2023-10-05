@@ -55,7 +55,7 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
         $this->addDates($doc, $announcementNode, $announcement);
 
         $this->createLocalizedNodes($doc, $announcementNode, 'title', $announcement->getTitle(null));
-        $this->createLocalizedNodes($doc, $announcementNode, 'descriptionShort', $announcement->getDescriptionShort(null));
+        $this->createLocalizedNodes($doc, $announcementNode, 'description_short', $announcement->getDescriptionShort(null));
         $this->createLocalizedNodes($doc, $announcementNode, 'description', $announcement->getDescription(null));
 
         return $announcementNode;

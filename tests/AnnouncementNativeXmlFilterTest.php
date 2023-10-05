@@ -95,7 +95,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             strftime('%Y-%m-%d %H:%M:%S', strtotime('2023-01-01 12:00:00.000'))
         ));
         $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'title', ['en_US' => 'Test Announcement']);
-        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'descriptionShort', ['en_US' => '<p>Announcement for test</p>']);
+        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description_short', ['en_US' => '<p>Announcement for test</p>']);
         $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description', ['en_US' => '<p>A announcement created for test purpose</p>']);
 
         $announcement = $this->createTestAnnouncement([
