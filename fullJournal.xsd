@@ -29,9 +29,9 @@
 			<element name="title" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
 			<element name="descriptionShort" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
 			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="date_expire" type="date" minOccurs="0" maxOccurs="1" />
+			<element name="date_posted" type="date" minOccurs="1" maxOccurs="1" />
 		</sequence>
-		<attribute name="date_expire" type="date" />
-		<attribute name="date_posted" type="date" />
 		<attribute name="type_id" type="int" use="optional" />
 	</complexType>
 
