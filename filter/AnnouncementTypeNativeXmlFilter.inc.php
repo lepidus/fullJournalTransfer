@@ -9,11 +9,27 @@ import('lib.pkp.plugins.importexport.native.filter.NativeExportFilter');
 
 class AnnouncementTypeNativeXmlFilter extends NativeExportFilter
 {
+    public function &process(&$announcementTypes)
+    {
+        $doc = new DOMDocument('1.0');
+        $deployment = $this->getDeployment();
+
+        $rootNode = $doc->createElementNS($deployment->getNamespace(), 'announcement_types');
+        foreach ($announcementTypes as $announcementType) {
+            $rootNode->appendChild($this->createAnnouncementTypeNode($doc, $announcementType));
+        }
+        $doc->appendChild($rootNode);
+        $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+
+        return $doc;
+    }
+
     public function createAnnouncementTypeNode($doc, $announcementType)
     {
         $deployment = $this->getDeployment();
 
-        $announcementTypeNode = $doc->createElementNS($deployment->getNamespace(), 'announcementType');
+        $announcementTypeNode = $doc->createElementNS($deployment->getNamespace(), 'announcement_type');
         $this->createLocalizedNodes($doc, $announcementTypeNode, 'name', $announcementType->getName(null));
 
         return $announcementTypeNode;
