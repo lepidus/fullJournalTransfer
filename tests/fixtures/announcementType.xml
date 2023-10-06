@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<announcement_types xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <announcement_type>
+        <name locale="en_US">Test Announcement Type</name>
+    </announcement_type>
+</announcement_types>

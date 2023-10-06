@@ -9,7 +9,7 @@ import('plugins.importexport.native.NativeImportExportDeployment');
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
-    public function __construct($context, $user)
+    public function __construct($context, $user = null)
     {
         parent::__construct($context, $user);
     }
