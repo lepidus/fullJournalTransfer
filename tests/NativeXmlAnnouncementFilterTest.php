@@ -28,16 +28,9 @@ class NativeXmlAnnouncementFilterTest extends DatabaseTestCase
     {
         $announcementImportFilter = $this->getNativeImportFilter();
         $deployment = $announcementImportFilter->getDeployment();
+        $announcementDAO = DAORegistry::getDAO('AnnouncementDAO');
 
-        $fileContent = file_get_contents(__DIR__ . '/fixtures/announcement.xml');
-        $doc = new DOMDocument('1.0');
-        $doc->loadXML($fileContent);
-
-        $announcementNode = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'announcement');
-
-        $announcement = $announcementImportFilter->handleElement($announcementNode->item(0));
-
-        $this->assertEquals([
+        $expectedAnnouncementData = [
             'assocId' => 12,
             'assocType' => ASSOC_TYPE_JOURNAL,
             'dateExpire' => '2023-02-01',
@@ -51,6 +44,22 @@ class NativeXmlAnnouncementFilterTest extends DatabaseTestCase
             'description' => [
                 'en_US' => '<p>A announcement created for test purpose</p>'
             ]
-        ], $announcement->_data);
+        ];
+
+        $fileContent = file_get_contents(__DIR__ . '/fixtures/announcement.xml');
+        $doc = new DOMDocument('1.0');
+        $doc->loadXML($fileContent);
+
+        $announcementNode = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'announcement');
+
+        $announcement = $announcementImportFilter->handleElement($announcementNode->item(0));
+        $announcementId = array_pop($announcement->_data);
+
+        $this->assertEquals($expectedAnnouncementData, $announcement->_data);
+
+        $insertedAnnouncement = $announcementDAO->getById($announcementId);
+        $expectedAnnouncementData['id'] = $announcementId;
+
+        $this->assertEquals($expectedAnnouncementData, $insertedAnnouncement->_data);
     }
 }

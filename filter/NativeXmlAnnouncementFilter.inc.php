@@ -70,6 +70,7 @@ class NativeXmlAnnouncementFilter extends NativeImportFilter
             }
         }
 
+        $announcementId = $announcementDAO->insertObject($announcement);
         return $announcement;
     }
 
