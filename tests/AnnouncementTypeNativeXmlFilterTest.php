@@ -1,5 +1,6 @@
 <?php
 
+import('lib.pkp.classes.announcement.AnnouncementType');
 import('plugins.importexport.fullJournalTransfer.filter.AnnouncementTypeNativeXmlFilter');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 
@@ -33,5 +34,11 @@ class AnnouncementTypeNativeXmlFilterTest extends NativeImportExportFilterTestCa
         $announcementType->setName('Test Announcement Type', 'en_US');
 
         $announcementTypeNode = $nativeImportExportFilter->createAnnouncementTypeNode($doc, $announcementType);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedAnnouncementTypeNode),
+            $doc->saveXML($announcementTypeNode),
+            "actual xml is equal to expected xml"
+        );
     }
 }
