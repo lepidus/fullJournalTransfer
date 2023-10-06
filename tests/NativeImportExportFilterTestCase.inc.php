@@ -1,6 +1,7 @@
 <?php
 
 import('lib.pkp.tests.DatabaseTestCase');
+import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 
 abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
 {
