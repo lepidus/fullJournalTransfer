@@ -1,32 +1,28 @@
 <?php
 
-import('lib.pkp.tests.DatabaseTestCase');
-import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 import('plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementFilter');
+import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 
-class NativeXmlAnnouncementFilterTest extends DatabaseTestCase
+class NativeXmlAnnouncementFilterTest extends NativeImportExportFilterTestCase
 {
+    protected function getSymbolicFilterGroup()
+    {
+        return 'native-xml=>announcement';
+    }
+
+    protected function getNativeImportExportFilterClass()
+    {
+        return NativeXmlAnnouncementFilter::class;
+    }
+
     protected function getAffectedTables()
     {
         return ['announcements', 'announcement_settings'];
     }
 
-    private function getNativeImportFilter()
-    {
-        $context = new Journal();
-        $context->setId(12);
-
-        $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
-        $nativeImportGroup = $filterGroupDAO->getObjectBySymbolic('native-xml=>announcement');
-        $nativeImportFilter = new NativeXmlAnnouncementFilter($nativeImportGroup);
-        $nativeImportFilter->setDeployment(new FullJournalImportExportDeployment($context, null));
-
-        return $nativeImportFilter;
-    }
-
     public function testHandlerAnnouncementElement()
     {
-        $announcementImportFilter = $this->getNativeImportFilter();
+        $announcementImportFilter = $this->getNativeImportExportFilter(12);
         $deployment = $announcementImportFilter->getDeployment();
         $announcementDAO = DAORegistry::getDAO('AnnouncementDAO');
 
@@ -46,9 +42,7 @@ class NativeXmlAnnouncementFilterTest extends DatabaseTestCase
             ]
         ];
 
-        $fileContent = file_get_contents(__DIR__ . '/fixtures/announcement.xml');
-        $doc = new DOMDocument('1.0');
-        $doc->loadXML($fileContent);
+        $doc = $this->getSampleXml('announcement.xml');
 
         $announcementNode = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'announcement');
 

@@ -1,21 +1,20 @@
 <?php
 
-import('lib.pkp.tests.PKPTestCase');
-import('lib.pkp.classes.announcement.Announcement');
 import('classes.journal.Journal');
-import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
+import('lib.pkp.classes.announcement.Announcement');
 import('plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter');
+import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 
-class AnnouncementNativeXmlFilterTest extends PKPTestCase
+class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
-    private function getNativeExportFilter()
+    protected function getNativeImportExportFilterClass()
     {
-        $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
-        $nativeExportGroup = $filterGroupDAO->getObjectBySymbolic('announcement=>native-xml');
-        $nativeExportFilter = new AnnouncementNativeXmlFilter($nativeExportGroup);
-        $nativeExportFilter->setDeployment(new FullJournalImportExportDeployment(new Journal(), null));
+        return AnnouncementNativeXmlFilter::class;
+    }
 
-        return $nativeExportFilter;
+    protected function getSymbolicFilterGroup()
+    {
+        return 'announcement=>native-xml';
     }
 
     private function createTestAnnouncement($data)
@@ -25,19 +24,10 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
         return $announcement;
     }
 
-    private function getSampleXml($sampleFile)
-    {
-        $fileContent = file_get_contents(__DIR__ . '/fixtures/' . $sampleFile);
-        $xml = new DOMDocument('1.0');
-        $xml->loadXML($fileContent);
-
-        return $xml->saveXML();
-    }
-
     public function testAddDateElements()
     {
-        $nativeExportFilter = $this->getNativeExportFilter();
-        $deployment = $nativeExportFilter->getDeployment();
+        $nativeImportExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $nativeImportExportFilter->getDeployment();
 
         $doc = new DOMDocument('1.0');
         $doc->preserveWhiteSpace = false;
@@ -60,7 +50,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             'datePosted' => '2023-01-01 12:00:00.000',
         ]);
         $actualAnnouncementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
-        $nativeExportFilter->addDates($doc, $actualAnnouncementNode, $announcement);
+        $nativeImportExportFilter->addDates($doc, $actualAnnouncementNode, $announcement);
 
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedAnnouncementNode),
@@ -71,8 +61,8 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
 
     public function testCreateAnnouncementNode()
     {
-        $nativeExportFilter = $this->getNativeExportFilter();
-        $deployment = $nativeExportFilter->getDeployment();
+        $nativeImportExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $nativeImportExportFilter->getDeployment();
 
         $doc = new DOMDocument('1.0');
         $doc->preserveWhiteSpace = false;
@@ -94,9 +84,9 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             'date_posted',
             strftime('%Y-%m-%d %H:%M:%S', strtotime('2023-01-01 12:00:00.000'))
         ));
-        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'title', ['en_US' => 'Test Announcement']);
-        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description_short', ['en_US' => '<p>Announcement for test</p>']);
-        $nativeExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description', ['en_US' => '<p>A announcement created for test purpose</p>']);
+        $nativeImportExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'title', ['en_US' => 'Test Announcement']);
+        $nativeImportExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description_short', ['en_US' => '<p>Announcement for test</p>']);
+        $nativeImportExportFilter->createLocalizedNodes($doc, $expectedAnnouncementNode, 'description', ['en_US' => '<p>A announcement created for test purpose</p>']);
 
         $announcement = $this->createTestAnnouncement([
             'id' => 21,
@@ -116,7 +106,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             ]
         ]);
 
-        $actualAnnouncementNode = $nativeExportFilter->createAnnouncementNode($doc, $announcement);
+        $actualAnnouncementNode = $nativeImportExportFilter->createAnnouncementNode($doc, $announcement);
 
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedAnnouncementNode),
@@ -127,7 +117,7 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
 
     public function testCreateCompleteAnnouncementXml()
     {
-        $nativeExportFilter = $this->getNativeExportFilter();
+        $nativeImportExportFilter = $this->getNativeImportExportFilter();
         $announcements = [$this->createTestAnnouncement([
             'id' => 21,
             'assocId' => 12,
@@ -146,10 +136,10 @@ class AnnouncementNativeXmlFilterTest extends PKPTestCase
             ]
         ])];
 
-        $doc = $nativeExportFilter->process($announcements, true);
+        $doc = $nativeImportExportFilter->process($announcements, true);
 
         $this->assertXmlStringEqualsXmlString(
-            $this->getSampleXml('announcement.xml'),
+            $this->getSampleXml('announcement.xml')->saveXml(),
             $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
