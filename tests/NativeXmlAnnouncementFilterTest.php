@@ -20,7 +20,7 @@ class NativeXmlAnnouncementFilterTest extends NativeImportExportFilterTestCase
         return ['announcements', 'announcement_settings'];
     }
 
-    public function testHandlerAnnouncementElement()
+    public function testHandleAnnouncementElement()
     {
         $announcementImportFilter = $this->getNativeImportExportFilter(12);
         $deployment = $announcementImportFilter->getDeployment();
