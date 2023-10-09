@@ -9,7 +9,7 @@ abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
 
     abstract protected function getNativeImportExportFilterClass();
 
-    protected function getNativeImportExportFilter($contextId = null)
+    protected function getNativeImportExportFilter($context = null)
     {
         $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
         $filterGroup = $filterGroupDAO->getObjectBySymbolic($this->getSymbolicFilterGroup());
@@ -17,8 +17,10 @@ abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
         $nativeImportExportFilterClass = $this->getNativeImportExportFilterClass();
         $nativeImportExportFilter = new $nativeImportExportFilterClass($filterGroup);
 
-        $context = Application::getContextDAO()->newDataObject();
-        $context->setId($contextId);
+        if (!$context) {
+            $context = Application::getContextDAO()->newDataObject();
+        }
+
         $deployment = new FullJournalImportExportDeployment($context);
         $nativeImportExportFilter->setDeployment($deployment);
 

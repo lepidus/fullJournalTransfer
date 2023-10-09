@@ -22,7 +22,10 @@ class NativeXmlAnnouncementFilterTest extends NativeImportExportFilterTestCase
 
     public function testHandleAnnouncementElement()
     {
-        $announcementImportFilter = $this->getNativeImportExportFilter(12);
+        $context = Application::getContextDAO()->newDataObject();
+        $context->setId(12);
+
+        $announcementImportFilter = $this->getNativeImportExportFilter($context);
         $deployment = $announcementImportFilter->getDeployment();
         $announcementDAO = DAORegistry::getDAO('AnnouncementDAO');
 
