@@ -17,18 +17,34 @@ class NativeXmlAnnouncementFilterTest extends NativeImportExportFilterTestCase
 
     protected function getAffectedTables()
     {
-        return ['announcements', 'announcement_settings'];
+        return ['announcements', 'announcement_settings', 'announcement_types', 'announcement_type_settings'];
     }
 
-    public function testHandlerAnnouncementElement()
+    private function insertTestAnnouncementType($context)
     {
-        $announcementImportFilter = $this->getNativeImportExportFilter(12);
+        $announcementTypeDAO = DAORegistry::getDAO('AnnouncementTypeDAO');
+        $announcementType = $announcementTypeDAO->newDataObject();
+        $announcementType->setAssocType($context->getAssocType());
+        $announcementType->setAssocId($context->getId());
+        $announcementType->setName('Test Announcement Type', 'en_US');
+        $announcementTypeId = $announcementTypeDAO->insertObject($announcementType);
+        return $announcementTypeId;
+    }
+
+    public function testHandleAnnouncementElement()
+    {
+        $context = Application::getContextDAO()->newDataObject();
+        $context->setId(12);
+        $announcementTypeId = $this->insertTestAnnouncementType($context);
+
+        $announcementImportFilter = $this->getNativeImportExportFilter($context);
         $deployment = $announcementImportFilter->getDeployment();
         $announcementDAO = DAORegistry::getDAO('AnnouncementDAO');
 
         $expectedAnnouncementData = [
             'assocId' => 12,
             'assocType' => ASSOC_TYPE_JOURNAL,
+            'typeId' => $announcementTypeId,
             'dateExpire' => '2023-02-01',
             'datePosted' => '2023-01-01 12:00:00',
             'title' => [

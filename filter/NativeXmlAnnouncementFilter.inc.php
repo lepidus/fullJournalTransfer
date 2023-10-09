@@ -66,11 +66,22 @@ class NativeXmlAnnouncementFilter extends NativeImportFilter
                     case 'date_posted':
                         $announcement->setDatePosted(strftime('%Y-%m-%d %H:%M:%S', strtotime($n->textContent)));
                         break;
+                    case 'announcement_type_ref':
+                        $announcementTypes = DAORegistry::getDAO('AnnouncementTypeDAO')->getByAssoc(
+                            $context->getAssocType(),
+                            $context->getId()
+                        );
+                        foreach ($announcementTypes as $announcementType) {
+                            if (in_array($n->textContent, $announcementType->getName(null))) {
+                                $announcement->setTypeId($announcementType->getId());
+                            }
+                        }
+                        break;
                 }
             }
         }
 
-        $announcementId = $announcementDAO->insertObject($announcement);
+        $announcementDAO->insertObject($announcement);
         return $announcement;
     }
 

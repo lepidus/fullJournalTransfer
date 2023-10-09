@@ -26,13 +26,20 @@
       description="plugins.importexport.native.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.announcement.Announcement" />
-    <!-- Announcement native XML output -->
+    <!-- AnnouncementType native XML output -->
     <filterGroup
       symbolic="announcement-type=>native-xml"
       displayName="plugins.importexport.native.displayName"
       description="plugins.importexport.native.description"
       inputType="class::lib.pkp.classes.announcement.AnnouncementType"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+    <!-- AnnouncementType native XML input -->
+    <filterGroup
+      symbolic="native-xml=>announcement-type"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+      outputType="class::lib.pkp.classes.announcement.AnnouncementType" />
   </filterGroups>
   <filters>
     <filter
@@ -46,6 +53,10 @@
     <filter
       inGroup="announcement-type=>native-xml"
       class="plugins.importexport.fullJournalTransfer.filter.AnnouncementTypeNativeXmlFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="native-xml=>announcement"
+      class="plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementTypeFilter"
       isTemplate="0" />
   </filters>
 </filterConfig>

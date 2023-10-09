@@ -41,6 +41,7 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
     public function createAnnouncementNode($doc, $announcement)
     {
         $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
 
         $announcementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
 
@@ -48,15 +49,21 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
         $node->setAttribute('type', 'internal');
         $node->setAttribute('advice', 'ignore');
 
-        if ($announcement->getTypeId()) {
-            $announcementNode->setAttribute('type_id', $announcement->getTypeId());
-        }
-
         $this->addDates($doc, $announcementNode, $announcement);
 
         $this->createLocalizedNodes($doc, $announcementNode, 'title', $announcement->getTitle(null));
         $this->createLocalizedNodes($doc, $announcementNode, 'description_short', $announcement->getDescriptionShort(null));
         $this->createLocalizedNodes($doc, $announcementNode, 'description', $announcement->getDescription(null));
+
+        if ($announcement->getTypeId()) {
+            $announcementTypeDAO = DAORegistry::getDAO('AnnouncementTypeDAO');
+            $announcementType = $announcementTypeDAO->getById($announcement->getTypeId());
+            $announcementNode->appendChild($doc->createElementNS(
+                $deployment->getNamespace(),
+                'announcement_type_ref',
+                htmlspecialchars($announcementType->getName($context->getPrimaryLocale()), ENT_COMPAT, 'UTF-8')
+            ));
+        }
 
         return $announcementNode;
     }
