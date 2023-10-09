@@ -36,7 +36,7 @@ class NativeXmlAnnouncementTypeFilter extends NativeImportFilter
         $deployment = $this->getDeployment();
         $context = $deployment->getContext();
 
-        $announcementTypeDAO = $announcementTypeDao = DAORegistry::getDAO('AnnouncementTypeDAO');
+        $announcementTypeDAO = DAORegistry::getDAO('AnnouncementTypeDAO');
         $announcementType = $announcementTypeDAO->newDataObject();
 
         $announcementType->setAssocType(Application::get()->getContextAssocType());
