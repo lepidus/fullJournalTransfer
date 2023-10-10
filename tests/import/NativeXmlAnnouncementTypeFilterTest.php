@@ -1,6 +1,6 @@
 <?php
 
-import('plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementTypeFilter');
+import('plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementTypeFilter');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 
 class NativeXmlAnnouncementTypeFilterTest extends NativeImportExportFilterTestCase

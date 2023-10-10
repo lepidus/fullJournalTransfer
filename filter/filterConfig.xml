@@ -44,19 +44,19 @@
   <filters>
     <filter
       inGroup="announcement=>native-xml"
-      class="plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementNativeXmlFilter"
       isTemplate="0" />
     <filter
       inGroup="native-xml=>announcement"
-      class="plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementFilter"
       isTemplate="0" />
     <filter
       inGroup="announcement-type=>native-xml"
-      class="plugins.importexport.fullJournalTransfer.filter.AnnouncementTypeNativeXmlFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementTypeNativeXmlFilter"
       isTemplate="0" />
     <filter
       inGroup="native-xml=>announcement"
-      class="plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementTypeFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementTypeFilter"
       isTemplate="0" />
   </filters>
 </filterConfig>

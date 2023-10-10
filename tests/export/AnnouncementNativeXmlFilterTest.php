@@ -2,7 +2,7 @@
 
 import('classes.journal.Journal');
 import('lib.pkp.classes.announcement.Announcement');
-import('plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter');
+import('plugins.importexport.fullJournalTransfer.filter.export.AnnouncementNativeXmlFilter');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 
 class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase

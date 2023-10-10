@@ -1,7 +1,7 @@
 <?php
 
 import('lib.pkp.classes.announcement.AnnouncementType');
-import('plugins.importexport.fullJournalTransfer.filter.AnnouncementTypeNativeXmlFilter');
+import('plugins.importexport.fullJournalTransfer.filter.export.AnnouncementTypeNativeXmlFilter');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 
 class AnnouncementTypeNativeXmlFilterTest extends NativeImportExportFilterTestCase
