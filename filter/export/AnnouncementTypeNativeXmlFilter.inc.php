@@ -9,6 +9,17 @@ import('lib.pkp.plugins.importexport.native.filter.NativeExportFilter');
 
 class AnnouncementTypeNativeXmlFilter extends NativeExportFilter
 {
+    public function __construct($filterGroup)
+    {
+        $this->setDisplayName('Native XML announcement type export');
+        parent::__construct($filterGroup);
+    }
+
+    public function getClassName()
+    {
+        return 'plugins.importexport.native.filter.export.AnnouncementTypeNativeXmlFilter';
+    }
+
     public function &process(&$announcementTypes)
     {
         $doc = new DOMDocument('1.0');

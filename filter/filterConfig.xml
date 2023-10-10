@@ -40,23 +40,34 @@
       description="plugins.importexport.native.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.announcement.AnnouncementType" />
+    <!-- ReviewForm native XML output -->
+    <filterGroup
+      symbolic="review-form=>native-xml"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="class::lib.pkp.classes.reviewForm.ReviewForm"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
   </filterGroups>
   <filters>
     <filter
       inGroup="announcement=>native-xml"
-      class="plugins.importexport.fullJournalTransfer.filter.AnnouncementNativeXmlFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementNativeXmlFilter"
       isTemplate="0" />
     <filter
       inGroup="native-xml=>announcement"
-      class="plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementFilter"
       isTemplate="0" />
     <filter
       inGroup="announcement-type=>native-xml"
-      class="plugins.importexport.fullJournalTransfer.filter.AnnouncementTypeNativeXmlFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementTypeNativeXmlFilter"
       isTemplate="0" />
     <filter
       inGroup="native-xml=>announcement"
-      class="plugins.importexport.fullJournalTransfer.filter.NativeXmlAnnouncementTypeFilter"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementTypeFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="review-form=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter"
       isTemplate="0" />
   </filters>
 </filterConfig>
