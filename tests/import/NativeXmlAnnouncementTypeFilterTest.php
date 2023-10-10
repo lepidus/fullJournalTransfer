@@ -20,12 +20,14 @@ class NativeXmlAnnouncementTypeFilterTest extends NativeImportExportFilterTestCa
         return ['announcement_types', 'announcement_type_settings'];
     }
 
+    protected function getContextData()
+    {
+        return ['id' => 12];
+    }
+
     public function testHandleAnnouncementTypeElement()
     {
-        $context = Application::getContextDAO()->newDataObject();
-        $context->setId(12);
-
-        $announcementTypeImportFilter = $this->getNativeImportExportFilter($context);
+        $announcementTypeImportFilter = $this->getNativeImportExportFilter();
         $deployment = $announcementTypeImportFilter->getDeployment();
         $announcementTypeDAO = DAORegistry::getDAO('AnnouncementTypeDAO');
 

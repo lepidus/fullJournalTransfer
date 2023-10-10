@@ -5,11 +5,22 @@ import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployme
 
 abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
 {
-    abstract protected function getSymbolicFilterGroup();
+    protected $context;
 
-    abstract protected function getNativeImportExportFilterClass();
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-    protected function getNativeImportExportFilter($context = null)
+        $this->context = Application::getContextDAO()->newDataObject();
+        $this->context->_data = $this->getContextData();
+    }
+
+    protected function getContextData()
+    {
+        return [];
+    }
+
+    protected function getNativeImportExportFilter()
     {
         $filterGroupDAO = DAORegistry::getDAO('FilterGroupDAO');
         $filterGroup = $filterGroupDAO->getObjectBySymbolic($this->getSymbolicFilterGroup());
@@ -17,15 +28,15 @@ abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
         $nativeImportExportFilterClass = $this->getNativeImportExportFilterClass();
         $nativeImportExportFilter = new $nativeImportExportFilterClass($filterGroup);
 
-        if (!$context) {
-            $context = Application::getContextDAO()->newDataObject();
-        }
-
-        $deployment = new FullJournalImportExportDeployment($context);
+        $deployment = new FullJournalImportExportDeployment($this->context);
         $nativeImportExportFilter->setDeployment($deployment);
 
         return $nativeImportExportFilter;
     }
+
+    abstract protected function getSymbolicFilterGroup();
+
+    abstract protected function getNativeImportExportFilterClass();
 
     protected function getSampleXml($sampleFile)
     {

@@ -20,12 +20,17 @@ class NativeXmlAnnouncementFilterTest extends NativeImportExportFilterTestCase
         return ['announcements', 'announcement_settings', 'announcement_types', 'announcement_type_settings'];
     }
 
-    private function insertTestAnnouncementType($context)
+    protected function getContextData()
+    {
+        return ['id' => 12];
+    }
+
+    private function insertTestAnnouncementType()
     {
         $announcementTypeDAO = DAORegistry::getDAO('AnnouncementTypeDAO');
         $announcementType = $announcementTypeDAO->newDataObject();
-        $announcementType->setAssocType($context->getAssocType());
-        $announcementType->setAssocId($context->getId());
+        $announcementType->setAssocType($this->context->getAssocType());
+        $announcementType->setAssocId($this->context->getId());
         $announcementType->setName('Test Announcement Type', 'en_US');
         $announcementTypeId = $announcementTypeDAO->insertObject($announcementType);
         return $announcementTypeId;
@@ -33,11 +38,9 @@ class NativeXmlAnnouncementFilterTest extends NativeImportExportFilterTestCase
 
     public function testHandleAnnouncementElement()
     {
-        $context = Application::getContextDAO()->newDataObject();
-        $context->setId(12);
-        $announcementTypeId = $this->insertTestAnnouncementType($context);
+        $announcementTypeId = $this->insertTestAnnouncementType();
 
-        $announcementImportFilter = $this->getNativeImportExportFilter($context);
+        $announcementImportFilter = $this->getNativeImportExportFilter();
         $deployment = $announcementImportFilter->getDeployment();
         $announcementDAO = DAORegistry::getDAO('AnnouncementDAO');
 

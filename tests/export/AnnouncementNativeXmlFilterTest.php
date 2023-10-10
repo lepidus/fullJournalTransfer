@@ -13,11 +13,10 @@ class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         parent::setUp();
 
+        $this->announcementExportFilter = $this->getNativeImportExportFilter();
+
         $announcementType = $this->createTestAnnouncementType();
         $this->setUpAnnouncementTypeMockDAO($announcementType);
-
-        $context = $this->createTestContext();
-        $this->announcementExportFilter = $this->getNativeImportExportFilter($context);
     }
 
     protected function getNativeImportExportFilterClass()
@@ -33,6 +32,14 @@ class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
     protected function getMockedDAOs()
     {
         return ['AnnouncementTypeDAO'];
+    }
+
+    protected function getContextData()
+    {
+        return [
+            'id' => 99,
+            'primaryLocale' => 'en_US'
+        ];
     }
 
     private function setUpAnnouncementTypeMockDAO($announcementType)
@@ -60,14 +67,6 @@ class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $announcementType = new AnnouncementType();
         $announcementType->setName('Test Announcement Type', 'en_US');
         return $announcementType;
-    }
-
-    private function createTestContext()
-    {
-        $context = Application::getContextDAO()->newDataObject();
-        $context->setId(99);
-        $context->setPrimaryLocale('en_US');
-        return $context;
     }
 
     public function testAddDateElements()
