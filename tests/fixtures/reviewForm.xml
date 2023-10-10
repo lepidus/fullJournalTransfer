@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<review_forms xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <review_form is_active="1" seq="1">
+        <title locale="en_US">Test Review Form</title>
+        <description locale="en_US">&lt;p&gt;A review form for test purpose&lt;/p&gt;</description>
+    </review_form>
+</review_forms>

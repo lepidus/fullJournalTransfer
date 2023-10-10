@@ -1,5 +1,6 @@
 <?php
 
+import('lib.pkp.classes.reviewForm.ReviewForm');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter');
 
@@ -40,15 +41,14 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ['en_US' => '<p>A review form for test purpose</p>']
         );
 
-        import('lib.pkp.classes.reviewForm.ReviewForm');
         $reviewForm = new ReviewForm();
         $reviewForm->_data = [
             'assocId' => 12,
             'assocType' => ASSOC_TYPE_JOURNAL,
             'sequence' => 1,
             'active' => 1,
-            'description' => ['en_US' => '<p>A review form for test purpose</p>'],
-            'title' => ['en_US' => 'Test Review Form']
+            'title' => ['en_US' => 'Test Review Form'],
+            'description' => ['en_US' => '<p>A review form for test purpose</p>']
         ];
 
         $actualReviewFormNode = $reviewFormExportFilter->createReviewFormNode($doc, $reviewForm);
@@ -56,6 +56,30 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedReviewFormNode),
             $doc->saveXML($actualReviewFormNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateCompleteReviewFormXml()
+    {
+        $reviewFormExportFilter = $this->getNativeImportExportFilter();
+
+        $reviewForm = new ReviewForm();
+        $reviewForm->_data = [
+            'assocId' => 12,
+            'assocType' => ASSOC_TYPE_JOURNAL,
+            'sequence' => 1,
+            'active' => 1,
+            'title' => ['en_US' => 'Test Review Form'],
+            'description' => ['en_US' => '<p>A review form for test purpose</p>']
+        ];
+        $reviewForms = [$reviewForm];
+
+        $doc = $reviewFormExportFilter->process($reviewForms);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('reviewForm.xml')->saveXml(),
+            $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
     }
