@@ -47,7 +47,13 @@
       description="plugins.importexport.native.description"
       inputType="class::lib.pkp.classes.reviewForm.ReviewForm"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
-  </filterGroups>
+    <!-- ReviewForm native XML input -->
+    <filterGroup
+      symbolic="native-xml=>review-form"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+      outputType="class::lib.pkp.classes.reviewForm.ReviewForm" />
   <filters>
     <filter
       inGroup="announcement=>native-xml"
@@ -68,6 +74,10 @@
     <filter
       inGroup="review-form=>native-xml"
       class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="native-xml=>review-form"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewFormFilter"
       isTemplate="0" />
   </filters>
 </filterConfig>
