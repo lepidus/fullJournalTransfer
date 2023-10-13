@@ -15,6 +15,11 @@ class NativeXmlReviewFormFilterTest extends NativeImportExportFilterTestCase
         return NativeXmlReviewFormFilter::class;
     }
 
+    protected function getAffectedTables()
+    {
+        return ['review_forms', 'review_form_settings'];
+    }
+
     protected function getContextData()
     {
         return ['id' => 12];
