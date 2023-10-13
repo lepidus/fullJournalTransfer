@@ -23,6 +23,8 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
     public function &process(&$reviewForms)
     {
         $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
         $deployment = $this->getDeployment();
 
         $rootNode = $doc->createElementNS($deployment->getNamespace(), 'review_forms');

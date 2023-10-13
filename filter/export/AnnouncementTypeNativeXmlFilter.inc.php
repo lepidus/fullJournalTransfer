@@ -23,6 +23,8 @@ class AnnouncementTypeNativeXmlFilter extends NativeExportFilter
     public function &process(&$announcementTypes)
     {
         $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
         $deployment = $this->getDeployment();
 
         $rootNode = $doc->createElementNS($deployment->getNamespace(), 'announcement_types');
