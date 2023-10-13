@@ -1,0 +1,12 @@
+msgid "plugins.importexport.fullJournal.displayName"
+msgstr "Plugin de Exportação de Revista"
+
+msgid "plugins.importexport.fullJournal.description"
+msgstr "Permite importar e exportar revistas."
+
+msgid "plugins.importexport.fullJournal.cliUsage"
+msgstr ""
+"Uso: {$scriptName} {$pluginName} [comando] ...\n"
+"Comandos:\n"
+"import [xmlFileName]\n"
+"export [xmlFileName] [journal_path]\n"

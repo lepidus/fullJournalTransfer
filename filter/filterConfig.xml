@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filterConfig SYSTEM "../../../../lib/pkp/dtd/filterConfig.dtd">
+
+<!--
+  * filterConfig.xml
+  *
+  * Copyright (c) 2014-2021 Simon Fraser University
+  * Copyright (c) 2003-2021 John Willinsky
+  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
+  *
+  * Filter Configuration.
+  -->
+<filterConfig>
+  <filterGroups>
+    <!-- Announcement native XML output -->
+    <filterGroup
+      symbolic="announcement=>native-xml"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="class::lib.pkp.classes.announcement.Announcement"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+    <!-- Announcement native XML input -->
+    <filterGroup
+      symbolic="native-xml=>Announcement"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+      outputType="class::lib.pkp.classes.announcement.Announcement" />
+    <!-- AnnouncementType native XML output -->
+    <filterGroup
+      symbolic="announcement-type=>native-xml"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="class::lib.pkp.classes.announcement.AnnouncementType"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+    <!-- AnnouncementType native XML input -->
+    <filterGroup
+      symbolic="native-xml=>announcement-type"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+      outputType="class::lib.pkp.classes.announcement.AnnouncementType" />
+    <!-- ReviewForm native XML output -->
+    <filterGroup
+      symbolic="review-form=>native-xml"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="class::lib.pkp.classes.reviewForm.ReviewForm"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+    <!-- ReviewForm native XML input -->
+    <filterGroup
+      symbolic="native-xml=>review-form"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+      outputType="class::lib.pkp.classes.reviewForm.ReviewForm" />
+    <!-- ReviewFormElement native XML output -->
+    <filterGroup
+      symbolic="review-form-element=>native-xml"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="class::lib.pkp.classes.reviewForm.ReviewFormElement"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+  <filters>
+    <filter
+      inGroup="announcement=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementNativeXmlFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="native-xml=>announcement"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="announcement-type=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementTypeNativeXmlFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="native-xml=>announcement"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementTypeFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="review-form=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="native-xml=>review-form"
+      class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewFormFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="review-form-element=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFormElementNativeXmlFilter"
+      isTemplate="0" />
+  </filters>
+</filterConfig>

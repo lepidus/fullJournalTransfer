@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<announcements xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+	<announcement>
+		<id advice="ignore" type="internal">21</id>
+		<date_expire>2023-02-01</date_expire>
+		<date_posted>2023-01-01 12:00:00</date_posted>
+		<title locale="en_US">Test Announcement</title>
+		<description_short locale="en_US">&lt;p&gt;Announcement for test&lt;/p&gt;</description_short>
+		<description locale="en_US">&lt;p&gt;A announcement created for test purpose&lt;/p&gt;</description>
+		<announcement_type_ref>Test Announcement Type</announcement_type_ref>
+	</announcement>
+</announcements>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+  * plugins/importexport/fullJournalTransfer/fullJournal.xsd
+  *
+  * Copyright (c) 2019-2023 Lepidus Tecnologia
+  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
+  -->
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://pkp.sfu.ca"
+    xmlns:pkp="http://pkp.sfu.ca" elementFormDefault="qualified">
+
+    <!--
+	  - Base the native import/export schema on the PKP submission model.
+	  -->
+    <include schemaLocation="../../../plugins/importexport/native/native.xsd" />
+
+    <element name="announcements">
+		<complexType>
+			<sequence>
+				<element ref="pkp:announcement" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="announcement">
+		<sequence>
+			<element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
+			<element name="title" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="descriptionShort" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="date_expire" type="date" minOccurs="0" maxOccurs="1" />
+			<element name="date_posted" type="date" minOccurs="1" maxOccurs="1" />
+		</sequence>
+		<attribute name="type_id" type="int" use="optional" />
+	</complexType>
+
+    <element name="announcement" type="pkp:announcement" />
+</schema>

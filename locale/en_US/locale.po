@@ -1,0 +1,12 @@
+msgid "plugins.importexport.fullJournal.displayName"
+msgstr "Journal Export Plugin"
+
+msgid "plugins.importexport.fullJournal.description"
+msgstr "Allows you to import and export journals."
+
+msgid "plugins.importexport.fullJournal.cliUsage"
+msgstr ""
+"Usage: {$scriptName} {$pluginName} [comando] ...\n"
+"Commands:\n"
+"import [xmlFileName]\n"
+"export [xmlFileName] [journal_path]\n"
