@@ -9,6 +9,8 @@ import('plugins.importexport.native.NativeImportExportDeployment');
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
+    private $reviewForm;
+
     public function __construct($context, $user = null)
     {
         parent::__construct($context, $user);
@@ -17,5 +19,15 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getSchemaFilename()
     {
         return 'fullJournal.xsd';
+    }
+
+    public function setReviewForm($reviewForm)
+    {
+        $this->reviewForm = $reviewForm;
+    }
+
+    public function getReviewForm()
+    {
+        return $this->reviewForm;
     }
 }
