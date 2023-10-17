@@ -17,7 +17,7 @@ class ReviewFormElementNativeXmlFilter extends NativeExportFilter
 
     public function getClassName()
     {
-        return 'plugins.importexport.native.filter.export.ReviewFormElementNativeXmlFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.export.ReviewFormElementNativeXmlFilter';
     }
 
     public function &process(&$reviewFormElements)
