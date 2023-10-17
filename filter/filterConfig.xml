@@ -68,6 +68,7 @@
       description="plugins.importexport.native.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.reviewForm.ReviewFormElement" />
+  </filterGroups>
   <filters>
     <filter
       inGroup="announcement=>native-xml"
