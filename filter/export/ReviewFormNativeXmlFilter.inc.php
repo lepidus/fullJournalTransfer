@@ -17,7 +17,7 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
 
     public function getClassName()
     {
-        return 'plugins.importexport.native.filter.export.ReviewFormNativeXmlFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter';
     }
 
     public function &process(&$reviewForms)
@@ -50,5 +50,22 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
         $this->createLocalizedNodes($doc, $reviewFormNode, 'description', $reviewForm->getDescription(null));
 
         return $reviewFormNode;
+    }
+
+    public function addReviewFormElements($doc, $reviewFormNode, $reviewForm)
+    {
+        $filterDAO = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDAO->getObjectsByGroup('review-form-element=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $reviewFormElementDAO = DAORegistry::getDAO('ReviewFormElementDAO');
+        $reviewFormElements = $reviewFormElementDAO->getByReviewFormId($reviewForm->getId())->toArray();
+        $reviewFormElementsDoc = $exportFilter->execute($reviewFormElements, true);
+        if ($reviewFormElementsDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($reviewFormElementsDoc->documentElement, true);
+            $reviewFormNode->appendChild($clone);
+        }
     }
 }
