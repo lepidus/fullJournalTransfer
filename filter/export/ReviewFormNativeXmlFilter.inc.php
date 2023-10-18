@@ -48,6 +48,7 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
 
         $this->createLocalizedNodes($doc, $reviewFormNode, 'title', $reviewForm->getTitle(null));
         $this->createLocalizedNodes($doc, $reviewFormNode, 'description', $reviewForm->getDescription(null));
+        $this->addReviewFormElements($doc, $reviewFormNode, $reviewForm);
 
         return $reviewFormNode;
     }
