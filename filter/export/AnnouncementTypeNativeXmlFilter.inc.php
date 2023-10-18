@@ -17,7 +17,7 @@ class AnnouncementTypeNativeXmlFilter extends NativeExportFilter
 
     public function getClassName()
     {
-        return 'plugins.importexport.native.filter.export.AnnouncementTypeNativeXmlFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.export.AnnouncementTypeNativeXmlFilter';
     }
 
     public function &process(&$announcementTypes)
