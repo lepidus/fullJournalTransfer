@@ -17,7 +17,7 @@
       symbolic="announcement=>native-xml"
       displayName="plugins.importexport.native.displayName"
       description="plugins.importexport.native.description"
-      inputType="class::lib.pkp.classes.announcement.Announcement"
+      inputType="class::lib.pkp.classes.announcement.Announcement[]"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- Announcement native XML input -->
     <filterGroup
