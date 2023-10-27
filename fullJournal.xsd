@@ -26,13 +26,13 @@
     <complexType name="announcement">
 		<sequence>
 			<element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
-			<element name="title" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
-			<element name="descriptionShort" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="date_expire" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_posted" type="string" minOccurs="1" maxOccurs="1" />
+			<element ref="pkp:title" minOccurs="1" maxOccurs="unbounded" />
+			<element name="description_short" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
 			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
-			<element name="date_expire" type="date" minOccurs="0" maxOccurs="1" />
-			<element name="date_posted" type="date" minOccurs="1" maxOccurs="1" />
+			<element name="announcement_type_ref" type="string" maxOccurs="unbounded" />
 		</sequence>
-		<attribute name="type_id" type="int" use="optional" />
 	</complexType>
 
     <element name="announcement" type="pkp:announcement" />
