@@ -45,15 +45,34 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
 
         $announcementNode = $doc->createElementNS($deployment->getNamespace(), 'announcement');
 
-        $announcementNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'id', $announcement->getId()));
+        $announcementNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'id',
+            $announcement->getId()
+        ));
         $node->setAttribute('type', 'internal');
         $node->setAttribute('advice', 'ignore');
 
         $this->addDates($doc, $announcementNode, $announcement);
 
-        $this->createLocalizedNodes($doc, $announcementNode, 'title', $announcement->getTitle(null));
-        $this->createLocalizedNodes($doc, $announcementNode, 'description_short', $announcement->getDescriptionShort(null));
-        $this->createLocalizedNodes($doc, $announcementNode, 'description', $announcement->getDescription(null));
+        $this->createLocalizedNodes(
+            $doc,
+            $announcementNode,
+            'title',
+            $announcement->getTitle(null)
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $announcementNode,
+            'description_short',
+            $announcement->getDescriptionShort(null)
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $announcementNode,
+            'description',
+            $announcement->getDescription(null)
+        );
 
         if ($announcement->getTypeId()) {
             $announcementTypeDAO = DAORegistry::getDAO('AnnouncementTypeDAO');
