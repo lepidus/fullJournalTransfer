@@ -199,7 +199,7 @@ class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ]
         ])];
 
-        $doc = $this->announcementExportFilter->process($announcements, true);
+        $doc = $this->announcementExportFilter->execute($announcements);
 
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('announcement.xml')->saveXml(),
