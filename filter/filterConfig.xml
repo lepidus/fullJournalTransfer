@@ -12,7 +12,13 @@
   -->
 <filterConfig>
   <filterGroups>
-    <!-- Announcement native XML output -->
+    <!-- Journal native XML output -->
+    <filterGroup
+      symbolic="journal=>native-xml"
+      displayName="plugins.importexport.native.displayName"
+      description="plugins.importexport.native.description"
+      inputType="class::classes.journal.Journal"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <filterGroup
       symbolic="announcement=>native-xml"
       displayName="plugins.importexport.native.displayName"
@@ -70,6 +76,10 @@
       outputType="class::lib.pkp.classes.reviewForm.ReviewFormElement" />
   </filterGroups>
   <filters>
+    <filter
+      inGroup="journal=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter"
+      isTemplate="0" />
     <filter
       inGroup="announcement=>native-xml"
       class="plugins.importexport.fullJournalTransfer.filter.export.AnnouncementNativeXmlFilter"
