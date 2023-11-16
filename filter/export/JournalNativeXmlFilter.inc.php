@@ -230,4 +230,25 @@ class JournalNativeXmlFilter extends NativeExportFilter
 
         return $journalNode;
     }
+
+    public function createSubmissionChecklistNode($doc, $parentNode, $checklist)
+    {
+        $deployment = $this->getDeployment();
+
+        foreach ($checklist as $locale => $items) {
+            $parentNode->appendChild($checklistNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'submission_checklist'
+            ));
+            $checklistNode->setAttribute('locale', $locale);
+            foreach ($items as $item) {
+                $checklistNode->appendChild($node = $doc->createElementNS(
+                    $deployment->getNamespace(),
+                    'submission_checklist_item',
+                    htmlspecialchars($item['content'], ENT_COMPAT, 'UTF-8')
+                ));
+                $node->setAttribute('order', $item['order']);
+            }
+        }
+    }
 }

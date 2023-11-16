@@ -19,15 +19,96 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         return JournalNativeXmlFilter::class;
     }
 
-    public function testCreateJournalNode()
+    private function createDefaultSubmissionChecklistNode($doc, $deployment, $parentNode)
     {
-        $locales = ['en_US', 'es_ES', 'pt_BR'];
+        $submissionChecklist = [
+            'en_US' => [
+                [
+                    'order' => 1,
+                    'content' => __('default.contextSettings.checklist.notPreviouslyPublished')
+                ],
+                [
+                    'order' => 2,
+                    'content' => __('default.contextSettings.checklist.fileFormat')
+                ],
+                [
+                    'order' => 3,
+                    'content' => __('default.contextSettings.checklist.addressesLinked')
+                ],
+                [
+                    'order' => 4,
+                    'content' => __('default.contextSettings.checklist.submissionAppearance')
+                ],
+                [
+                    'order' => 5,
+                    'content' => __('default.contextSettings.checklist.bibliographicRequirements')
+                ]
+            ]
+        ];
+
+        foreach ($submissionChecklist as $locale => $submissionChecklist) {
+            $parentNode->appendChild($checklistNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'submission_checklist'
+            ));
+            $checklistNode->setAttribute('locale', $locale);
+            foreach ($submissionChecklist as $checklistItem) {
+                $checklistNode->appendChild($node = $doc->createElementNS(
+                    $deployment->getNamespace(),
+                    'submission_checklist_item',
+                    htmlspecialchars($checklistItem['content'], ENT_COMPAT, 'UTF-8')
+                ));
+                $node->setAttribute('order', $checklistItem['order']);
+            }
+        }
+
+        return $checklistNode;
+    }
+
+    public function testCreateSubmissionChecklistNode()
+    {
         $journalExportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalExportFilter->getDeployment();
 
         $doc = new DOMDocument('1.0');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
+
+        $journal = new Journal();
+        $journal = Services::get('schema')->setDefaults(
+            'context',
+            $journal,
+            ['en_US'],
+            'en_US'
+        );
+
+        $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $this->createDefaultSubmissionChecklistNode($doc, $deployment, $expectedJournalNode);
+
+        $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $journalExportFilter->createSubmissionChecklistNode(
+            $doc,
+            $actualJournalNode,
+            $journal->getData('submissionChecklist')
+        );
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedJournalNode),
+            $doc->saveXML($actualJournalNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateJournalNode()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalExportFilter->getDeployment();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $locales = ['en_US', 'es_ES', 'pt_BR'];
 
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $expectedJournalNode->setAttribute('seq', 6);
