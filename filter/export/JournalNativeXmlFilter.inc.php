@@ -68,6 +68,67 @@ class JournalNativeXmlFilter extends NativeExportFilter
             htmlspecialchars(join(':', $journal->getData('supportedSubmissionLocales')), ENT_COMPAT, 'UTF-8')
         ));
 
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'contact_email',
+            $journal->getData('contactEmail')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'contact_name',
+            $journal->getData('contactName')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'contact_phone',
+            $journal->getData('contactPhone')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'mailing_address',
+            $journal->getData('mailingAddress')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'online_issn',
+            $journal->getData('onlineIssn')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'print_issn',
+            $journal->getData('printIssn')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'publisher_institution',
+            $journal->getData('publisherInstitution')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'support_email',
+            $journal->getData('supportEmail')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'support_name',
+            $journal->getData('supportName')
+        );
+        $this->createOptionalNode(
+            $doc,
+            $journalNode,
+            'support_phone',
+            $journal->getData('supportPhone')
+        );
+
         $this->createLocalizedNodes(
             $doc,
             $journalNode,
@@ -121,6 +182,36 @@ class JournalNativeXmlFilter extends NativeExportFilter
             $journalNode,
             'reader_information',
             $journal->getData('readerInformation')
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $journalNode,
+            'abbreviation',
+            $journal->getData('abbreviation')
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $journalNode,
+            'about',
+            $journal->getData('about')
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $journalNode,
+            'contact_affiliation',
+            $journal->getData('contactAffiliation')
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $journalNode,
+            'description',
+            $journal->getData('description')
+        );
+        $this->createLocalizedNodes(
+            $doc,
+            $journalNode,
+            'editorial_team',
+            $journal->getData('editorialTeam')
         );
 
         foreach ($journal->getData('submissionChecklist') as $locale => $submissionChecklist) {
