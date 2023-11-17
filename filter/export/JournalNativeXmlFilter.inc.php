@@ -20,6 +20,22 @@ class JournalNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.native.filter.export.JournalNativeXmlFilter';
     }
 
+    private function getJournalOptionalProps()
+    {
+        return [
+            'contactEmail',
+            'contactName',
+            'contactPhone',
+            'mailingAddress',
+            'onlineIssn',
+            'printIssn',
+            'publisherInstitution',
+            'supportEmail',
+            'supportName',
+            'supportPhone',
+        ];
+    }
+
     public function createJournalNode($doc, $journal)
     {
         $deployment = $this->getDeployment();
@@ -68,66 +84,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
             htmlspecialchars(join(':', $journal->getData('supportedSubmissionLocales')), ENT_COMPAT, 'UTF-8')
         ));
 
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'contact_email',
-            $journal->getData('contactEmail')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'contact_name',
-            $journal->getData('contactName')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'contact_phone',
-            $journal->getData('contactPhone')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'mailing_address',
-            $journal->getData('mailingAddress')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'online_issn',
-            $journal->getData('onlineIssn')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'print_issn',
-            $journal->getData('printIssn')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'publisher_institution',
-            $journal->getData('publisherInstitution')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'support_email',
-            $journal->getData('supportEmail')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'support_name',
-            $journal->getData('supportName')
-        );
-        $this->createOptionalNode(
-            $doc,
-            $journalNode,
-            'support_phone',
-            $journal->getData('supportPhone')
-        );
+        $this->createJournalOptionalNodes($doc, $journalNode, $journal);
 
         $this->createLocalizedNodes(
             $doc,
@@ -231,6 +188,18 @@ class JournalNativeXmlFilter extends NativeExportFilter
         return $journalNode;
     }
 
+    public function createJournalOptionalNodes($doc, $journalNode, $journal)
+    {
+        foreach ($this->getJournalOptionalProps() as $propName) {
+            $this->createOptionalNode(
+                $doc,
+                $journalNode,
+                $this->camelCaseToSnakeCase($propName),
+                $journal->getData($propName)
+            );
+        }
+    }
+
     public function createSubmissionChecklistNode($doc, $parentNode, $checklist)
     {
         $deployment = $this->getDeployment();
@@ -250,5 +219,10 @@ class JournalNativeXmlFilter extends NativeExportFilter
                 $node->setAttribute('order', $item['order']);
             }
         }
+    }
+
+    private function camelCaseToSnakeCase($string)
+    {
+        return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $string));
     }
 }

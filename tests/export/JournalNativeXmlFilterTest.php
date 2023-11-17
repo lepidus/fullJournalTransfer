@@ -65,6 +65,70 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         return $checklistNode;
     }
 
+    private function createOptionalNodes($exportFilter, $doc, $parentNode)
+    {
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'contact_email',
+            'admin@ojs.com'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'contact_name',
+            'Admin OJS'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'contact_phone',
+            '555-5555'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'mailing_address',
+            'Test mailing address'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'online_issn',
+            '1234-1234'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'print_issn',
+            '1234-123x'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'publisher_institution',
+            'Public Knowledge Project'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'support_email',
+            'support@ojs.com'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'support_name',
+            'Support OJS'
+        );
+        $exportFilter->createOptionalNode(
+            $doc,
+            $parentNode,
+            'support_phone',
+            '555-5566'
+        );
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -91,6 +155,40 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $actualJournalNode,
             $journal->getData('submissionChecklist')
         );
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedJournalNode),
+            $doc->saveXML($actualJournalNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateJournalOptionalNodes()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalExportFilter->getDeployment();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $this->createOptionalNodes($journalExportFilter, $doc, $expectedJournalNode);
+
+        $journal = new Journal();
+        $journal->setData('contactEmail', 'admin@ojs.com');
+        $journal->setData('contactName', 'Admin OJS');
+        $journal->setData('contactPhone', '555-5555');
+        $journal->setData('mailingAddress', 'Test mailing address');
+        $journal->setData('onlineIssn', '1234-1234');
+        $journal->setData('printIssn', '1234-123x');
+        $journal->setData('publisherInstitution', 'Public Knowledge Project');
+        $journal->setData('supportEmail', 'support@ojs.com');
+        $journal->setData('supportName', 'Support OJS');
+        $journal->setData('supportPhone', '555-5566');
+
+        $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $journalExportFilter->createJournalOptionalNodes($doc, $actualJournalNode, $journal);
 
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedJournalNode),
@@ -154,66 +252,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             htmlspecialchars(join(':', $locales), ENT_COMPAT, 'UTF-8')
         ));
 
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'contact_email',
-            'admin@ojs.com'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'contact_name',
-            'Admin OJS'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'contact_phone',
-            '555-5555'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'mailing_address',
-            'Test mailing address'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'online_issn',
-            '1234-1234'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'print_issn',
-            '1234-123x'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'publisher_institution',
-            'Public Knowledge Project'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'support_email',
-            'support@ojs.com'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'support_name',
-            'Support OJS'
-        );
-        $journalExportFilter->createOptionalNode(
-            $doc,
-            $expectedJournalNode,
-            'support_phone',
-            '555-5566'
-        );
+        $this->createOptionalNodes($journalExportFilter, $doc, $expectedJournalNode);
 
         $journalExportFilter->createLocalizedNodes(
             $doc,
