@@ -36,6 +36,26 @@ class JournalNativeXmlFilter extends NativeExportFilter
         ];
     }
 
+    private function getJournalLocalizedProps()
+    {
+        return [
+            'acronym',
+            'authorInformation',
+            'clockssLicense',
+            'librarianInformation',
+            'lockssLicense',
+            'name',
+            'openAccessPolicy',
+            'privacyStatement',
+            'readerInformation',
+            'abbreviation',
+            'about',
+            'contactAffiliation',
+            'description',
+            'editorialTeam',
+        ];
+    }
+
     public function createJournalNode($doc, $journal)
     {
         $deployment = $this->getDeployment();
@@ -85,91 +105,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         ));
 
         $this->createJournalOptionalNodes($doc, $journalNode, $journal);
-
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'acronym',
-            $journal->getData('acronym')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'author_information',
-            $journal->getData('authorInformation')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'clockss_license',
-            $journal->getData('clockssLicense')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'librarian_information',
-            $journal->getData('librarianInformation')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'lockss_license',
-            $journal->getData('lockssLicense')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'name',
-            $journal->getData('name')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'open_access_policy',
-            $journal->getData('openAccessPolicy')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'privacy_statement',
-            $journal->getData('privacyStatement')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'reader_information',
-            $journal->getData('readerInformation')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'abbreviation',
-            $journal->getData('abbreviation')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'about',
-            $journal->getData('about')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'contact_affiliation',
-            $journal->getData('contactAffiliation')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'description',
-            $journal->getData('description')
-        );
-        $this->createLocalizedNodes(
-            $doc,
-            $journalNode,
-            'editorial_team',
-            $journal->getData('editorialTeam')
-        );
+        $this->createJournalLocalizedNodes($doc, $journalNode, $journal);
 
         foreach ($journal->getData('submissionChecklist') as $locale => $submissionChecklist) {
             $submissionChecklistNode = $doc->createElementNS($deployment->getNamespace(), 'submission_checklist');
@@ -192,6 +128,18 @@ class JournalNativeXmlFilter extends NativeExportFilter
     {
         foreach ($this->getJournalOptionalProps() as $propName) {
             $this->createOptionalNode(
+                $doc,
+                $journalNode,
+                $this->camelCaseToSnakeCase($propName),
+                $journal->getData($propName)
+            );
+        }
+    }
+
+    public function createJournalLocalizedNodes($doc, $journalNode, $journal)
+    {
+        foreach ($this->getJournalLocalizedProps() as $propName) {
+            $this->createLocalizedNodes(
                 $doc,
                 $journalNode,
                 $this->camelCaseToSnakeCase($propName),

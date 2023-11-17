@@ -168,6 +168,94 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    private function createLocalizedNodes($exportFilter, $doc, $parentNode)
+    {
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'acronym',
+            ['en_US' => 'pkpojs']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'author_information',
+            ['en_US' => __('default.contextSettings.forAuthors')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'clockss_license',
+            ['en_US' => __('default.contextSettings.clockssLicense')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'librarian_information',
+            ['en_US' => __('default.contextSettings.forLibrarians')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'lockss_license',
+            ['en_US' => __('default.contextSettings.lockssLicense')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'name',
+            ['en_US' => 'Open Journal Systems']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'open_access_policy',
+            ['en_US' => __('default.contextSettings.openAccessPolicy')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'privacy_statement',
+            ['en_US' => __('default.contextSettings.privacyStatement')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'reader_information',
+            ['en_US' => __('default.contextSettings.forReaders')]
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'abbreviation',
+            ['en_US' => 'ojs']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'about',
+            ['en_US' => '<p>This is a journal for test purpose</p>']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'contact_affiliation',
+            ['en_US' => 'Public Knowledge Project']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'description',
+            ['en_US' => '<p>A test journal</p>']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $parentNode,
+            'editorial_team',
+            ['en_US' => '<p>The editorial team of this journal</p>']
+        );
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -212,6 +300,29 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $journalExportFilter->createJournalOptionalNodes($doc, $actualJournalNode, $journal);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedJournalNode),
+            $doc->saveXML($actualJournalNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateJournalLocalizedNodes()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalExportFilter->getDeployment();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $this->createLocalizedNodes($journalExportFilter, $doc, $expectedJournalNode);
+
+        $journal = $this->createJournal();
+        $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $journalExportFilter->createJournalLocalizedNodes($doc, $actualJournalNode, $journal);
 
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedJournalNode),
@@ -276,92 +387,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         ));
 
         $this->createOptionalNodes($journalExportFilter, $doc, $expectedJournalNode);
-
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'acronym',
-            ['en_US' => 'pkpojs']
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'author_information',
-            ['en_US' => __('default.contextSettings.forAuthors')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'clockss_license',
-            ['en_US' => __('default.contextSettings.clockssLicense')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'librarian_information',
-            ['en_US' => __('default.contextSettings.forLibrarians')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'lockss_license',
-            ['en_US' => __('default.contextSettings.lockssLicense')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'name',
-            ['en_US' => 'Open Journal Systems']
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'open_access_policy',
-            ['en_US' => __('default.contextSettings.openAccessPolicy')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'privacy_statement',
-            ['en_US' => __('default.contextSettings.privacyStatement')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'reader_information',
-            ['en_US' => __('default.contextSettings.forReaders')]
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'abbreviation',
-            ['en_US' => 'ojs']
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'about',
-            ['en_US' => '<p>This is a journal for test purpose</p>']
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'contact_affiliation',
-            ['en_US' => 'Public Knowledge Project']
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'description',
-            ['en_US' => '<p>A test journal</p>']
-        );
-        $journalExportFilter->createLocalizedNodes(
-            $doc,
-            $expectedJournalNode,
-            'editorial_team',
-            ['en_US' => '<p>The editorial team of this journal</p>']
-        );
-
+        $this->createLocalizedNodes($journalExportFilter, $doc, $expectedJournalNode);
         $this->createDefaultSubmissionChecklistNode($doc, $deployment, $expectedJournalNode);
 
         $journal = $this->createJournal();
