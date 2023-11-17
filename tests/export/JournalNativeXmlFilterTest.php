@@ -19,6 +19,45 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         return JournalNativeXmlFilter::class;
     }
 
+    private function createJournal()
+    {
+        $journal = new Journal();
+        $journal->setPath('ojs');
+        $journal->setName('Open Journal Systems', 'en_US');
+        $journal->setPrimaryLocale('en_US');
+        $journal->setSequence(6);
+        $journal->setEnabled(true);
+        $journal->setData('supportedLocales', ['en_US', 'es_ES', 'pt_BR']);
+        $journal->setData('supportedFormLocales', ['en_US', 'es_ES', 'pt_BR']);
+        $journal->setData('supportedSubmissionLocales', ['en_US', 'es_ES', 'pt_BR']);
+        $journal->setData('acronym', 'pkpojs', 'en_US');
+
+        $journal->setData('contactEmail', 'admin@ojs.com');
+        $journal->setData('contactName', 'Admin OJS');
+        $journal->setData('contactPhone', '555-5555');
+        $journal->setData('mailingAddress', 'Test mailing address');
+        $journal->setData('onlineIssn', '1234-1234');
+        $journal->setData('printIssn', '1234-123x');
+        $journal->setData('publisherInstitution', 'Public Knowledge Project');
+        $journal->setData('supportEmail', 'support@ojs.com');
+        $journal->setData('supportName', 'Support OJS');
+        $journal->setData('supportPhone', '555-5566');
+        $journal->setData('abbreviation', 'ojs', 'en_US');
+        $journal->setData('about', '<p>This is a journal for test purpose</p>', 'en_US');
+        $journal->setData('contactAffiliation', 'Public Knowledge Project', 'en_US');
+        $journal->setData('description', '<p>A test journal</p>', 'en_US');
+        $journal->setData('editorialTeam', '<p>The editorial team of this journal</p>', 'en_US');
+
+        $journal = Services::get('schema')->setDefaults(
+            'context',
+            $journal,
+            ['en_US'],
+            $journal->getData('primaryLocale')
+        );
+
+        return $journal;
+    }
+
     private function createDefaultSubmissionChecklistNode($doc, $deployment, $parentNode)
     {
         $submissionChecklist = [
@@ -138,13 +177,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
-        $journal = new Journal();
-        $journal = Services::get('schema')->setDefaults(
-            'context',
-            $journal,
-            ['en_US'],
-            'en_US'
-        );
+        $journal = $this->createJournal();
 
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $this->createDefaultSubmissionChecklistNode($doc, $deployment, $expectedJournalNode);
@@ -175,17 +208,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $this->createOptionalNodes($journalExportFilter, $doc, $expectedJournalNode);
 
-        $journal = new Journal();
-        $journal->setData('contactEmail', 'admin@ojs.com');
-        $journal->setData('contactName', 'Admin OJS');
-        $journal->setData('contactPhone', '555-5555');
-        $journal->setData('mailingAddress', 'Test mailing address');
-        $journal->setData('onlineIssn', '1234-1234');
-        $journal->setData('printIssn', '1234-123x');
-        $journal->setData('publisherInstitution', 'Public Knowledge Project');
-        $journal->setData('supportEmail', 'support@ojs.com');
-        $journal->setData('supportName', 'Support OJS');
-        $journal->setData('supportPhone', '555-5566');
+        $journal = $this->createJournal();
 
         $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $journalExportFilter->createJournalOptionalNodes($doc, $actualJournalNode, $journal);
@@ -339,74 +362,9 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ['en_US' => '<p>The editorial team of this journal</p>']
         );
 
-        $submissionChecklist = [
-            [
-                'order' => 1,
-                'content' => __('default.contextSettings.checklist.notPreviouslyPublished')
-            ],
-            [
-                'order' => 2,
-                'content' => __('default.contextSettings.checklist.fileFormat')
-            ],
-            [
-                'order' => 3,
-                'content' => __('default.contextSettings.checklist.addressesLinked')
-            ],
-            [
-                'order' => 4,
-                'content' => __('default.contextSettings.checklist.submissionAppearance')
-            ],
-            [
-                'order' => 5,
-                'content' => __('default.contextSettings.checklist.bibliographicRequirements')
-            ]
-        ];
-        $submissionChecklistNode = $doc->createElementNS($deployment->getNamespace(), 'submission_checklist');
-        $submissionChecklistNode->setAttribute('locale', 'en_US');
-        foreach ($submissionChecklist as $checklistItem) {
-            $submissionChecklistNode->appendChild($node = $doc->createElementNS(
-                $deployment->getNamespace(),
-                'submission_checklist_item',
-                htmlspecialchars($checklistItem['content'], ENT_COMPAT, 'UTF-8')
-            ));
-            $node->setAttribute('order', $checklistItem['order']);
-        }
-        $expectedJournalNode->appendChild($submissionChecklistNode);
+        $this->createDefaultSubmissionChecklistNode($doc, $deployment, $expectedJournalNode);
 
-        $journal = new Journal();
-        $journal->setPath('ojs');
-        $journal->setName('Open Journal Systems', 'en_US');
-        $journal->setPrimaryLocale('en_US');
-        $journal->setSequence(6);
-        $journal->setEnabled(true);
-        $journal->setData('supportedLocales', $locales);
-        $journal->setData('supportedFormLocales', $locales);
-        $journal->setData('supportedSubmissionLocales', $locales);
-        $journal->setData('acronym', 'pkpojs', 'en_US');
-
-        $journal->setData('contactEmail', 'admin@ojs.com');
-        $journal->setData('contactName', 'Admin OJS');
-        $journal->setData('contactPhone', '555-5555');
-        $journal->setData('mailingAddress', 'Test mailing address');
-        $journal->setData('onlineIssn', '1234-1234');
-        $journal->setData('printIssn', '1234-123x');
-        $journal->setData('publisherInstitution', 'Public Knowledge Project');
-        $journal->setData('supportEmail', 'support@ojs.com');
-        $journal->setData('supportName', 'Support OJS');
-        $journal->setData('supportPhone', '555-5566');
-        $journal->setData('abbreviation', 'ojs', 'en_US');
-        $journal->setData('about', '<p>This is a journal for test purpose</p>', 'en_US');
-        $journal->setData('contactAffiliation', 'Public Knowledge Project', 'en_US');
-        $journal->setData('description', '<p>A test journal</p>', 'en_US');
-        $journal->setData('editorialTeam', '<p>The editorial team of this journal</p>', 'en_US');
-
-        $journal = Services::get('schema')->setDefaults(
-            'context',
-            $journal,
-            ['en_US'],
-            $journal->getData('primaryLocale')
-        );
-
+        $journal = $this->createJournal();
         $actualJournalNode = $journalExportFilter->createJournalNode($doc, $journal);
 
         $this->assertXmlStringEqualsXmlString(
