@@ -56,6 +56,21 @@ class JournalNativeXmlFilter extends NativeExportFilter
         ];
     }
 
+    public function &process(&$journal)
+    {
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $deployment = $this->getDeployment();
+
+        $rootNode = $this->createJournalNode($doc, $journal);
+        $doc->appendChild($rootNode);
+        $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+
+        return $doc;
+    }
+
     public function createJournalNode($doc, $journal)
     {
         $deployment = $this->getDeployment();

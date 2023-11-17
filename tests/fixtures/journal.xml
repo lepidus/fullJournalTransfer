@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<journal xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" seq="6" path="ojs" primary_locale="en_US"
+enabled="1" copyright_year_basis="issue" default_review_mode="2" disable_submissions="0" enable_oai="1" items_per_page="25" 
+keywords="request" membership_fee="0" num_page_links="10" num_weeks_per_response="4" numWeeks_per_review="4" publication_fee="0"
+purchase_article_fee="0" theme_plugin_path="default" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <email_signature>##default.contextSettings.emailSignature##</email_signature>
+    <supported_locales>en_US:es_ES:pt_BR</supported_locales>
+    <supported_form_locales>en_US:es_ES:pt_BR</supported_form_locales>
+    <supported_submission_locales>en_US:es_ES:pt_BR</supported_submission_locales>
+    <contact_email>admin@ojs.com</contact_email>
+    <contact_name>Admin OJS</contact_name>
+    <contact_phone>555-5555</contact_phone>
+    <mailing_address>Test mailing address</mailing_address>
+    <online_issn>1234-1234</online_issn>
+    <print_issn>1234-123x</print_issn>
+    <publisher_institution>Public Knowledge Project</publisher_institution>
+    <support_email>support@ojs.com</support_email>
+    <support_name>Support OJS</support_name>
+    <support_phone>555-5566</support_phone>
+    <acronym locale="en_US">pkpojs</acronym>
+    <author_information locale="en_US">##default.contextSettings.forAuthors##</author_information>
+    <clockss_license locale="en_US">##default.contextSettings.clockssLicense##</clockss_license>
+    <librarian_information locale="en_US">##default.contextSettings.forLibrarians##</librarian_information>
+    <lockss_license locale="en_US">##default.contextSettings.lockssLicense##</lockss_license>
+    <name locale="en_US">Open Journal Systems</name>
+    <open_access_policy locale="en_US">##default.contextSettings.openAccessPolicy##</open_access_policy>
+    <privacy_statement locale="en_US">##default.contextSettings.privacyStatement##</privacy_statement>
+    <reader_information locale="en_US">##default.contextSettings.forReaders##</reader_information>
+    <abbreviation locale="en_US">ojs</abbreviation>
+    <about locale="en_US">&lt;p&gt;This is a journal for test purpose&lt;/p&gt;</about>
+    <contact_affiliation locale="en_US">Public Knowledge Project</contact_affiliation>
+    <description locale="en_US">&lt;p&gt;A test journal&lt;/p&gt;</description>
+    <editorial_team locale="en_US">&lt;p&gt;The editorial team of this journal&lt;/p&gt;</editorial_team>
+    <submission_checklist locale="en_US">
+        <submission_checklist_item order="1">##default.contextSettings.checklist.notPreviouslyPublished##</submission_checklist_item>
+        <submission_checklist_item order="2">##default.contextSettings.checklist.fileFormat##</submission_checklist_item>
+        <submission_checklist_item order="3">##default.contextSettings.checklist.addressesLinked##</submission_checklist_item>
+        <submission_checklist_item order="4">##default.contextSettings.checklist.submissionAppearance##</submission_checklist_item>
+        <submission_checklist_item order="5">##default.contextSettings.checklist.bibliographicRequirements##</submission_checklist_item>
+    </submission_checklist>
+</journal>

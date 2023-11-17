@@ -399,4 +399,17 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             "actual xml is equal to expected xml"
         );
     }
+
+    public function testCreateCompleteJournalXml()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $journal = $this->createJournal();
+        $doc = $journalExportFilter->execute($journal, true);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('journal.xml')->saveXml(),
+            $doc->saveXML(),
+            "actual xml is equal to expected xml"
+        );
+    }
 }
