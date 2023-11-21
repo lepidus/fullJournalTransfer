@@ -404,8 +404,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
         $journal = $this->createJournal();
-        $doc = $journalExportFilter->execute($journal, true);
-
+        $doc = $journalExportFilter->execute($journal);
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('journal.xml')->saveXml(),
             $doc->saveXML(),

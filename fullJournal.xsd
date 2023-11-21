@@ -23,6 +23,64 @@
 		</complexType>
 	</element>
 
+	<complexType name="journal">
+		<sequence>
+			<element name="email_signature" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="supported_locales" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="supported_form_locales" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="supported_submission_locales" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="contact_email" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="contact_name" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="contact_phone" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="mailing_address" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="online_issn" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="print_issn" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="publisher_institution" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="support_email" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="support_name" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="support_phone" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="acronym" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="author_information" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="clockss_license" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="librarian_information" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="lockss_license" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="name" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="open_access_policy" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="privacy_statement" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="reader_information" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="abbreviation" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="about" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="contact_affiliation" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="editorial_team" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="submission_checklist" minOccurs="1" maxOccurs="unbounded">
+				<complexType>
+					<sequence>
+						<element name="submission_checklist_item" minOccurs="1" maxOccurs="unbounded" />
+					</sequence>
+					<attribute name="locale" type="string" />
+				</complexType>
+			</element>
+		</sequence>
+		<attribute name="seq" type="int" />
+		<attribute name="path" type="string" />
+		<attribute name="primary_locale" type="string" />
+		<attribute name="enabled" type="string" />
+		<attribute name="copyright_year_basis" type="string" />
+		<attribute name="default_review_mode" type="string" />
+		<attribute name="disable_submissions" type="string" />
+		<attribute name="enable_oai" type="string" />
+		<attribute name="items_per_page" type="string" />
+		<attribute name="keywords" type="string" />
+		<attribute name="membership_fee" type="string" />
+		<attribute name="num_page_links" type="string" />
+		<attribute name="num_weeks_per_response" type="string" />
+		<attribute name="numWeeks_per_review" type="string" />
+		<attribute name="publication_fee" type="string" />
+		<attribute name="purchase_article_fee" type="string" />
+		<attribute name="theme_plugin_path" type="string" />
+	</complexType>
+
     <complexType name="announcement">
 		<sequence>
 			<element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
@@ -34,6 +92,8 @@
 			<element name="announcement_type_ref" type="string" maxOccurs="unbounded" />
 		</sequence>
 	</complexType>
+
+    <element name="journal" type="pkp:journal" />
 
     <element name="announcement" type="pkp:announcement" />
 </schema>
