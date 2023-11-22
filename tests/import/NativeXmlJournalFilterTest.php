@@ -156,4 +156,33 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
         $this->assertEquals($expectedJournal->_data, $actualJournal->_data);
     }
+
+    public function testHandleJournalElement()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+
+
+        $journal = new Journal();
+        $this->setJournalAttributeData($journal);
+        $this->setJournalSimpleNodeData($journal);
+        $this->setJournalLocalizedNodeData($journal);
+        $this->setJournalLocalesNodeData($journal);
+        $this->setJournalChecklistNodeData($journal);
+        $expectedJournalData = $journal->_data;
+
+        $doc = $this->getSampleXml('journal.xml');
+        $journalNode = $doc->documentElement;
+
+        $journal = $journalImportFilter->handleElement($journalNode);
+        $journalId = array_pop($journal->_data);
+
+        $this->assertEquals($expectedJournalData, $journal->_data);
+
+        $journalDAO = $journal->getDAO();
+        $insertedJournal = $journalDAO->getById($journalId);
+        $expectedJournalData['id'] = $journalId;
+
+        $this->assertEquals($expectedJournalData, $insertedJournal->_data);
+    }
 }
