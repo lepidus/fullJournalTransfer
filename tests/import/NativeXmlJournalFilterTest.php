@@ -76,9 +76,9 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
     private function setJournalLocalesNodeData($journal)
     {
-        $journal->setData('supported_locales', ['en_US', 'es_ES', 'pt_BR']);
-        $journal->setData('supported_form_locales', ['en_US', 'es_ES', 'pt_BR']);
-        $journal->setData('supported_submission_locales', ['en_US', 'es_ES', 'pt_BR']);
+        $journal->setData('supportedLocales', ['en_US', 'es_ES', 'pt_BR']);
+        $journal->setData('supportedFormLocales', ['en_US', 'es_ES', 'pt_BR']);
+        $journal->setData('supportedSubmissionLocales', ['en_US', 'es_ES', 'pt_BR']);
     }
 
     public function testHandleJournalChildElement()
@@ -89,6 +89,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $expectedJournal = new Journal();
         $this->setJournalSimpleNodeData($expectedJournal);
         $this->setJournalLocalizedNodeData($expectedJournal);
+        $this->setJournalLocalesNodeData($expectedJournal);
 
         $doc = $this->getSampleXml('journal.xml');
         $journalNode = $doc->documentElement;

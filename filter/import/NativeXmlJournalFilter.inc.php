@@ -32,16 +32,22 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
         $simpleNodeMapping = $this->getSimpleJournalNodeMapping();
         $localizedNodeMapping = $this->getLocalizedJournalNodeMapping();
+        $localesNodeMapping = $this->getLocalesJournalNodeMapping();
 
         $propName = $this->snakeToCamel($n->tagName);
         if (in_array($n->tagName, $simpleNodeMapping)) {
             $journal->setData($propName, $n->textContent);
-        } elseif (in_array($n->tagName, $localizedNodeMapping)) {
+        }
+        if (in_array($n->tagName, $localizedNodeMapping)) {
             list($locale, $value) = $this->parseLocalizedContent($n);
             if (empty($locale)) {
                 $locale = $journal->getPrimaryLocale();
             }
             $journal->setData($propName, $value, $locale);
+        }
+        if (in_array($n->tagName, $localesNodeMapping)) {
+            $locales = preg_split('/:/', $n->textContent);
+            $journal->setData($propName, $locales);
         }
     }
 
@@ -62,15 +68,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
         ];
     }
 
-    private function getLocalesJournalNodeMapping()
-    {
-        return [
-            'supported_locales',
-            'supported_form_locales',
-            'supported_submission_locales',
-        ];
-    }
-
     private function getLocalizedJournalNodeMapping()
     {
         return [
@@ -88,6 +85,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
             'contact_affiliation',
             'description',
             'editorial_team',
+        ];
+    }
+
+    private function getLocalesJournalNodeMapping()
+    {
+        return [
+            'supported_locales',
+            'supported_form_locales',
+            'supported_submission_locales',
         ];
     }
 
