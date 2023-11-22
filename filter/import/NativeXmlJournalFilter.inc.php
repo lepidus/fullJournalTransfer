@@ -49,6 +49,25 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $locales = preg_split('/:/', $n->textContent);
             $journal->setData($propName, $locales);
         }
+        if ($n->tagName == 'submission_checklist') {
+            list($locale, $items) = $this->parseSubmissionChecklist($n);
+            $journal->setData($propName, $items, $locale);
+        }
+    }
+
+    public function parseSubmissionChecklist($element)
+    {
+        $locale = $element->getAttribute('locale');
+        $items = [];
+        for ($n = $element->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement')) {
+                $items[] = [
+                    'order' => $n->getAttribute('order'),
+                    'content' => $n->textContent
+                ];
+            }
+        }
+        return [$locale, $items];
     }
 
     private function getSimpleJournalNodeMapping()

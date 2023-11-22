@@ -81,6 +81,58 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journal->setData('supportedSubmissionLocales', ['en_US', 'es_ES', 'pt_BR']);
     }
 
+    private function setJournalChecklistNodeData($journal)
+    {
+        $defaultJournal = new Journal();
+        Services::get('schema')->setDefaults(
+            'context',
+            $defaultJournal,
+            ['en_US'],
+            'en_US'
+        );
+
+        $journal->setData('submissionChecklist', $defaultJournal->getData('submissionChecklist'));
+    }
+
+    public function testJournalFilterParseSubmissionChecklist()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+
+        $doc = $this->getSampleXml('journal.xml');
+        $submissionChecklistNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'submission_checklist'
+        );
+        $submissionChecklistElement = $submissionChecklistNodeList->item(0);
+
+        $expectedParsedSubmissionChecklist = ['en_US', [
+            [
+                "order" => 1,
+                "content" => __("default.contextSettings.checklist.notPreviouslyPublished")
+            ],
+            [
+                "order" => 2,
+                "content" => __("default.contextSettings.checklist.fileFormat")
+            ],
+            [
+                "order" => 3,
+                "content" => __("default.contextSettings.checklist.addressesLinked")
+            ],
+            [
+                "order" => 4,
+                "content" => __("default.contextSettings.checklist.submissionAppearance")
+            ],
+            [
+                "order" => 5,
+                "content" => __("default.contextSettings.checklist.bibliographicRequirements")
+            ]
+        ]];
+
+        $parsedSubmissionChecklist = $journalImportFilter->parseSubmissionChecklist($submissionChecklistElement);
+        $this->assertEquals($expectedParsedSubmissionChecklist, $parsedSubmissionChecklist);
+    }
+
     public function testHandleJournalChildElement()
     {
         $journalImportFilter = $this->getNativeImportExportFilter();
@@ -90,6 +142,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $this->setJournalSimpleNodeData($expectedJournal);
         $this->setJournalLocalizedNodeData($expectedJournal);
         $this->setJournalLocalesNodeData($expectedJournal);
+        $this->setJournalChecklistNodeData($expectedJournal);
 
         $doc = $this->getSampleXml('journal.xml');
         $journalNode = $doc->documentElement;
