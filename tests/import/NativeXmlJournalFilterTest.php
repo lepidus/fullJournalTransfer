@@ -88,6 +88,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
         $expectedJournal = new Journal();
         $this->setJournalSimpleNodeData($expectedJournal);
+        $this->setJournalLocalizedNodeData($expectedJournal);
 
         $doc = $this->getSampleXml('journal.xml');
         $journalNode = $doc->documentElement;

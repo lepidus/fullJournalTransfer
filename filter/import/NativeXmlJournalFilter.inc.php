@@ -31,10 +31,17 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $deployment = $this->getDeployment();
 
         $simpleNodeMapping = $this->getSimpleJournalNodeMapping();
+        $localizedNodeMapping = $this->getLocalizedJournalNodeMapping();
 
+        $propName = $this->snakeToCamel($n->tagName);
         if (in_array($n->tagName, $simpleNodeMapping)) {
-            $propName = $this->snakeToCamel($n->tagName);
             $journal->setData($propName, $n->textContent);
+        } elseif (in_array($n->tagName, $localizedNodeMapping)) {
+            list($locale, $value) = $this->parseLocalizedContent($n);
+            if (empty($locale)) {
+                $locale = $journal->getPrimaryLocale();
+            }
+            $journal->setData($propName, $value, $locale);
         }
     }
 
