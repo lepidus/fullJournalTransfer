@@ -58,20 +58,6 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER);
 
-        $journalDao = DAORegistry::getDAO('JournalDAO');
-        $userDao = DAORegistry::getDAO('UserDAO');
-
-        $journal = $journalDao->getByPath($journalPath);
-
-        if (!$journal) {
-            if ($journalPath != '') {
-                echo __('plugins.importexport.common.cliError') . "\n";
-                echo __('plugins.importexport.common.error.unknownJournal', ['journalPath' => $journalPath]) . "\n\n";
-            }
-            $this->usage($scriptName);
-            return;
-        }
-
         if ($xmlFile && $this->isRelativePath($xmlFile)) {
             $xmlFile = PWD . '/' . $xmlFile;
         }
@@ -85,8 +71,20 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         switch ($command) {
             case 'import':
+                $this->importJournal(file_get_contents($xmlFile), null, null);
                 return;
             case 'export':
+                $journalDao = DAORegistry::getDAO('JournalDAO');
+
+                $journal = $journalDao->getByPath($journalPath);
+                if (!$journal) {
+                    if ($journalPath != '') {
+                        echo __('plugins.importexport.common.cliError') . "\n";
+                        echo __('plugins.importexport.common.error.unknownJournal', ['journalPath' => $journalPath]) . "\n\n";
+                    }
+                    $this->usage($scriptName);
+                    return;
+                }
                 if ($xmlFile != '') {
                     file_put_contents($xmlFile, $this->exportJournal($journal, null));
                     return;
@@ -94,6 +92,15 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                 break;
         }
         $this->usage($scriptName);
+    }
+
+    public function importJournal($importXml, $journal, $user, &$filter = null)
+    {
+        if (!$filter) {
+            $filter = $this->getJournalImportExportFilter($journal, $user);
+        }
+
+        return $filter->execute($importXml);
     }
 
     public function exportJournal($journal, $user, &$filter = null)
