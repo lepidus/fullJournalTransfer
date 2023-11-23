@@ -174,7 +174,8 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $doc = $this->getSampleXml('journal.xml');
         $journalNode = $doc->documentElement;
 
-        $journal = $journalImportFilter->handleElement($journalNode);
+        $importedObjects = $journalImportFilter->process($doc);
+        $journal = array_shift($importedObjects);
         $journalId = array_pop($journal->_data);
 
         $this->assertEquals($expectedJournalData, $journal->_data);
