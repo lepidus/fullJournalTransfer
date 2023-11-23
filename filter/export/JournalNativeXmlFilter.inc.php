@@ -17,7 +17,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
 
     public function getClassName()
     {
-        return 'plugins.importexport.native.filter.export.JournalNativeXmlFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter';
     }
 
     private function getJournalOptionalProps()
