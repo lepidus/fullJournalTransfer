@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<plugins xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <plugin plugin_name="testPlugin">
+        <plugin_setting setting_name="anotherSetting">Another test value</plugin_setting>
+        <plugin_setting setting_name="enabled">1</plugin_setting>
+        <plugin_setting setting_name="someSetting">Test value</plugin_setting>
+    </plugin>
+</plugins>

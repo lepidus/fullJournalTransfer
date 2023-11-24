@@ -31,20 +31,20 @@ class PluginNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->formatOutput = true;
 
         $expectedPluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin');
-        $expectedPluginNode->setAttribute('name', 'testPlugin');
+        $expectedPluginNode->setAttribute('plugin_name', 'testPlugin');
 
         $expectedPluginNode->appendChild($node = $doc->createElementNS(
             $deployment->getNamespace(),
             'plugin_setting',
             '#1E6292'
         ));
-        $node->setAttribute('name', 'baseColour');
+        $node->setAttribute('setting_name', 'baseColour');
         $expectedPluginNode->appendChild($node = $doc->createElementNS(
             $deployment->getNamespace(),
             'plugin_setting',
             true
         ));
-        $node->setAttribute('name', 'enabled');
+        $node->setAttribute('setting_name', 'enabled');
 
         $mockPlugin = $this->getMockBuilder(Plugin::class)
             ->getMockForAbstractClass();
@@ -61,6 +61,32 @@ class PluginNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedPluginNode),
             $doc->saveXML($actualPluginNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateCompletePluginXml()
+    {
+        $pluginExportFilter = $this->getNativeImportExportFilter();
+
+        $mockPlugin = $this->getMockBuilder(Plugin::class)
+            ->getMockForAbstractClass();
+
+        $mockPlugin->expects($this->any())
+            ->method('getName')
+            ->will($this->returnValue('testPlugin'));
+
+        $mockPlugin->updateSetting(0, 'enabled', true);
+        $mockPlugin->updateSetting(0, 'someSetting', 'Test value');
+        $mockPlugin->updateSetting(0, 'anotherSetting', 'Another test value');
+
+        $plugins = [$mockPlugin];
+
+        $doc = $pluginExportFilter->execute($plugins);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('plugin.xml')->saveXml(),
+            $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
     }
