@@ -31,7 +31,7 @@
       symbolic="plugin=>native-xml"
       displayName="plugins.importexport.fullJournalTransfer.displayName"
       description="plugins.importexport.fullJournalTransfer.description"
-      inputType="class::lib.pkp.classes.plugins.Plugin"
+      inputType="class::lib.pkp.classes.plugins.Plugin[]"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- Announcement native XML output -->
     <filterGroup
