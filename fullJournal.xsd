@@ -55,19 +55,19 @@
 			</element>
 		</sequence>
 		<attribute name="seq" type="int" />
-		<attribute name="path" type="string" />
+		<attribute name="url_path" type="string" />
 		<attribute name="primary_locale" type="string" />
 		<attribute name="enabled" type="string" />
 		<attribute name="copyright_year_basis" type="string" />
 		<attribute name="default_review_mode" type="string" />
-		<attribute name="disable_submissions" type="string" />
+		<attribute name="disable_submissions" type="boolean" />
 		<attribute name="enable_oai" type="string" />
 		<attribute name="items_per_page" type="string" />
 		<attribute name="keywords" type="string" />
 		<attribute name="membership_fee" type="string" />
 		<attribute name="num_page_links" type="string" />
 		<attribute name="num_weeks_per_response" type="string" />
-		<attribute name="numWeeks_per_review" type="string" />
+		<attribute name="num_weeks_per_review" type="string" />
 		<attribute name="publication_fee" type="string" />
 		<attribute name="purchase_article_fee" type="string" />
 		<attribute name="theme_plugin_path" type="string" />

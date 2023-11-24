@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<journal xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" seq="6" path="ojs" primary_locale="en_US"
-enabled="1" copyright_year_basis="issue" default_review_mode="2" disable_submissions="0" enable_oai="1" items_per_page="25" 
-keywords="request" membership_fee="0" num_page_links="10" num_weeks_per_response="4" numWeeks_per_review="4" publication_fee="0"
-purchase_article_fee="0" theme_plugin_path="default" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+<journal xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" seq="6" primary_locale="en_US"
+enabled="1" copyright_year_basis="issue" default_review_mode="2" disable_submissions="false" enable_oai="1" items_per_page="25" 
+keywords="request" membership_fee="0" num_page_links="10" num_weeks_per_response="4" num_weeks_per_review="4" publication_fee="0"
+purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
     <email_signature>##default.contextSettings.emailSignature##</email_signature>
     <supported_locales>en_US:es_ES:pt_BR</supported_locales>
     <supported_form_locales>en_US:es_ES:pt_BR</supported_form_locales>

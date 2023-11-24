@@ -33,19 +33,19 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
         $journal = $contextDAO->newDataObject();
         $journal->setSequence((int) $node->getAttribute('seq'));
-        $journal->setPath($node->getAttribute('path'));
+        $journal->setPath($node->getAttribute('url_path'));
         $journal->setPrimaryLocale($node->getAttribute('primary_locale'));
         $journal->setEnabled((bool) $node->getAttribute('enabled'));
         $journal->setData('copyrightYearBasis', $node->getAttribute('copyright_year_basis'));
         $journal->setData('defaultReviewMode', (int) $node->getAttribute('default_review_mode'));
-        $journal->setData('disableSubmissions', (bool) $node->getAttribute('disable_submissions'));
+        $journal->setData('disableSubmissions', (bool) $node->getAttribute('disable_submissions') === 'true' ? true : false);
         $journal->setData('enableOai', (bool) $node->getAttribute('enable_oai'));
         $journal->setData('itemsPerPage', (int) $node->getAttribute('items_per_page'));
         $journal->setData('keywords', $node->getAttribute('keywords'));
         $journal->setData('membershipFee', (int) $node->getAttribute('membership_fee'));
         $journal->setData('numPageLinks', (int) $node->getAttribute('num_page_links'));
         $journal->setData('numWeeksPerResponse', (int) $node->getAttribute('num_weeks_per_response'));
-        $journal->setData('numWeeksPerReview', (int) $node->getAttribute('numWeeks_per_review'));
+        $journal->setData('numWeeksPerReview', (int) $node->getAttribute('num_weeks_per_review'));
         $journal->setData('publicationFee', (int) $node->getAttribute('publication_fee'));
         $journal->setData('purchaseArticleFee', (int) $node->getAttribute('purchase_article_fee'));
         $journal->setData('themePluginPath', $node->getAttribute('theme_plugin_path'));

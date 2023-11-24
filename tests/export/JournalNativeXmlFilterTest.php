@@ -344,19 +344,19 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $expectedJournalNode->setAttribute('seq', 6);
-        $expectedJournalNode->setAttribute('path', 'ojs');
+        $expectedJournalNode->setAttribute('url_path', 'ojs');
         $expectedJournalNode->setAttribute('primary_locale', 'en_US');
         $expectedJournalNode->setAttribute('enabled', 1);
         $expectedJournalNode->setAttribute('copyright_year_basis', 'issue');
         $expectedJournalNode->setAttribute('default_review_mode', 2);
-        $expectedJournalNode->setAttribute('disable_submissions', 0);
+        $expectedJournalNode->setAttribute('disable_submissions', 'false');
         $expectedJournalNode->setAttribute('enable_oai', 1);
         $expectedJournalNode->setAttribute('items_per_page', 25);
         $expectedJournalNode->setAttribute('keywords', 'request');
         $expectedJournalNode->setAttribute('membership_fee', 0);
         $expectedJournalNode->setAttribute('num_page_links', 10);
         $expectedJournalNode->setAttribute('num_weeks_per_response', 4);
-        $expectedJournalNode->setAttribute('numWeeks_per_review', 4);
+        $expectedJournalNode->setAttribute('num_weeks_per_review', 4);
         $expectedJournalNode->setAttribute('publication_fee', 0);
         $expectedJournalNode->setAttribute('purchase_article_fee', 0);
         $expectedJournalNode->setAttribute('theme_plugin_path', 'default');

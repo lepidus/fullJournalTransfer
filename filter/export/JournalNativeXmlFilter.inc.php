@@ -20,6 +20,28 @@ class JournalNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter';
     }
 
+    private function getJournalAttributeProps()
+    {
+        return [
+            'urlPath',
+            'enabled',
+            'primaryLocale',
+            'seq',
+            'copyrightYearBasis',
+            'defaultReviewMode',
+            'enableOai',
+            'itemsPerPage',
+            'keywords',
+            'membershipFee',
+            'numPageLinks',
+            'numWeeksPerResponse',
+            'numWeeksPerReview',
+            'publicationFee',
+            'purchaseArticleFee',
+            'themePluginPath'
+        ];
+    }
+
     private function getJournalOptionalProps()
     {
         return [
@@ -76,23 +98,17 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $deployment = $this->getDeployment();
 
         $journalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
-        $journalNode->setAttribute('seq', $journal->getSequence());
-        $journalNode->setAttribute('path', $journal->getPath());
-        $journalNode->setAttribute('primary_locale', $journal->getPrimaryLocale());
-        $journalNode->setAttribute('enabled', $journal->getEnabled());
-        $journalNode->setAttribute('copyright_year_basis', $journal->getData('copyrightYearBasis'));
-        $journalNode->setAttribute('default_review_mode', $journal->getData('defaultReviewMode'));
-        $journalNode->setAttribute('disable_submissions', (int) $journal->getData('disableSubmissions'));
-        $journalNode->setAttribute('enable_oai', $journal->getData('enableOai'));
-        $journalNode->setAttribute('items_per_page', $journal->getData('itemsPerPage'));
-        $journalNode->setAttribute('keywords', $journal->getData('keywords'));
-        $journalNode->setAttribute('membership_fee', $journal->getData('membershipFee'));
-        $journalNode->setAttribute('num_page_links', $journal->getData('numPageLinks'));
-        $journalNode->setAttribute('num_weeks_per_response', $journal->getData('numWeeksPerResponse'));
-        $journalNode->setAttribute('numWeeks_per_review', $journal->getData('numWeeksPerReview'));
-        $journalNode->setAttribute('publication_fee', $journal->getData('publicationFee'));
-        $journalNode->setAttribute('purchase_article_fee', $journal->getData('purchaseArticleFee'));
-        $journalNode->setAttribute('theme_plugin_path', $journal->getData('themePluginPath'));
+
+        foreach ($this->getJournalAttributeProps() as $propName) {
+            $journalNode->setAttribute(
+                $this->camelCaseToSnakeCase($propName),
+                $journal->getData($propName)
+            );
+        }
+        $journalNode->setAttribute(
+            'disable_submissions',
+            $journal->getData('disableSubmissions') ? 'true' : 'false'
+        );
 
         $journalNode->appendChild($node = $doc->createElementNS(
             $deployment->getNamespace(),
