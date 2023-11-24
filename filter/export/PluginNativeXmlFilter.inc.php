@@ -29,7 +29,10 @@ class PluginNativeXmlFilter extends NativeExportFilter
 
         $rootNode = $doc->createElementNS($deployment->getNamespace(), 'plugins');
         foreach ($plugins as $plugin) {
-            $rootNode->appendChild($this->createPluginNode($doc, $plugin));
+            $pluginNode = $this->createPluginNode($doc, $plugin);
+            if ($pluginNode) {
+                $rootNode->appendChild($pluginNode);
+            }
         }
         $doc->appendChild($rootNode);
         $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
@@ -46,13 +49,28 @@ class PluginNativeXmlFilter extends NativeExportFilter
         $pluginSettingsDAO = DAORegistry::getDAO('PluginSettingsDAO');
         $settings = $pluginSettingsDAO->getPluginSettings($context->getId(), $plugin->getName());
 
+        if (empty($settings)) {
+            return;
+        }
+
         $pluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin');
         $pluginNode->setAttribute('plugin_name', $plugin->getName());
         foreach ($settings as $name => $value) {
+            switch (gettype($value)) {
+                case 'string':
+                    $nodeValue = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
+                    break;
+                case 'boolean':
+                    $nodeValue = $value;
+                    break;
+                case 'array':
+                    $nodeValue = htmlspecialchars(join(':', $value), ENT_COMPAT, 'UTF-8');
+                    break;
+            }
             $pluginNode->appendChild($node = $doc->createElementNS(
                 $deployment->getNamespace(),
                 'plugin_setting',
-                htmlspecialchars($value, ENT_COMPAT, 'UTF-8')
+                $nodeValue
             ));
             $node->setAttribute('setting_name', $name);
         }

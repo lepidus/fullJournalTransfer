@@ -200,6 +200,22 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
     }
 
+    public function addPlugins($doc, $journalNode)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('plugin=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $plugins = PluginRegistry::loadAllPlugins();
+        $pluginsDoc = $exportFilter->execute($plugins, true);
+        if ($pluginsDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($pluginsDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
+    }
+
     private function camelCaseToSnakeCase($string)
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $string));

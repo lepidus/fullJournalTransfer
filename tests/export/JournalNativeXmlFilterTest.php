@@ -7,7 +7,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
     protected function getAffectedTables()
     {
-        return ['journals', 'journal_settings'];
+        return ['journals', 'journal_settings', 'plugin_settings'];
     }
     protected function getSymbolicFilterGroup()
     {
@@ -17,6 +17,11 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     protected function getNativeImportExportFilterClass()
     {
         return JournalNativeXmlFilter::class;
+    }
+
+    protected function getMockedRegistryKeys()
+    {
+        return ['request'];
     }
 
     private function createJournal()
@@ -256,6 +261,28 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    private function createPluginsNode($doc, $deployment, $parentNode)
+    {
+        $parentNode->appendChild($pluginsNode = $doc->createElementNS($deployment->getNamespace(), 'plugins'));
+        $pluginsNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $pluginsNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+        $pluginsNode->appendChild($pluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin'));
+        $pluginNode->setAttribute('plugin_name', 'testPlugin');
+        $pluginNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'plugin_setting',
+            htmlspecialchars('Test value', ENT_COMPAT, 'UTF-8')
+        ));
+        $node->setAttribute('setting_name', 'someSetting');
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -323,6 +350,64 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $journal = $this->createJournal();
         $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $journalExportFilter->createJournalLocalizedNodes($doc, $actualJournalNode, $journal);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedJournalNode),
+            $doc->saveXML($actualJournalNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testAddPlugins()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalExportFilter->getDeployment();
+
+        $journal = $this->createJournal();
+        $journal->setId(99);
+
+        $deployment->setContext($journal);
+        $journalExportFilter->setDeployment($deployment);
+
+        import('lib.pkp.classes.core.PKPRouter');
+        $router = $this->getMockBuilder(PKPRouter::class)
+            ->setMethods(['getContext'])
+            ->getMock();
+        $application = Application::get();
+        $router->setApplication($application);
+        $router->expects($this->any())
+            ->method('getContext')
+            ->will($this->returnValue($journal));
+
+        import('classes.core.Request');
+        $request = $this->getMockBuilder(Request::class)
+            ->setMethods(array('getRouter'))
+            ->getMock();
+        $request->expects($this->any())
+                ->method('getRouter')
+                ->will($this->returnValue($router));
+        Registry::set('request', $request);
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $this->createPluginsNode($doc, $deployment, $expectedJournalNode);
+
+        $mockPlugin = $this->getMockBuilder(Plugin::class)
+            ->getMockForAbstractClass();
+
+        $mockPlugin->expects($this->any())
+            ->method('getName')
+            ->will($this->returnValue('testPlugin'));
+
+        $mockPlugin->updateSetting($journal->getId(), 'someSetting', 'Test value');
+
+        $success = PluginRegistry::register('generic', $mockPlugin, 'generic/testPlugin');
+
+        $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $journalExportFilter->addPlugins($doc, $actualJournalNode, $journal);
 
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedJournalNode),
