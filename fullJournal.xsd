@@ -15,14 +15,6 @@
 	  -->
     <include schemaLocation="../../../plugins/importexport/native/native.xsd" />
 
-    <element name="announcements">
-		<complexType>
-			<sequence>
-				<element ref="pkp:announcement" maxOccurs="unbounded" />
-			</sequence>
-		</complexType>
-	</element>
-
 	<complexType name="journal">
 		<sequence>
 			<element name="email_signature" type="string" minOccurs="1" maxOccurs="1" />
@@ -81,6 +73,33 @@
 		<attribute name="theme_plugin_path" type="string" />
 	</complexType>
 
+	<element name="plugins">
+		<complexType>
+			<sequence>
+				<element ref="pkp:plugin" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="plugin">
+		<sequence>
+			<element name="plugin_setting" type="pkp:plugin_setting" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+		<attribute name="plugin_name" type="string" />
+	</complexType>
+
+	<complexType name="plugin_setting" mixed="true">
+		<attribute name="setting_name" type="string" />
+	</complexType>
+
+	<element name="announcements">
+		<complexType>
+			<sequence>
+				<element ref="pkp:announcement" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
     <complexType name="announcement">
 		<sequence>
 			<element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
@@ -94,6 +113,8 @@
 	</complexType>
 
     <element name="journal" type="pkp:journal" />
+
+    <element name="plugin" type="pkp:plugin" />
 
     <element name="announcement" type="pkp:announcement" />
 </schema>
