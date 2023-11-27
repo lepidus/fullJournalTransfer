@@ -53,6 +53,7 @@
 					<attribute name="locale" type="string" />
 				</complexType>
 			</element>
+			<element ref="pkp:plugins" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="url_path" type="string" />

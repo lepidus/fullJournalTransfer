@@ -38,4 +38,10 @@ purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLo
         <submission_checklist_item order="4">##default.contextSettings.checklist.submissionAppearance##</submission_checklist_item>
         <submission_checklist_item order="5">##default.contextSettings.checklist.bibliographicRequirements##</submission_checklist_item>
     </submission_checklist>
+    <plugins xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <plugin plugin_name="testgenericplugin">
+            <plugin_setting setting_name="someSetting">Test value</plugin_setting>
+        </plugin>
+    </plugins>
 </journal>

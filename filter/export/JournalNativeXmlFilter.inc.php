@@ -96,6 +96,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
     public function createJournalNode($doc, $journal)
     {
         $deployment = $this->getDeployment();
+        $deployment->setContext($journal);
 
         $journalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
 
@@ -151,6 +152,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
             }
             $journalNode->appendChild($submissionChecklistNode);
         }
+
+        $this->addPlugins($doc, $journalNode);
 
         return $journalNode;
     }

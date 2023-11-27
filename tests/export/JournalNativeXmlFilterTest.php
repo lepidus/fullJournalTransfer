@@ -24,9 +24,45 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         return ['request'];
     }
 
+    private function registerMockRequest($journal)
+    {
+        import('lib.pkp.classes.core.PKPRouter');
+        $router = $this->getMockBuilder(PKPRouter::class)
+            ->setMethods(['getContext'])
+            ->getMock();
+        $application = Application::get();
+        $router->setApplication($application);
+        $router->expects($this->any())
+            ->method('getContext')
+            ->will($this->returnValue($journal));
+
+        import('classes.core.Request');
+        $request = $this->getMockBuilder(Request::class)
+            ->setMethods(array('getRouter'))
+            ->getMock();
+        $request->expects($this->any())
+                ->method('getRouter')
+                ->will($this->returnValue($router));
+        Registry::set('request', $request);
+    }
+
+    private function registerMockPlugin($journal, $pluginName)
+    {
+        $mockPlugin = $this->getMockBuilder(Plugin::class)
+            ->getMockForAbstractClass();
+
+        $mockPlugin->expects($this->any())
+            ->method('getName')
+            ->will($this->returnValue($pluginName));
+
+        $mockPlugin->updateSetting($journal->getId(), 'someSetting', 'Test value');
+        $success = PluginRegistry::register('generic', $mockPlugin, 'generic/' . $pluginName);
+    }
+
     private function createJournal()
     {
         $journal = new Journal();
+        $journal->setId(rand());
         $journal->setPath('ojs');
         $journal->setName('Open Journal Systems', 'en_US');
         $journal->setPrimaryLocale('en_US');
@@ -261,7 +297,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
-    private function createPluginsNode($doc, $deployment, $parentNode)
+    private function createPluginsNode($doc, $deployment, $parentNode, $pluginName)
     {
         $parentNode->appendChild($pluginsNode = $doc->createElementNS($deployment->getNamespace(), 'plugins'));
         $pluginsNode->setAttributeNS(
@@ -274,7 +310,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
         );
         $pluginsNode->appendChild($pluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin'));
-        $pluginNode->setAttribute('plugin_name', 'testPlugin');
+        $pluginNode->setAttribute('plugin_name', $pluginName);
         $pluginNode->appendChild($node = $doc->createElementNS(
             $deployment->getNamespace(),
             'plugin_setting',
@@ -364,47 +400,18 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $deployment = $journalExportFilter->getDeployment();
 
         $journal = $this->createJournal();
-        $journal->setId(99);
-
         $deployment->setContext($journal);
         $journalExportFilter->setDeployment($deployment);
-
-        import('lib.pkp.classes.core.PKPRouter');
-        $router = $this->getMockBuilder(PKPRouter::class)
-            ->setMethods(['getContext'])
-            ->getMock();
-        $application = Application::get();
-        $router->setApplication($application);
-        $router->expects($this->any())
-            ->method('getContext')
-            ->will($this->returnValue($journal));
-
-        import('classes.core.Request');
-        $request = $this->getMockBuilder(Request::class)
-            ->setMethods(array('getRouter'))
-            ->getMock();
-        $request->expects($this->any())
-                ->method('getRouter')
-                ->will($this->returnValue($router));
-        Registry::set('request', $request);
 
         $doc = new DOMDocument('1.0');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
+        $this->registerMockRequest($journal);
+        $this->registerMockPlugin($journal, 'anotherGenericPlugin');
+
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
-        $this->createPluginsNode($doc, $deployment, $expectedJournalNode);
-
-        $mockPlugin = $this->getMockBuilder(Plugin::class)
-            ->getMockForAbstractClass();
-
-        $mockPlugin->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('testPlugin'));
-
-        $mockPlugin->updateSetting($journal->getId(), 'someSetting', 'Test value');
-
-        $success = PluginRegistry::register('generic', $mockPlugin, 'generic/testPlugin');
+        $this->createPluginsNode($doc, $deployment, $expectedJournalNode, 'anotherGenericPlugin');
 
         $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $journalExportFilter->addPlugins($doc, $actualJournalNode, $journal);
@@ -474,8 +481,13 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->createOptionalNodes($journalExportFilter, $doc, $expectedJournalNode);
         $this->createLocalizedNodes($journalExportFilter, $doc, $expectedJournalNode);
         $this->createDefaultSubmissionChecklistNode($doc, $deployment, $expectedJournalNode);
+        $this->createPluginsNode($doc, $deployment, $expectedJournalNode, 'testPlugin');
 
         $journal = $this->createJournal();
+
+        $this->registerMockRequest($journal);
+        $this->registerMockPlugin($journal, 'testPlugin');
+
         $actualJournalNode = $journalExportFilter->createJournalNode($doc, $journal);
 
         $this->assertXmlStringEqualsXmlString(
@@ -488,7 +500,11 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     public function testCreateCompleteJournalXml()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
+
         $journal = $this->createJournal();
+        $this->registerMockRequest($journal);
+        $this->registerMockPlugin($journal, 'testgenericplugin');
+
         $doc = $journalExportFilter->execute($journal);
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('journal.xml')->saveXml(),
