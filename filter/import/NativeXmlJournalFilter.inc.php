@@ -88,11 +88,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $journal->setData($propName, $items, $locale);
         }
 
-        // if (is_a($n, 'DOMElement')) {
-        //     if ($n->tagName == 'plugins') {
-
-        //     }
-        // }
+        if (is_a($n, 'DOMElement')) {
+            if ($n->tagName == 'plugins') {
+                $this->parsePlugins($n);
+            }
+        }
     }
 
     public function parseSubmissionChecklist($element)
@@ -108,6 +108,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
         }
         return [$locale, $items];
+    }
+
+    public function parsePlugins($node)
+    {
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName === 'plugin') {
+                $this->parsePlugin($n);
+            }
+        }
     }
 
     public function parsePlugin($n)

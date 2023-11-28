@@ -41,7 +41,10 @@ purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLo
     <plugins xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
         <plugin plugin_name="testgenericplugin">
-            <plugin_setting setting_name="someSetting">Test value</plugin_setting>
+            <plugin_setting setting_name="someSetting">Test Value</plugin_setting>
+        </plugin>
+        <plugin plugin_name="testthemeplugin">
+            <plugin_setting setting_name="someOption">Option Value</plugin_setting>
         </plugin>
     </plugins>
 </journal>

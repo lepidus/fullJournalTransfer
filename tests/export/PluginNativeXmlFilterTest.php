@@ -77,7 +77,7 @@ class PluginNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ->will($this->returnValue('testPlugin'));
 
         $mockPlugin->updateSetting(0, 'enabled', true);
-        $mockPlugin->updateSetting(0, 'someSetting', 'Test value');
+        $mockPlugin->updateSetting(0, 'someSetting', 'Test Value');
         $mockPlugin->updateSetting(0, 'anotherSetting', 'Another test value');
 
         $plugins = [$mockPlugin];

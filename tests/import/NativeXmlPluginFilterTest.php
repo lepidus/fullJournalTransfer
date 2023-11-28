@@ -30,7 +30,7 @@ class NativeXmlPluginFilterTest extends NativeImportExportFilterTestCase
 
         $expectedPluginSettings = [
             'enabled' => 1,
-            'someSetting' => 'Test value',
+            'someSetting' => 'Test Value',
             'anotherSetting' => 'Another test value'
         ];
 

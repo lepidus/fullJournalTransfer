@@ -46,7 +46,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         Registry::set('request', $request);
     }
 
-    private function registerMockPlugin($journal, $pluginName)
+    private function registerMockPlugin($journal, $pluginName, $category, $settings)
     {
         $mockPlugin = $this->getMockBuilder(Plugin::class)
             ->getMockForAbstractClass();
@@ -55,8 +55,11 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ->method('getName')
             ->will($this->returnValue($pluginName));
 
-        $mockPlugin->updateSetting($journal->getId(), 'someSetting', 'Test value');
-        $success = PluginRegistry::register('generic', $mockPlugin, 'generic/' . $pluginName);
+        foreach ($settings as $settingName => $settingValue) {
+            $mockPlugin->updateSetting($journal->getId(), $settingName, $settingValue);
+        }
+
+        $success = PluginRegistry::register($category, $mockPlugin, $category . '/' . $pluginName);
     }
 
     private function createJournal()
@@ -314,7 +317,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $pluginNode->appendChild($node = $doc->createElementNS(
             $deployment->getNamespace(),
             'plugin_setting',
-            htmlspecialchars('Test value', ENT_COMPAT, 'UTF-8')
+            htmlspecialchars('Test Value', ENT_COMPAT, 'UTF-8')
         ));
         $node->setAttribute('setting_name', 'someSetting');
     }
@@ -408,7 +411,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->formatOutput = true;
 
         $this->registerMockRequest($journal);
-        $this->registerMockPlugin($journal, 'anotherGenericPlugin');
+        $this->registerMockPlugin($journal, 'anotherGenericPlugin', 'generic', ['someSetting' => 'Test Value']);
 
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $this->createPluginsNode($doc, $deployment, $expectedJournalNode, 'anotherGenericPlugin');
@@ -486,7 +489,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $journal = $this->createJournal();
 
         $this->registerMockRequest($journal);
-        $this->registerMockPlugin($journal, 'testPlugin');
+        $this->registerMockPlugin($journal, 'testPlugin', 'generic', ['someSetting' => 'Test Value']);
 
         $actualJournalNode = $journalExportFilter->createJournalNode($doc, $journal);
 
@@ -503,7 +506,8 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $journal = $this->createJournal();
         $this->registerMockRequest($journal);
-        $this->registerMockPlugin($journal, 'testgenericplugin');
+        $this->registerMockPlugin($journal, 'testgenericplugin', 'generic', ['someSetting' => 'Test Value']);
+        $this->registerMockPlugin($journal, 'testthemeplugin', 'theme', ['someOption' => 'Option Value']);
 
         $doc = $journalExportFilter->execute($journal);
         $this->assertXmlStringEqualsXmlString(
