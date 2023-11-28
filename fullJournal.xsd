@@ -15,6 +15,8 @@
 	  -->
     <include schemaLocation="../../../plugins/importexport/native/native.xsd" />
 
+    <include schemaLocation="../../../lib/pkp/plugins/importexport/users/pkp-users.xsd" />
+
 	<complexType name="journal">
 		<sequence>
 			<element name="email_signature" type="string" minOccurs="1" maxOccurs="1" />
@@ -54,6 +56,7 @@
 				</complexType>
 			</element>
 			<element ref="pkp:plugins" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:PKPUsers" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="url_path" type="string" />
