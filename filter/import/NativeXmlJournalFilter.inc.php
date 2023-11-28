@@ -142,7 +142,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
         import('lib.pkp.classes.file.FileManager');
         $fileManager = new \FileManager();
         foreach ($contextService->installFileDirs as $dir) {
-            dump(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
             $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
         }
     }
