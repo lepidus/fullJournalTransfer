@@ -2,12 +2,19 @@
 
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter');
+import('lib.pkp.plugins.importexport.users.PKPUserImportExportDeployment');
 
 class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
     protected function getAffectedTables()
     {
-        return ['journals', 'journal_settings', 'plugin_settings'];
+        return [
+            'journals', 'journal_settings', 'plugin_settings',
+            'user_group_settings', 'user_group_stage',
+            'user_groups', 'user_interests',
+            'user_settings', 'user_user_groups',
+            'users',
+        ];
     }
     protected function getSymbolicFilterGroup()
     {
@@ -62,10 +69,49 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $success = PluginRegistry::register($category, $mockPlugin, $category . '/' . $pluginName);
     }
 
+    private function getUsersExportFilter($journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('user=>user-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment(new PKPUserImportExportDeployment($journal, null));
+
+        return $exportFilter;
+    }
+
+    private function createUsersAndUserGroups($journal)
+    {
+        $userGroupDao = \DAORegistry::getDAO('UserGroupDAO');
+        $userGroup = $userGroupDao->newDataObject();
+        $userGroup->setRoleId(9234);
+        $userGroup->setContextId($journal->getId());
+        $userGroup->setPermitSelfRegistration(true);
+        $userGroup->setPermitMetadataEdit(true);
+        $userGroup->setDefault(true);
+        $userGroupId = $userGroupDao->insertObject($userGroup);
+
+        $userDao = DAORegistry::getDAO('UserDAO');
+        $user = $userDao->newDataObject();
+        $user->setUsername('testUser');
+        $user->setPassword('$2y$10$DA4jSfw0rVfueLmK3iobN.Qe.eSbEtT10ICsIgHwzFDI0QRQjm/SK');
+        $user->setGivenName('Test', 'en_US');
+        $user->setFamilyName('User', 'en_US');
+        $user->setEmail('user@test.com');
+        $user->setDateRegistered('2023-11-28 20:26:41');
+        $user->setDateLastLogin('2023-11-28 20:26:41');
+        $user->setInlineHelp(1);
+        $userDao->insertObject($user);
+
+        $userGroupDao->assignUserToGroup($user->getId(), $userGroupId);
+
+        return $user;
+    }
+
     private function createJournal()
     {
         $journal = new Journal();
-        $journal->setId(rand());
+        $journal->setId(1483);
         $journal->setPath('ojs');
         $journal->setName('Open Journal Systems', 'en_US');
         $journal->setPrimaryLocale('en_US');
@@ -491,6 +537,15 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->registerMockRequest($journal);
         $this->registerMockPlugin($journal, 'testPlugin', 'generic', ['someSetting' => 'Test Value']);
 
+        $user = $this->createUsersAndUserGroups($journal);
+        $users = [$user];
+        $usersExportFilter = $this->getUsersExportFilter($journal);
+        $usersDoc = $usersExportFilter->execute($users);
+        if ($usersDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($usersDoc->documentElement, true);
+            $expectedJournalNode->appendChild($clone);
+        }
+
         $actualJournalNode = $journalExportFilter->createJournalNode($doc, $journal);
 
         $this->assertXmlStringEqualsXmlString(
@@ -509,7 +564,11 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->registerMockPlugin($journal, 'testgenericplugin', 'generic', ['someSetting' => 'Test Value']);
         $this->registerMockPlugin($journal, 'testthemeplugin', 'theme', ['someOption' => 'Option Value']);
 
-        $doc = $journalExportFilter->execute($journal);
+        $this->createUsersAndUserGroups($journal);
+
+        libxml_use_internal_errors(true);
+        $doc = $journalExportFilter->execute($journal, true);
+
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('journal.xml')->saveXml(),
             $doc->saveXML(),

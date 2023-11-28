@@ -154,6 +154,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $this->addPlugins($doc, $journalNode);
+        $this->addUsers($doc, $journalNode, $journal);
 
         return $journalNode;
     }
@@ -215,6 +216,39 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $pluginsDoc = $exportFilter->execute($plugins, true);
         if ($pluginsDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($pluginsDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
+    }
+
+    public function addUsers($doc, $journalNode, $journal)
+    {
+        import('lib.pkp.plugins.importexport.users.PKPUserImportExportDeployment');
+
+        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+        $usersIterator = $userGroupDao->getUsersByContextId($journal->getId());
+
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('user=>user-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment(new PKPUserImportExportDeployment($journal, null));
+
+        $userDao = DAORegistry::getDAO('UserDAO');
+        $users = [];
+        foreach ($usersIterator->toArray() as $userId) {
+            if (is_a($userId, 'User')) {
+                $users[] = $userId;
+            } else {
+                $user = $userDao->getById($userId, $journal->getId());
+                if ($user) {
+                    $users[] = $user;
+                }
+            }
+        }
+
+        $usersDoc = $exportFilter->execute($users);
+        if ($usersDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($usersDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
     }

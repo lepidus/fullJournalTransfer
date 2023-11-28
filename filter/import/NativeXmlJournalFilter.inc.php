@@ -58,6 +58,8 @@ class NativeXmlJournalFilter extends NativeImportFilter
         }
         $contextDAO->updateObject($journal);
 
+        $this->createJournalDirectories($journal);
+
         return $journal;
     }
 
@@ -131,6 +133,18 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $pluginDoc = new DOMDocument();
         $pluginDoc->appendChild($pluginDoc->importNode($n, true));
         return $importFilter->execute($pluginDoc);
+    }
+
+    public function createJournalDirectories($journal)
+    {
+        $contextService = Services::get('context');
+
+        import('lib.pkp.classes.file.FileManager');
+        $fileManager = new \FileManager();
+        foreach ($contextService->installFileDirs as $dir) {
+            dump(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
+            $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
+        }
     }
 
     private function getSimpleJournalNodeMapping()

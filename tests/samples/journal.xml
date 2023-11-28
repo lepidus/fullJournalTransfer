@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
-<journal xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" seq="6" primary_locale="en_US"
-enabled="1" copyright_year_basis="issue" default_review_mode="2" disable_submissions="false" enable_oai="1" items_per_page="25" 
-keywords="request" membership_fee="0" num_page_links="10" num_weeks_per_response="4" num_weeks_per_review="4" publication_fee="0"
-purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+<journal xmlns="http://pkp.sfu.ca"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" seq="6" primary_locale="en_US" enabled="1" copyright_year_basis="issue" default_review_mode="2" disable_submissions="false" enable_oai="1" items_per_page="25" keywords="request" membership_fee="0" num_page_links="10" num_weeks_per_response="4" num_weeks_per_review="4" publication_fee="0" purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
     <email_signature>##default.contextSettings.emailSignature##</email_signature>
     <supported_locales>en_US:es_ES:pt_BR</supported_locales>
     <supported_form_locales>en_US:es_ES:pt_BR</supported_form_locales>
@@ -38,8 +36,7 @@ purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLo
         <submission_checklist_item order="4">##default.contextSettings.checklist.submissionAppearance##</submission_checklist_item>
         <submission_checklist_item order="5">##default.contextSettings.checklist.bibliographicRequirements##</submission_checklist_item>
     </submission_checklist>
-    <plugins xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <plugins xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
         <plugin plugin_name="testgenericplugin">
             <plugin_setting setting_name="someSetting">Test Value</plugin_setting>
         </plugin>
@@ -47,4 +44,32 @@ purchase_article_fee="0" theme_plugin_path="default" url_path="ojs" xsi:schemaLo
             <plugin_setting setting_name="someOption">Option Value</plugin_setting>
         </plugin>
     </plugins>
+    <PKPUsers xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
+        <user_groups xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
+            <user_group>
+                <role_id>9234</role_id>
+                <context_id>1483</context_id>
+                <is_default>true</is_default>
+                <show_title>false</show_title>
+                <permit_self_registration>true</permit_self_registration>
+                <permit_metadata_edit>true</permit_metadata_edit>
+                <stage_assignments />
+            </user_group>
+        </user_groups>
+        <users>
+            <user>
+                <givenname locale="en_US">Test</givenname>
+                <familyname locale="en_US">User</familyname>
+                <email>user@test.com</email>
+                <username>testUser</username>
+                <password encryption="sha1" is_disabled="false" must_change="false">
+                    <value>$2y$10$DA4jSfw0rVfueLmK3iobN.Qe.eSbEtT10ICsIgHwzFDI0QRQjm/SK</value>
+                </password>
+                <date_registered>2023-11-28 20:26:41</date_registered>
+                <date_last_login>2023-11-28 20:26:41</date_last_login>
+                <inline_help>true</inline_help>
+                <user_group_ref />
+            </user>
+        </users>
+    </PKPUsers>
 </journal>
