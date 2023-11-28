@@ -17,7 +17,7 @@ class NativeXmlPluginFilterTest extends NativeImportExportFilterTestCase
 
     protected function getAffectedTables()
     {
-        return ['plugin_settings',];
+        return ['plugin_settings'];
     }
 
     public function testHandlePluginElement()

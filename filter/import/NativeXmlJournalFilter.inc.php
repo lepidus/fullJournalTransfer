@@ -87,6 +87,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
             list($locale, $items) = $this->parseSubmissionChecklist($n);
             $journal->setData($propName, $items, $locale);
         }
+
+        // if (is_a($n, 'DOMElement')) {
+        //     if ($n->tagName == 'plugins') {
+
+        //     }
+        // }
     }
 
     public function parseSubmissionChecklist($element)
@@ -102,6 +108,18 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
         }
         return [$locale, $items];
+    }
+
+    public function parsePlugin($n)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>plugin');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $pluginDoc = new DOMDocument();
+        $pluginDoc->appendChild($pluginDoc->importNode($n, true));
+        return $importFilter->execute($pluginDoc);
     }
 
     private function getSimpleJournalNodeMapping()

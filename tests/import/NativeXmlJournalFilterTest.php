@@ -17,7 +17,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
     protected function getAffectedTables()
     {
-        return ['journals', 'journal_settings'];
+        return ['journals', 'journal_settings', 'plugin_settings'];
     }
 
     private function setJournalAttributeData($journal)
@@ -155,6 +155,33 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         }
 
         $this->assertEquals($expectedJournal->_data, $actualJournal->_data);
+    }
+
+    public function testParsePlugin()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+
+        $expectedSettings = [
+            'someSetting' => 'Test value'
+        ];
+
+        $journal = new Journal();
+        $journal->setId(rand());
+
+        $deployment->setContext($journal);
+
+        $doc = $this->getSampleXml('journal.xml');
+        $pluginNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'plugin'
+        );
+        $journalImportFilter->parsePlugin($pluginNodeList->item(0));
+
+        $pluginSettingsDAO = DAORegistry::getDAO('PluginSettingsDAO');
+        $pluginSettings = $pluginSettingsDAO->getPluginSettings($journal->getId(), 'testgenericplugin');
+
+        $this->assertEquals($expectedSettings, $pluginSettings);
     }
 
     public function testHandleJournalElement()
