@@ -233,7 +233,8 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
         $importedObjects = $journalImportFilter->process($doc);
         $journal = array_shift($importedObjects);
-        $journalId = array_pop($journal->_data);
+        $journalId = $journal->getId();
+        unset($journal->_data['id']);
 
         $this->assertEquals($expectedJournalData, $journal->_data);
 

@@ -49,13 +49,14 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $journal->setData('publicationFee', (int) $node->getAttribute('publication_fee'));
         $journal->setData('purchaseArticleFee', (int) $node->getAttribute('purchase_article_fee'));
         $journal->setData('themePluginPath', $node->getAttribute('theme_plugin_path'));
+        $contextDAO->insertObject($journal);
 
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
                 $this->handleChildElement($n, $journal);
             }
         }
-        $contextDAO->insertObject($journal);
+        $contextDAO->updateObject($journal);
 
         return $journal;
     }
@@ -63,6 +64,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function handleChildElement($n, $journal)
     {
         $deployment = $this->getDeployment();
+        $deployment->setContext($journal);
 
         $simpleNodeMapping = $this->getSimpleJournalNodeMapping();
         $localizedNodeMapping = $this->getLocalizedJournalNodeMapping();
