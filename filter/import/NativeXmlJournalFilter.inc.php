@@ -5,8 +5,9 @@
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  */
 
-import('lib.pkp.plugins.importexport.native.filter.NativeImportFilter');
 import('lib.pkp.classes.services.PKPSchemaService');
+import('lib.pkp.plugins.importexport.native.filter.NativeImportFilter');
+import('lib.pkp.plugins.importexport.users.PKPUserImportExportDeployment');
 
 class NativeXmlJournalFilter extends NativeImportFilter
 {
@@ -146,7 +147,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
         assert(count($userFilters) == 1);
         $filter = array_shift($userFilters);
         $filter->setDeployment(new PKPUserImportExportDeployment($journal, null));
-        return $filter->execute($n, true);
+        $usersDoc = new DOMDocument('1.0');
+        $usersDoc->preserveWhiteSpace = false;
+        $usersDoc->formatOutput = true;
+        $usersDoc->appendChild($usersDoc->importNode($n, true));
+        $usersXml = $usersDoc->saveXML();
+        return $filter->execute($usersXml);
     }
 
     public function createJournalDirectories($journal)

@@ -44,32 +44,41 @@
             <plugin_setting setting_name="someOption">Option Value</plugin_setting>
         </plugin>
     </plugins>
-    <PKPUsers xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
-        <user_groups xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
-            <user_group>
-                <role_id>9234</role_id>
+    <PKPUsers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
+        <user_groups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
+			<user_group>
+				<role_id>9234</role_id>
                 <context_id>1483</context_id>
-                <is_default>true</is_default>
-                <show_title>false</show_title>
-                <permit_self_registration>true</permit_self_registration>
-                <permit_metadata_edit>true</permit_metadata_edit>
-                <stage_assignments />
-            </user_group>
+				<is_default>true</is_default>
+				<show_title>true</show_title>
+				<permit_self_registration>false</permit_self_registration>
+				<permit_metadata_edit>true</permit_metadata_edit>
+				<name locale="en_US">Press managerxx</name>
+				<abbrev locale="en_US">PM</abbrev>
+				<stage_assignments />
+			</user_group>
         </user_groups>
         <users>
             <user>
-                <givenname locale="en_US">Test</givenname>
-                <familyname locale="en_US">User</familyname>
-                <email>user@test.com</email>
-                <username>testUser</username>
-                <password encryption="sha1" is_disabled="false" must_change="false">
-                    <value>$2y$10$DA4jSfw0rVfueLmK3iobN.Qe.eSbEtT10ICsIgHwzFDI0QRQjm/SK</value>
-                </password>
-                <date_registered>2023-11-28 20:26:41</date_registered>
-                <date_last_login>2023-11-28 20:26:41</date_last_login>
-                <inline_help>true</inline_help>
-                <user_group_ref />
-            </user>
+				<givenname locale="en_US">admin</givenname>
+				<familyname locale="en_US">Smith</familyname>
+				<country>CA</country>
+				<email>john@admin-site.com</email>
+				<url>http://www.admin-site.com</url>
+				<username>siteadmin</username>
+				<password is_disabled="false" must_change="false"
+					encryption="sha1">
+					<value>6f7303f0285dd527b2da3620ccaf25ee384ae7db</value>
+				</password>
+				<date_registered>2013-11-05 12:42:05</date_registered>
+				<date_last_login>2014-01-06 08:58:08</date_last_login>
+				<date_validated>2013-11-06 00:00:00</date_validated>
+				<inline_help>false</inline_help>
+				<auth_id>23</auth_id>
+				<billing_address>my billing address</billing_address>
+				<user_group_ref>Press managerxx</user_group_ref>
+			</user>
         </users>
     </PKPUsers>
 </journal>

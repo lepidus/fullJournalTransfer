@@ -3,6 +3,7 @@
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter');
 import('lib.pkp.plugins.importexport.users.PKPUserImportExportDeployment');
+import('lib.pkp.classes.plugins.Plugin');
 
 class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
@@ -86,21 +87,30 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $userGroup = $userGroupDao->newDataObject();
         $userGroup->setRoleId(9234);
         $userGroup->setContextId($journal->getId());
-        $userGroup->setPermitSelfRegistration(true);
+        $userGroup->setShowTitle(true);
+        $userGroup->setPermitSelfRegistration(false);
         $userGroup->setPermitMetadataEdit(true);
         $userGroup->setDefault(true);
+        $userGroup->setName('Press managerxx', 'en_US');
+        $userGroup->setAbbrev('PM', 'en_US');
         $userGroupId = $userGroupDao->insertObject($userGroup);
 
         $userDao = DAORegistry::getDAO('UserDAO');
         $user = $userDao->newDataObject();
-        $user->setUsername('testUser');
-        $user->setPassword('$2y$10$DA4jSfw0rVfueLmK3iobN.Qe.eSbEtT10ICsIgHwzFDI0QRQjm/SK');
-        $user->setGivenName('Test', 'en_US');
-        $user->setFamilyName('User', 'en_US');
-        $user->setEmail('user@test.com');
-        $user->setDateRegistered('2023-11-28 20:26:41');
-        $user->setDateLastLogin('2023-11-28 20:26:41');
-        $user->setInlineHelp(1);
+        $user->setUsername('siteadmin');
+        $user->setGivenName('admin', 'en_US');
+        $user->setFamilyName('Smith', 'en_US');
+        $user->setPassword('6f7303f0285dd527b2da3620ccaf25ee384ae7db');
+        $user->setEmail('john@admin-site.com');
+        $user->setUrl('http://www.admin-site.com');
+        $user->setBillingAddress('my billing address');
+        $user->setCountry('CA');
+        $user->setDateRegistered('2013-11-05 12:42:05');
+        $user->setDateValidated('2013-11-06 00:00:00');
+        $user->setDateLastLogin('2014-01-06 08:58:08');
+        $user->setMustChangePassword(false);
+        $user->setAuthId('23');
+        $user->setInlineHelp(false);
         $userDao->insertObject($user);
 
         $userGroupDao->assignUserToGroup($user->getId(), $userGroupId);

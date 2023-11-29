@@ -226,6 +226,28 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journalImportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalImportFilter->getDeployment();
 
+        $expectedUserData = [
+            'username' => 'siteadmin',
+            'email' => 'john@admin-site.com',
+            'url' => 'http://www.admin-site.com',
+            'billingAddress' => 'my billing address',
+            'country' => 'CA',
+            'dateRegistered' => '2013-11-05 12:42:05',
+            'dateValidated' => '2013-11-06 00:00:00',
+            'dateLastLogin' => '2014-01-06 08:58:08',
+            'mustChangePassword' => 1,
+            'disabled' => 0,
+            'authId' => 23,
+            'inlineHelp' => 0,
+            'familyName' => [
+                'en_US' => 'Smith'
+            ],
+            'givenName' => [
+                'en_US' => 'admin'
+            ],
+            'locales' => []
+        ];
+
         $doc = $this->getSampleXml('journal.xml');
         $usersNodeList = $doc->getElementsByTagNameNS(
             $deployment->getNamespace(),
@@ -237,7 +259,11 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journalImportFilter->parseUsers($usersNodeList->item(0), $journal);
 
         $userDao = DAORegistry::getDAO('UserDAO');
-        $userByUsername = $userDao->getByUsername('testUser', true);
+        $userByUsername = $userDao->getByUsername('siteadmin', true);
+        unset($userByUsername->_data['id']);
+        unset($userByUsername->_data['password']);
+
+        $this->assertEquals($expectedUserData, $userByUsername->_data);
     }
 
     public function testHandleJournalElement()
