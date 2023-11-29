@@ -17,7 +17,13 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
     protected function getAffectedTables()
     {
-        return ['journals', 'journal_settings', 'plugin_settings'];
+        return [
+            'journals', 'journal_settings', 'plugin_settings',
+            'user_group_settings', 'user_group_stage',
+            'user_groups', 'user_interests',
+            'user_settings', 'user_user_groups',
+            'users'
+        ];
     }
 
     private function setJournalAttributeData($journal)
@@ -213,6 +219,25 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         );
 
         $this->assertEquals($expectedSettings, $actualSettings);
+    }
+
+    public function testParseUsers()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+
+        $doc = $this->getSampleXml('journal.xml');
+        $usersNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'PKPUsers'
+        );
+
+        $journal = new Journal();
+        $journal->setId(rand());
+        $journalImportFilter->parseUsers($usersNodeList->item(0), $journal);
+
+        $userDao = DAORegistry::getDAO('UserDAO');
+        $userByUsername = $userDao->getByUsername('testUser', true);
     }
 
     public function testHandleJournalElement()

@@ -96,6 +96,9 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($n->tagName == 'plugins') {
                 $this->parsePlugins($n);
             }
+            if ($n->tagName == 'PKPUsers') {
+                $this->parseUsers($n, $journal);
+            }
         }
     }
 
@@ -133,6 +136,17 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $pluginDoc = new DOMDocument();
         $pluginDoc->appendChild($pluginDoc->importNode($n, true));
         return $importFilter->execute($pluginDoc);
+    }
+
+    public function parseUsers($n, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $userFilters = $filterDao->getObjectsByGroup('user-xml=>user');
+
+        assert(count($userFilters) == 1);
+        $filter = array_shift($userFilters);
+        $filter->setDeployment(new PKPUserImportExportDeployment($journal, null));
+        return $filter->execute($n, true);
     }
 
     public function createJournalDirectories($journal)

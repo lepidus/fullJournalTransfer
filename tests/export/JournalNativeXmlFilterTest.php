@@ -13,7 +13,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'user_group_settings', 'user_group_stage',
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
-            'users',
+            'users'
         ];
     }
     protected function getSymbolicFilterGroup()
