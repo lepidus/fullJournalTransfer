@@ -20,6 +20,24 @@ class NavigationMenuItemNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuItemNativeXmlFilter';
     }
 
+    public function &process(&$navigationMenuItems)
+    {
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $deployment = $this->getDeployment();
+
+        $rootNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu_items');
+        foreach ($navigationMenuItems as $navigationMenuItem) {
+            $rootNode->appendChild($this->createNavigationMenuItemNode($doc, $navigationMenuItem));
+        }
+        $doc->appendChild($rootNode);
+        $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+
+        return $doc;
+    }
+
     public function createNavigationMenuItemNode($doc, $navigationMenuItem)
     {
         $deployment = $this->getDeployment();

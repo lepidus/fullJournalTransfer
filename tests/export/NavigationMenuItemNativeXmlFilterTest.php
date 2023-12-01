@@ -64,4 +64,26 @@ class NavigationMenuItemNativeXmlFilterTest extends NativeImportExportFilterTest
             "actual xml is equal to expected xml"
         );
     }
+
+    public function testCreateCompleteNavigationMenuItemXml()
+    {
+        $navigationMenuItemExportFilter = $this->getNativeImportExportFilter();
+
+        $navigationMenuItem = new NavigationMenuItem();
+        $navigationMenuItem->setType(NMI_TYPE_ABOUT);
+        $navigationMenuItem->setPath('testItem');
+        $navigationMenuItem->setTitleLocaleKey('navigation.about');
+        $navigationMenuItem->setTitle('Test Nav Menu Item Title', 'en_US');
+        $navigationMenuItem->setContent('Test Nav Menu Item Content', 'en_US');
+        $navigationMenuItem->setRemoteUrl('http://path/to/page', 'en_US');
+        $navigationMenuItems = [$navigationMenuItem];
+
+        $doc = $navigationMenuItemExportFilter->execute($navigationMenuItems);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('navigationMenuItem.xml')->saveXml(),
+            $doc->saveXML(),
+            "actual xml is equal to expected xml"
+        );
+    }
 }
