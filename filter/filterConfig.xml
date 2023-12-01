@@ -40,6 +40,13 @@
       description="plugins.importexport.fullJournalTransfer.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.plugins.Plugin[]" />
+    <!-- Navigation Menu Item native XML output -->
+    <filterGroup
+      symbolic="navigation-menu-item=>native-xml"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
+      inputType="class::lib.pkp.classes.navigationMenu.NavigationMenuItem[]"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- Announcement native XML output -->
     <filterGroup
       symbolic="announcement=>native-xml"
@@ -119,6 +126,10 @@
     <filter
       inGroup="native-xml=>plugin"
       class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlPluginFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="navigation-menu-item=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuItemNativeXmlFilter"
       isTemplate="0" />
     <filter
       inGroup="announcement=>native-xml"
