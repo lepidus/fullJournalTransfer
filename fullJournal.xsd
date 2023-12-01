@@ -96,6 +96,25 @@
 		<attribute name="setting_name" type="string" />
 	</complexType>
 
+	<element name="navigation_menu_items">
+		<complexType>
+			<sequence>
+				<element ref="pkp:navigation_menu_item" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="navigation_menu_item">
+		<sequence>
+			<element name="title" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="content" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="remote_url" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+		<attribute name="type" type="string" />
+		<attribute name="path" type="string" />
+		<attribute name="title_locale_key" type="string" use="optional"/>
+	</complexType>
+
 	<element name="announcements">
 		<complexType>
 			<sequence>
@@ -119,6 +138,8 @@
     <element name="journal" type="pkp:journal" />
 
     <element name="plugin" type="pkp:plugin" />
+
+    <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
 
     <element name="announcement" type="pkp:announcement" />
 </schema>
