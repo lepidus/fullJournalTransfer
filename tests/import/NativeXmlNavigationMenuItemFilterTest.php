@@ -15,6 +15,11 @@ class NativeXmlNavigationMenuItemFilterTest extends NativeImportExportFilterTest
         return NativeXmlNavigationMenuItemFilter::class;
     }
 
+    protected function getAffectedTables()
+    {
+        return ['navigation_menu_items', 'navigation_menu_item_settings'];
+    }
+
     public function testHandleNavigationMenuItemElement()
     {
         $navMenuItemImportFilter = $this->getNativeImportExportFilter();
