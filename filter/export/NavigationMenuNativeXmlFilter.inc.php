@@ -20,6 +20,27 @@ class NavigationMenuNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuNativeXmlFilter';
     }
 
+    public function createNavigationMenuNode($doc, $navigationMenu)
+    {
+        $deployment = $this->getDeployment();
+
+        $navigationMenuNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu');
+        $navigationMenuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'title',
+            htmlspecialchars($navigationMenu->getTitle(), ENT_COMPAT, 'UTF-8')
+        ));
+        $navigationMenuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'area_name',
+            htmlspecialchars($navigationMenu->getAreaName(), ENT_COMPAT, 'UTF-8')
+        ));
+
+        $this->addNavigationMenuAssignments($doc, $navigationMenuNode, $navigationMenu);
+
+        return $navigationMenuNode;
+    }
+
     public function addNavigationMenuAssignments($doc, $navigationMenuNode, $navigationMenu)
     {
         $deployment = $this->getDeployment();

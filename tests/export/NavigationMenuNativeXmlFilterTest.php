@@ -81,4 +81,39 @@ class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
             "actual xml is equal to expected xml"
         );
     }
+
+    public function testCreateNavigationMenuNode()
+    {
+        $navMenuExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $navMenuExportFilter->getDeployment();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedNavMenuNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu');
+        $expectedNavMenuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'title',
+            htmlspecialchars('Test Navigation Menu Title', ENT_COMPAT, 'UTF-8')
+        ));
+        $expectedNavMenuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'area_name',
+            htmlspecialchars('primary_navigation', ENT_COMPAT, 'UTF-8')
+        ));
+
+        $navigationMenuDAO = DAORegistry::getDAO('NavigationMenuDAO');
+        $navigationMenu = $navigationMenuDAO->newDataObject();
+        $navigationMenu->setTitle('Test Navigation Menu Title');
+        $navigationMenu->setAreaName('primary_navigation');
+
+        $actualNavMenuNode = $navMenuExportFilter->createNavigationMenuNode($doc, $navigationMenu);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedNavMenuNode),
+            $doc->saveXML($actualNavMenuNode),
+            "actual xml is equal to expected xml"
+        );
+    }
 }
