@@ -209,6 +209,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
         import('lib.pkp.classes.file.FileManager');
         $fileManager = new \FileManager();
+        if (
+            !$fileManager->fileExists(\Config::getVar('files', 'files_dir'), 'dir')
+            && !$fileManager->fileExists(\Config::getVar('files', 'public_files_dir'))
+        ) {
+            return;
+        }
         foreach ($contextService->installFileDirs as $dir) {
             $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
         }
