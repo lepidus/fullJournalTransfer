@@ -2,9 +2,12 @@
 
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.import.NativeXmlNavigationMenuFilter');
+import('plugins.importexport.fullJournalTransfer.tests.components.NavigationMenuComponent');
 
 class NativeXmlNavigationMenuFilterTest extends NativeImportExportFilterTestCase
 {
+    use NavigationMenuComponent;
+
     protected function getSymbolicFilterGroup()
     {
         return 'native-xml=>navigation-menu';
@@ -25,12 +28,7 @@ class NativeXmlNavigationMenuFilterTest extends NativeImportExportFilterTestCase
         $navMenuImportFilter = $this->getNativeImportExportFilter();
         $deployment = $navMenuImportFilter->getDeployment();
 
-        $navigationMenuItemDAO = DAORegistry::getDAO('NavigationMenuItemDAO');
-        $navigationMenuItem = $navigationMenuItemDAO->newDataObject();
-        $navigationMenuItem->setType(NMI_TYPE_CUSTOM);
-        $navigationMenuItem->setPath('childItem');
-        $navigationMenuItem->setTitle('Child Item', 'en_US');
-        $navigationMenuItemId = $navigationMenuItemDAO->insertObject($navigationMenuItem);
+        $navigationMenuItemId = $this->getChildNavigationMenuItemId();
         $deployment->setNavigationMenuItemDBId(564, $navigationMenuItemId);
 
         $expectedNavMenuItemAssignmentData = [
@@ -38,7 +36,7 @@ class NativeXmlNavigationMenuFilterTest extends NativeImportExportFilterTestCase
             'menuItemId' => $navigationMenuItemId,
             'parentId' => 0,
             'seq' => 5,
-            'title' =>  $navigationMenuItem->getTitle(null)
+            'title' =>  ['en_US' => 'Child Item']
         ];
 
         $doc = $this->getSampleXml('navigationMenu.xml');
@@ -61,6 +59,9 @@ class NativeXmlNavigationMenuFilterTest extends NativeImportExportFilterTestCase
     {
         $navMenuImportFilter = $this->getNativeImportExportFilter();
         $deployment = $navMenuImportFilter->getDeployment();
+
+        $navigationMenuItemId = $this->getChildNavigationMenuItemId();
+        $deployment->setNavigationMenuItemDBId(564, $navigationMenuItemId);
 
         $journal = new Journal();
         $journal->setId(58);

@@ -2,7 +2,7 @@
 
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuNativeXmlFilter');
-import('plugins.importexport.fullJournalTransfer.tests.export.components.NavigationMenuComponent');
+import('plugins.importexport.fullJournalTransfer.tests.components.NavigationMenuComponent');
 
 class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {

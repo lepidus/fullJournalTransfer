@@ -44,17 +44,23 @@ class NativeXmlNavigationMenuFilter extends NativeImportFilter
             'area_name' => 'setAreaName',
         ];
 
-        for ($node = $node->firstChild; $node !== null; $node = $node->nextSibling) {
-            if (is_a($node, 'DOMElement')) {
-                $tagName = $node->tagName;
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                $tagName = $childNode->tagName;
                 if (array_key_exists($tagName, $tagMethodMapping)) {
                     $method = $tagMethodMapping[$tagName];
-                    $navigationMenu->$method($node->textContent);
+                    $navigationMenu->$method($childNode->textContent);
                 }
             }
         }
 
         $navigationMenuId = $navigationMenuDAO->insertObject($navigationMenu);
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement') && $childNode->tagName == 'navigation_menu_item_assignment') {
+                $this->parseNavigationMenuItemAssignments($childNode, $navigationMenuId);
+            }
+        }
+
         return $navigationMenu;
     }
 
