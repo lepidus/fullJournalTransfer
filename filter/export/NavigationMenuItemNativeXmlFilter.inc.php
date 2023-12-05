@@ -46,8 +46,12 @@ class NavigationMenuItemNativeXmlFilter extends NativeExportFilter
 
         $navigationMenuItemNode->setAttribute('id', $navigationMenuItem->getId());
         $navigationMenuItemNode->setAttribute('type', $navigationMenuItem->getType());
-        $navigationMenuItemNode->setAttribute('path', $navigationMenuItem->getPath());
-        $navigationMenuItemNode->setAttribute('title_locale_key', $navigationMenuItem->getTitleLocaleKey());
+        if ($navigationMenuItem->getPath()) {
+            $navigationMenuItemNode->setAttribute('path', $navigationMenuItem->getPath());
+        }
+        if ($navigationMenuItem->getTitleLocaleKey()) {
+            $navigationMenuItemNode->setAttribute('title_locale_key', $navigationMenuItem->getTitleLocaleKey());
+        }
 
         $this->createLocalizedNodes(
             $doc,

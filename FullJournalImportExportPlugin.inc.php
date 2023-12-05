@@ -112,14 +112,14 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         }
 
         libxml_use_internal_errors(true);
-        $journalXml = $filter->execute($journal, true);
-        $xml = $journalXml->saveXml();
+        $journalXml = $filter->execute($journal);
         $errors = array_filter(libxml_get_errors(), function ($a) {
             return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
         });
         if (!empty($errors)) {
             $this->displayXMLValidationErrors($errors, $xml);
         }
+        $xml = $journalXml->saveXml();
         return $xml;
     }
 
