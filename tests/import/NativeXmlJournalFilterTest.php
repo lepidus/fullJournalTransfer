@@ -22,7 +22,12 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'user_group_settings', 'user_group_stage',
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
-            'users'
+            'users',
+            'navigation_menus',
+            'navigation_menu_items',
+            'navigation_menu_item_settings',
+            'navigation_menu_item_assignments',
+            'navigation_menu_item_assignment_settings'
         ];
     }
 

@@ -44,6 +44,7 @@ class NavigationMenuItemNativeXmlFilter extends NativeExportFilter
 
         $navigationMenuItemNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu_item');
 
+        $navigationMenuItemNode->setAttribute('id', $navigationMenuItem->getId());
         $navigationMenuItemNode->setAttribute('type', $navigationMenuItem->getType());
         $navigationMenuItemNode->setAttribute('path', $navigationMenuItem->getPath());
         $navigationMenuItemNode->setAttribute('title_locale_key', $navigationMenuItem->getTitleLocaleKey());

@@ -110,6 +110,7 @@
 			<element name="content" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
 			<element name="remote_url" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
+		<attribute name="id" type="int" />
 		<attribute name="type" type="string" />
 		<attribute name="path" type="string" />
 		<attribute name="title_locale_key" type="string" use="optional"/>

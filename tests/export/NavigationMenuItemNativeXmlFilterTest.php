@@ -26,6 +26,7 @@ class NavigationMenuItemNativeXmlFilterTest extends NativeImportExportFilterTest
         $doc->formatOutput = true;
 
         $expectedNavMenuItemNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu_item');
+        $expectedNavMenuItemNode->setAttribute('id', 226);
         $expectedNavMenuItemNode->setAttribute('type', NMI_TYPE_ABOUT);
         $expectedNavMenuItemNode->setAttribute('path', 'testItem');
         $expectedNavMenuItemNode->setAttribute('title_locale_key', 'navigation.about');
@@ -49,6 +50,7 @@ class NavigationMenuItemNativeXmlFilterTest extends NativeImportExportFilterTest
         );
 
         $navigationMenuItem = new NavigationMenuItem();
+        $navigationMenuItem->setId(226);
         $navigationMenuItem->setType(NMI_TYPE_ABOUT);
         $navigationMenuItem->setPath('testItem');
         $navigationMenuItem->setTitleLocaleKey('navigation.about');
@@ -70,6 +72,7 @@ class NavigationMenuItemNativeXmlFilterTest extends NativeImportExportFilterTest
         $navigationMenuItemExportFilter = $this->getNativeImportExportFilter();
 
         $navigationMenuItem = new NavigationMenuItem();
+        $navigationMenuItem->setId(226);
         $navigationMenuItem->setType(NMI_TYPE_ABOUT);
         $navigationMenuItem->setPath('testItem');
         $navigationMenuItem->setTitleLocaleKey('navigation.about');

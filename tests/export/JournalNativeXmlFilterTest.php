@@ -427,6 +427,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $deployment->getNamespace(),
             'navigation_menu_item'
         ));
+        $menuItemNode->setAttribute('id', 626);
         $menuItemNode->setAttribute('path', 'testMenuItem');
         $menuItemNode->setAttribute('title_locale_key', 'navigation.about');
         $menuItemNode->setAttribute('type', 'NMI_TYPE_CUSTOM');
@@ -483,7 +484,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $deployment->getNamespace(),
             'navigation_menu_item_assignment'
         ));
-        $node->setAttribute('menu_item_id', 564);
+        $node->setAttribute('menu_item_id', 626);
         $node->setAttribute('parent_id', 0);
         $node->setAttribute('seq', 5);
     }
@@ -663,7 +664,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuItemDAO',
             'getByContextId',
             [
-                'id' => 564,
+                'id' => 626,
                 'type' => NMI_TYPE_CUSTOM,
                 'path' => 'testMenuItem',
                 'titleLocaleKey' => 'navigation.about',
@@ -683,7 +684,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuItemAssignmentDAO',
             'getByMenuId',
             [
-                'menuItemId' => 564,
+                'menuItemId' => 626,
                 'parentId' => 0,
                 'seq' => 5
             ]
@@ -720,7 +721,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuItemDAO',
             'getByContextId',
             [
-                'id' => 564,
+                'id' => 626,
                 'type' => NMI_TYPE_CUSTOM,
                 'path' => 'testMenuItem',
                 'titleLocaleKey' => 'navigation.about',
@@ -740,7 +741,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuItemAssignmentDAO',
             'getByMenuId',
             [
-                'menuItemId' => 564,
+                'menuItemId' => 626,
                 'parentId' => 0,
                 'seq' => 5
             ]

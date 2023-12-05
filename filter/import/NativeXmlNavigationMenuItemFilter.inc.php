@@ -48,17 +48,19 @@ class NativeXmlNavigationMenuItemFilter extends NativeImportFilter
             'remote_url' => 'setRemoteUrl',
         ];
 
-        for ($node = $node->firstChild; $node !== null; $node = $node->nextSibling) {
-            if (is_a($node, 'DOMElement')) {
-                $tagName = $node->tagName;
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                $tagName = $childNode->tagName;
                 if (array_key_exists($tagName, $tagMethodMapping)) {
                     $method = $tagMethodMapping[$tagName];
-                    $navigationMenuItem->$method($node->textContent, $node->getAttribute('locale'));
+                    $navigationMenuItem->$method($childNode->textContent, $childNode->getAttribute('locale'));
                 }
             }
         }
 
         $navigationMenuItemId = $navigationMenuItemDAO->insertObject($navigationMenuItem);
+        $deployment->setNavigationMenuItemDBId($node->getAttribute('id'), $navigationMenuItem->getId());
+
         return $navigationMenuItem;
     }
 }

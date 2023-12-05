@@ -97,17 +97,23 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($n->tagName == 'plugins') {
                 $this->parsePlugins($n);
             }
+            if ($n->tagName == 'navigation_menu_items') {
+                $this->parseNavigationMenuItems($n, $journal);
+            }
+            if ($n->tagName == 'navigation_menus') {
+                $this->parseNavigationMenus($n, $journal);
+            }
             if ($n->tagName == 'PKPUsers') {
                 $this->parseUsers($n, $journal);
             }
         }
     }
 
-    public function parseSubmissionChecklist($element)
+    public function parseSubmissionChecklist($node)
     {
-        $locale = $element->getAttribute('locale');
+        $locale = $node->getAttribute('locale');
         $items = [];
-        for ($n = $element->firstChild; $n !== null; $n = $n->nextSibling) {
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
                 $items[] = [
                     'order' => $n->getAttribute('order'),
@@ -127,7 +133,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         }
     }
 
-    public function parsePlugin($n)
+    public function parsePlugin($node)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
         $importFilters = $filterDao->getObjectsByGroup('native-xml=>plugin');
@@ -135,11 +141,53 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $importFilter = array_shift($importFilters);
         $importFilter->setDeployment($this->getDeployment());
         $pluginDoc = new DOMDocument();
-        $pluginDoc->appendChild($pluginDoc->importNode($n, true));
+        $pluginDoc->appendChild($pluginDoc->importNode($node, true));
         return $importFilter->execute($pluginDoc);
     }
 
-    public function parseUsers($n, $journal)
+    public function parseNavigationMenuItems($node)
+    {
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName === 'navigation_menu_item') {
+                $this->parseNavigationMenuItem($n);
+            }
+        }
+    }
+
+    public function parseNavigationMenuItem($node)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>navigation-menu-item');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $navigationMenuItemDoc = new DOMDocument();
+        $navigationMenuItemDoc->appendChild($navigationMenuItemDoc->importNode($node, true));
+        return $importFilter->execute($navigationMenuItemDoc);
+    }
+
+    public function parseNavigationMenus($node)
+    {
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName === 'navigation_menu') {
+                $this->parseNavigationMenu($n);
+            }
+        }
+    }
+
+    public function parseNavigationMenu($node)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>navigation-menu');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $navigationMenuDoc = new DOMDocument();
+        $navigationMenuDoc->appendChild($navigationMenuDoc->importNode($node, true));
+        return $importFilter->execute($navigationMenuDoc);
+    }
+
+    public function parseUsers($node, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
         $userFilters = $filterDao->getObjectsByGroup('user-xml=>user');
@@ -150,7 +198,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $usersDoc = new DOMDocument('1.0');
         $usersDoc->preserveWhiteSpace = false;
         $usersDoc->formatOutput = true;
-        $usersDoc->appendChild($usersDoc->importNode($n, true));
+        $usersDoc->appendChild($usersDoc->importNode($node, true));
         $usersXml = $usersDoc->saveXML();
         return $filter->execute($usersXml);
     }
