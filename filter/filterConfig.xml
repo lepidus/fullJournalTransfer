@@ -15,57 +15,63 @@
     <!-- Journal native XML output -->
     <filterGroup
       symbolic="journal=>native-xml"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="class::classes.journal.Journal"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- Announcement native XML input -->
     <filterGroup
       symbolic="native-xml=>journal"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::classes.journal.Journal" />
     <!-- Announcement native XML output -->
     <filterGroup
       symbolic="announcement=>native-xml"
+<<<<<<< HEAD
       displayName="plugins.importexport.native.displayName"
       description="plugins.importexport.native.description"
       inputType="class::lib.pkp.classes.announcement.Announcement[]"
+=======
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
+      inputType="class::lib.pkp.classes.announcement.Announcement"
+>>>>>>> a78919a (Fixes plugin filters config file)
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- Announcement native XML input -->
     <filterGroup
       symbolic="native-xml=>announcement"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.announcement.Announcement" />
     <!-- AnnouncementType native XML output -->
     <filterGroup
       symbolic="announcement-type=>native-xml"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="class::lib.pkp.classes.announcement.AnnouncementType"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- AnnouncementType native XML input -->
     <filterGroup
       symbolic="native-xml=>announcement-type"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.announcement.AnnouncementType" />
     <!-- ReviewForm native XML output -->
     <filterGroup
       symbolic="review-form=>native-xml"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="class::lib.pkp.classes.reviewForm.ReviewForm"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- ReviewForm native XML input -->
     <filterGroup
       symbolic="native-xml=>review-form"
-      displayName="plugins.importexport.native.displayName"
-      description="plugins.importexport.native.description"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.reviewForm.ReviewForm" />
     <!-- ReviewFormElement native XML output -->
