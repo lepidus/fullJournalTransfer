@@ -115,6 +115,28 @@
 		<attribute name="title_locale_key" type="string" use="optional"/>
 	</complexType>
 
+	<element name="navigation_menus">
+		<complexType>
+			<sequence>
+				<element ref="pkp:navigation_menu" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="navigation_menu">
+		<sequence>
+			<element name="title" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="area_name" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="navigation_menu_item_assignment" type="pkp:navigation_menu_item_assignment" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<complexType name="navigation_menu_item_assignment" mixed="true">
+		<attribute name="menu_item_id" type="int" />
+		<attribute name="parent_id" type="int" />
+		<attribute name="seq" type="int" />
+	</complexType>
+
 	<element name="announcements">
 		<complexType>
 			<sequence>
@@ -140,6 +162,8 @@
     <element name="plugin" type="pkp:plugin" />
 
     <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
+
+    <element name="navigation_menu" type="pkp:navigation_menu" />
 
     <element name="announcement" type="pkp:announcement" />
 </schema>

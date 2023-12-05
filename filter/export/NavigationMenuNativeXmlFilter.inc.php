@@ -20,6 +20,24 @@ class NavigationMenuNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuNativeXmlFilter';
     }
 
+    public function &process(&$navigationMenus)
+    {
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $deployment = $this->getDeployment();
+
+        $rootNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menus');
+        foreach ($navigationMenus as $navigationMenu) {
+            $rootNode->appendChild($this->createNavigationMenuNode($doc, $navigationMenu));
+        }
+        $doc->appendChild($rootNode);
+        $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+
+        return $doc;
+    }
+
     public function createNavigationMenuNode($doc, $navigationMenu)
     {
         $deployment = $this->getDeployment();
@@ -51,7 +69,7 @@ class NavigationMenuNativeXmlFilter extends NativeExportFilter
         foreach ($assignments as $assignment) {
             $navigationMenuNode->appendChild($node = $doc->createElementNS(
                 $deployment->getNamespace(),
-                'navigation_menu_assignment'
+                'navigation_menu_item_assignment'
             ));
             $node->setAttribute('menu_item_id', $assignment->getMenuItemId());
             $node->setAttribute('parent_id', $assignment->getParentId());

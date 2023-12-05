@@ -26,6 +26,11 @@ class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
         ];
     }
 
+    protected function getMockedDAOs()
+    {
+        return ['NavigationMenuItemAssignmentDAO'];
+    }
+
     public function testAddNavigationMenuAssignments()
     {
         $navMenuExportFilter = $this->getNativeImportExportFilter();
@@ -69,7 +74,7 @@ class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $expectedNavMenuNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu');
         $expectedNavMenuNode->appendChild($node = $doc->createElementNS(
             $deployment->getNamespace(),
-            'navigation_menu_assignment'
+            'navigation_menu_item_assignment'
         ));
         $node->setAttribute('menu_item_id', $childMenuItemId);
         $node->setAttribute('parent_id', $parentMenuItemId);
@@ -113,6 +118,49 @@ class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->assertXmlStringEqualsXmlString(
             $doc->saveXML($expectedNavMenuNode),
             $doc->saveXML($actualNavMenuNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testCreateCompleteNavigationMenuItemXml()
+    {
+        $navigationMenuExportFilter = $this->getNativeImportExportFilter();
+
+        $navigationMenuItemAssignmentDAO = $this->getMockBuilder(NavigationMenuItemAssignmentDAO::class)
+            ->setMethods(['getByMenuId'])
+            ->getMock();
+
+        $assignment = $navigationMenuItemAssignmentDAO->newDataObject();
+        $assignment->setMenuItemId(564);
+        $assignment->setParentId(723);
+        $assignment->setSequence(5);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$assignment]));
+
+        $navigationMenuItemAssignmentDAO->expects($this->any())
+            ->method('getByMenuId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('NavigationMenuItemAssignmentDAO', $navigationMenuItemAssignmentDAO);
+
+        $navigationMenuDAO = DAORegistry::getDAO('NavigationMenuDAO');
+        $navigationMenu = $navigationMenuDAO->newDataObject();
+        $navigationMenu->setTitle('Test Navigation Menu Title');
+        $navigationMenu->setAreaName('primary navigation');
+        $navigationMenus = [$navigationMenu];
+
+        $doc = $navigationMenuExportFilter->execute($navigationMenus);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('navigationMenu.xml')->saveXml(),
+            $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
     }
