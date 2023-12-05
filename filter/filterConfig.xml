@@ -71,15 +71,9 @@
     <!-- Announcement native XML output -->
     <filterGroup
       symbolic="announcement=>native-xml"
-<<<<<<< HEAD
       displayName="plugins.importexport.native.displayName"
       description="plugins.importexport.native.description"
       inputType="class::lib.pkp.classes.announcement.Announcement[]"
-=======
-      displayName="plugins.importexport.fullJournalTransfer.displayName"
-      description="plugins.importexport.fullJournalTransfer.description"
-      inputType="class::lib.pkp.classes.announcement.Announcement"
->>>>>>> a78919a (Fixes plugin filters config file)
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- Announcement native XML input -->
     <filterGroup
@@ -129,7 +123,7 @@
       displayName="plugins.importexport.native.displayName"
       description="plugins.importexport.native.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-      outputType="class::lib.pkp.classes.reviewForm.ReviewFormElement" />
+      outputType="class::lib.pkp.classes.reviewForm.ReviewFormElement[]" />
   </filterGroups>
   <filters>
     <filter
