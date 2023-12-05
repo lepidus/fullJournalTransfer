@@ -211,7 +211,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $fileManager = new \FileManager();
         if (
             !$fileManager->fileExists(\Config::getVar('files', 'files_dir'), 'dir')
-            && !$fileManager->fileExists(\Config::getVar('files', 'public_files_dir'))
+            || !$fileManager->fileExists(\Config::getVar('files', 'public_files_dir'))
         ) {
             return;
         }
