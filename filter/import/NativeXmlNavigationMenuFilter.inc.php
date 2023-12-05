@@ -57,4 +57,20 @@ class NativeXmlNavigationMenuFilter extends NativeImportFilter
         $navigationMenuId = $navigationMenuDAO->insertObject($navigationMenu);
         return $navigationMenu;
     }
+
+    public function parseNavigationMenuItemAssignments($node, $navigationMenuId)
+    {
+        $deployment = $this->getDeployment();
+
+        $oldMenuItemId = $node->getAttribute('menu_item_id');
+        $oldPatentId = $node->getAttribute('parent_id');
+
+        $navigationMenuItemAssignmentDAO = DAORegistry::getDAO('NavigationMenuItemAssignmentDAO');
+        $assignment = $navigationMenuItemAssignmentDAO->newDataObject();
+        $assignment->setMenuId($navigationMenuId);
+        $assignment->setMenuItemId($deployment->getNavigationMenuItemDBId($oldMenuItemId));
+        $assignment->setParentId($deployment->getNavigationMenuItemDBId($oldPatentId));
+        $assignment->setSequence($node->getAttribute('seq'));
+        $navigationMenuItemAssignmentDAO->insertObject($assignment);
+    }
 }
