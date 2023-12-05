@@ -44,6 +44,20 @@
             <plugin_setting setting_name="someOption">Option Value</plugin_setting>
         </plugin>
     </plugins>
+    <navigation_menu_items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <navigation_menu_item type="NMI_TYPE_CUSTOM" path="testMenuItem" title_locale_key="navigation.about">
+            <title locale="en_US">Test Nav Menu Item Title</title>
+            <content locale="en_US">&lt;p&gt;Test Nav Menu Item Content&lt;/p&gt;</content>
+            <remote_url locale="en_US">http://path/to/page</remote_url>
+        </navigation_menu_item>
+    </navigation_menu_items>
+    <navigation_menus xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <navigation_menu>
+            <title>Test Navigation Menu Title</title>
+            <area_name>primary</area_name>
+            <navigation_menu_item_assignment menu_item_id="564" parent_id="0" seq="5"/>
+        </navigation_menu>
+    </navigation_menus>
     <PKPUsers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
         <user_groups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">

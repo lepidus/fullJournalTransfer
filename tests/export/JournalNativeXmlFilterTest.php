@@ -27,6 +27,11 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         return JournalNativeXmlFilter::class;
     }
 
+    protected function getMockedDAOs()
+    {
+        return ['NavigationMenuDAO', 'NavigationMenuItemDAO', 'NavigationMenuItemAssignmentDAO'];
+    }
+
     protected function getMockedRegistryKeys()
     {
         return ['request'];
@@ -68,6 +73,31 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         }
 
         $success = PluginRegistry::register($category, $mockPlugin, $category . '/' . $pluginName);
+    }
+
+    private function registerMockNavigationMenu($daoClass, $daoClassName, $method, $data)
+    {
+        $mockDAO = $this->getMockBuilder($daoClass)
+            ->setMethods([$method])
+            ->getMock();
+
+        $object = $mockDAO->newDataObject();
+        $object->_data = $data;
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$object]));
+
+        $mockDAO->expects($this->any())
+            ->method($method)
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO($daoClassName, $mockDAO);
     }
 
     private function getUsersExportFilter($journal)
@@ -378,6 +408,86 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $node->setAttribute('setting_name', 'someSetting');
     }
 
+    private function createNavigationMenuItemNode($doc, $deployment, $exportFilter, $parentNode)
+    {
+        $parentNode->appendChild($menuItemsNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'navigation_menu_items'
+        ));
+        $menuItemsNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $menuItemsNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+        $menuItemsNode->appendChild($menuItemNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'navigation_menu_item'
+        ));
+        $menuItemNode->setAttribute('path', 'testMenuItem');
+        $menuItemNode->setAttribute('title_locale_key', 'navigation.about');
+        $menuItemNode->setAttribute('type', 'NMI_TYPE_CUSTOM');
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $menuItemNode,
+            'title',
+            ['en_US' => 'Test Nav Menu Item Title']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $menuItemNode,
+            'content',
+            ['en_US' => '<p>Test Nav Menu Item Content</p>']
+        );
+        $exportFilter->createLocalizedNodes(
+            $doc,
+            $menuItemNode,
+            'remote_url',
+            ['en_US' => 'http://path/to/page']
+        );
+    }
+
+    private function createNavigationMenuNode($doc, $deployment, $exportFilter, $parentNode)
+    {
+        $parentNode->appendChild($menusNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'navigation_menus'
+        ));
+        $menusNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $menusNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+        $menusNode->appendChild($menuNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'navigation_menu'
+        ));
+        $menuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'title',
+            htmlspecialchars('Test Navigation Menu Title', ENT_COMPAT, 'UTF-8')
+        ));
+        $menuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'area_name',
+            htmlspecialchars('primary', ENT_COMPAT, 'UTF-8')
+        ));
+        $menuNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'navigation_menu_item_assignment'
+        ));
+        $node->setAttribute('menu_item_id', 564);
+        $node->setAttribute('parent_id', 0);
+        $node->setAttribute('seq', 5);
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -541,11 +651,43 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->createLocalizedNodes($journalExportFilter, $doc, $expectedJournalNode);
         $this->createDefaultSubmissionChecklistNode($doc, $deployment, $expectedJournalNode);
         $this->createPluginsNode($doc, $deployment, $expectedJournalNode, 'testPlugin');
+        $this->createNavigationMenuItemNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
+        $this->createNavigationMenuNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
 
         $journal = $this->createJournal();
 
         $this->registerMockRequest($journal);
         $this->registerMockPlugin($journal, 'testPlugin', 'generic', ['someSetting' => 'Test Value']);
+        $this->registerMockNavigationMenu(
+            NavigationMenuItemDAO::class,
+            'NavigationMenuItemDAO',
+            'getByContextId',
+            [
+                'id' => 564,
+                'type' => NMI_TYPE_CUSTOM,
+                'path' => 'testMenuItem',
+                'titleLocaleKey' => 'navigation.about',
+                'title' => ['en_US' => 'Test Nav Menu Item Title'],
+                'content' => ['en_US' => '<p>Test Nav Menu Item Content</p>'],
+                'remoteUrl' => ['en_US' => 'http://path/to/page']
+            ]
+        );
+        $this->registerMockNavigationMenu(
+            NavigationMenuDAO::class,
+            'NavigationMenuDAO',
+            'getByContextId',
+            ['title' => 'Test Navigation Menu Title', 'areaName' => 'primary']
+        );
+        $this->registerMockNavigationMenu(
+            NavigationMenuItemAssignmentDAO::class,
+            'NavigationMenuItemAssignmentDAO',
+            'getByMenuId',
+            [
+                'menuItemId' => 564,
+                'parentId' => 0,
+                'seq' => 5
+            ]
+        );
 
         $user = $this->createUsersAndUserGroups($journal);
         $users = [$user];
@@ -573,10 +715,40 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->registerMockRequest($journal);
         $this->registerMockPlugin($journal, 'testgenericplugin', 'generic', ['someSetting' => 'Test Value']);
         $this->registerMockPlugin($journal, 'testthemeplugin', 'theme', ['someOption' => 'Option Value']);
+        $this->registerMockNavigationMenu(
+            NavigationMenuItemDAO::class,
+            'NavigationMenuItemDAO',
+            'getByContextId',
+            [
+                'id' => 564,
+                'type' => NMI_TYPE_CUSTOM,
+                'path' => 'testMenuItem',
+                'titleLocaleKey' => 'navigation.about',
+                'title' => ['en_US' => 'Test Nav Menu Item Title'],
+                'content' => ['en_US' => '<p>Test Nav Menu Item Content</p>'],
+                'remoteUrl' => ['en_US' => 'http://path/to/page']
+            ]
+        );
+        $this->registerMockNavigationMenu(
+            NavigationMenuDAO::class,
+            'NavigationMenuDAO',
+            'getByContextId',
+            ['title' => 'Test Navigation Menu Title', 'areaName' => 'primary']
+        );
+        $this->registerMockNavigationMenu(
+            NavigationMenuItemAssignmentDAO::class,
+            'NavigationMenuItemAssignmentDAO',
+            'getByMenuId',
+            [
+                'menuItemId' => 564,
+                'parentId' => 0,
+                'seq' => 5
+            ]
+        );
 
         $this->createUsersAndUserGroups($journal);
 
-        $doc = $journalExportFilter->execute($journal);
+        $doc = $journalExportFilter->execute($journal, true);
 
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('journal.xml')->saveXml(),

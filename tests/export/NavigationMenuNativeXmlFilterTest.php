@@ -2,9 +2,12 @@
 
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuNativeXmlFilter');
+import('plugins.importexport.fullJournalTransfer.tests.export.components.NavigationMenuComponent');
 
 class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
+    use NavigationMenuComponent;
+
     protected function getNativeImportExportFilterClass()
     {
         return NavigationMenuNativeXmlFilter::class;
@@ -40,33 +43,10 @@ class NavigationMenuNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
-        $navigationMenuDAO = DAORegistry::getDAO('NavigationMenuDAO');
-        $navigationMenu = $navigationMenuDAO->newDataObject();
-        $navigationMenu->setTitle('Test Menu');
-        $navigationMenu->setAreaName('primary_user');
-        $navigationMenuId = $navigationMenuDAO->insertObject($navigationMenu);
-
-        $navigationMenuItemDAO = DAORegistry::getDAO('NavigationMenuItemDAO');
-        $navigationMenuItem = $navigationMenuItemDAO->newDataObject();
-        $navigationMenuItem = new NavigationMenuItem();
-        $navigationMenuItem->setType(NMI_TYPE_CUSTOM);
-        $navigationMenuItem->setPath('childItem');
-        $navigationMenuItem->setTitle('Child Item', 'en_US');
-        $childMenuItemId = $navigationMenuItemDAO->insertObject($navigationMenuItem);
-
-        $navigationMenuItemDAO = DAORegistry::getDAO('NavigationMenuItemDAO');
-        $navigationMenuItem = $navigationMenuItemDAO->newDataObject();
-        $navigationMenuItem->setPath('parentItem');
-        $navigationMenuItem->setTitle('Parent Item', 'en_US');
-        $parentMenuItemId = $navigationMenuItemDAO->insertObject($navigationMenuItem);
-
-        $navigationMenuItemAssignmentDAO = DAORegistry::getDAO('NavigationMenuItemAssignmentDAO');
-        $assignment = $navigationMenuItemAssignmentDAO->newDataObject();
-        $assignment->setMenuId($navigationMenuId);
-        $assignment->setMenuItemId($childMenuItemId);
-        $assignment->setParentId($parentMenuItemId);
-        $assignment->setSequence(2);
-        $navigationMenuItemAssignmentDAO->insertObject($assignment);
+        [$navigationMenuId, $navigationMenu] = $this->getNavigationMenuId();
+        $childMenuItemId = $this->getChildNavigationMenuItemId();
+        $parentMenuItemId = $this->getParentNavigationMenuItemId();
+        $this->insertNavigationMenuItemAssignment($navigationMenuId, $childMenuItemId, $parentMenuItemId);
 
         $actualNavMenuNode = $doc->createElementNS($deployment->getNamespace(), 'navigation_menu');
         $navMenuExportFilter->addNavigationMenuAssignments($doc, $actualNavMenuNode, $navigationMenu);

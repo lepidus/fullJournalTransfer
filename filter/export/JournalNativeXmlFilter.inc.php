@@ -154,6 +154,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $this->addPlugins($doc, $journalNode);
+        $this->addNavigationMenuItems($doc, $journalNode, $journal);
+        $this->addNavigationMenus($doc, $journalNode, $journal);
         $this->addUsers($doc, $journalNode, $journal);
 
         return $journalNode;
@@ -216,6 +218,40 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $pluginsDoc = $exportFilter->execute($plugins, true);
         if ($pluginsDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($pluginsDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
+    }
+
+    public function addNavigationMenuItems($doc, $journalNode, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('navigation-menu-item=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $navigationItemMenuDAO = DAORegistry::getDAO('NavigationMenuItemDAO');
+        $navigationMenuItems = $navigationItemMenuDAO->getByContextId($journal->getId())->toArray();
+        $navigationMenuItemsDoc = $exportFilter->execute($navigationMenuItems, true);
+        if ($navigationMenuItemsDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($navigationMenuItemsDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
+    }
+
+    public function addNavigationMenus($doc, $journalNode, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('navigation-menu=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $navigationMenuDAO = DAORegistry::getDAO('NavigationMenuDAO');
+        $navigationMenus = $navigationMenuDAO->getByContextId($journal->getId())->toArray();
+        $navigationMenusDoc = $exportFilter->execute($navigationMenus, true);
+        if ($navigationMenusDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($navigationMenusDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
     }
