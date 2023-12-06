@@ -1,0 +1,56 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Create release and tar.gz package for it
+
+jobs:
+  create-release:
+    name: Create release and package
+    env:
+      PLUGIN_NAME: fullJournalTransfer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Check version.xml
+        run: |
+          sudo apt install xmlstarlet
+          application=$(xmlstarlet sel -t -v 'version/application' version.xml)
+          if [ $application != $PLUGIN_NAME ]; then exit 1; fi
+          release=$(xmlstarlet sel -t -v 'version/release' version.xml)
+          tag=${{ github.ref }}
+          tag=${tag/refs\/tags\/v}
+          if [[ $release != $tag* ]]; then exit 1; fi
+          date_version=$(xmlstarlet sel -t -v 'version/date' version.xml)
+          current_date=$(date +'%Y-%m-%d')
+          if [ $date_version != $current_date ]; then exit 1; fi
+        shell: bash
+      - name: Create the tar.gz package
+        run: |
+          mkdir $PLUGIN_NAME
+          shopt -s extglob
+          cp -r !(${PLUGIN_NAME}|.git*|.|..|tests|cypress) ${PLUGIN_NAME}
+          tar -zcvf $PLUGIN_NAME.tar.gz $PLUGIN_NAME
+        shell: bash
+      - name: Create the release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload the package as release asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.PLUGIN_NAME }}.tar.gz
+          asset_name: ${{ env.PLUGIN_NAME }}.tar.gz
+          asset_content_type: application/x-compressed-tar
