@@ -20,13 +20,13 @@ To download the plugin, go to the [Releases page](https://github.com/lepidus/ful
 ### Command line
 
 #### Export
-Exports a journal to xml running the command in application root:
+Export a journal to XML by executing the command in the application's root directory:
 ```bash
 php tools/importExport.php FullJournalImportExportPlugin export [xmlFileName] [journal_path]
 ```
 
 #### Import
-Imports a journal from xml running the command in application root:
+To import a journal from XML, execute the command in the application's root directory:
 ```bash
 php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName]
 ```
