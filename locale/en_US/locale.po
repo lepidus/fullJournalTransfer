@@ -6,7 +6,7 @@ msgstr "Allows you to import and export journals."
 
 msgid "plugins.importexport.fullJournal.cliUsage"
 msgstr ""
-"Usage: {$scriptName} {$pluginName} [comando] ...\n"
+"Usage: {$scriptName} {$pluginName} [command] ...\n"
 "Commands:\n"
 "import [xmlFileName]\n"
 "export [xmlFileName] [journal_path]\n"

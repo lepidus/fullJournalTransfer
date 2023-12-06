@@ -40,7 +40,7 @@ abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
 
     protected function getSampleXml($sampleFile)
     {
-        $fileContent = file_get_contents(__DIR__ . '/fixtures/' . $sampleFile);
+        $fileContent = file_get_contents(__DIR__ . '/samples/' . $sampleFile);
         $xml = new DOMDocument('1.0');
         $xml->loadXML($fileContent);
 

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<navigation_menus xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <navigation_menu>
+        <title>Test Navigation Menu Title</title>
+        <area_name>primary navigation</area_name>
+        <navigation_menu_item_assignment menu_item_id="564" parent_id="723" seq="5"/>
+    </navigation_menu>
+</navigation_menus>
