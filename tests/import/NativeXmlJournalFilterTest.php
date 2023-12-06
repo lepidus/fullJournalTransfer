@@ -299,15 +299,5 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $expectedJournalData['id'] = $journalId;
 
         $this->assertEquals($expectedJournalData, $insertedJournal->_data);
-
-        $contextService = Services::get('context');
-        import('lib.pkp.classes.file.FileManager');
-        $fileManager = new \FileManager();
-        foreach ($contextService->installFileDirs as $dir) {
-            $dirPath = sprintf($dir, $contextService->contextsFileDirName, $journalId);
-            if ($fileManager->fileExists($dirPath, 'dir')) {
-                $fileManager->rmtree($dirPath);
-            }
-        }
     }
 }
