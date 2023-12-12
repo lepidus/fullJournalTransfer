@@ -58,8 +58,7 @@
             <navigation_menu_item_assignment menu_item_id="626" parent_id="0" seq="5"/>
         </navigation_menu>
     </navigation_menus>
-    <PKPUsers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
+    <PKPUsers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
         <user_groups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
 			<user_group>
 				<role_id>9234</role_id>
@@ -95,4 +94,5 @@
 			</user>
         </users>
     </PKPUsers>
+    <articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
 </journal>
