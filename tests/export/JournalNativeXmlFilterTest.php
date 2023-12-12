@@ -699,6 +699,17 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $expectedJournalNode->appendChild($clone);
         }
 
+        $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS($deployment->getNamespace(), 'articles'));
+        $articlesNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $articlesNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+
         $actualJournalNode = $journalExportFilter->createJournalNode($doc, $journal);
 
         $this->assertXmlStringEqualsXmlString(
@@ -749,7 +760,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $this->createUsersAndUserGroups($journal);
 
-        $doc = $journalExportFilter->execute($journal, true);
+        $doc = $journalExportFilter->execute($journal);
 
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('journal.xml')->saveXml(),

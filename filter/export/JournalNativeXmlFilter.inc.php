@@ -157,6 +157,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addNavigationMenuItems($doc, $journalNode, $journal);
         $this->addNavigationMenus($doc, $journalNode, $journal);
         $this->addUsers($doc, $journalNode, $journal);
+        $this->addArticles($doc, $journalNode, $journal);
 
         return $journalNode;
     }
@@ -285,6 +286,27 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $usersDoc = $exportFilter->execute($users);
         if ($usersDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($usersDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
+    }
+
+    public function addArticles($doc, $journalNode, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('article=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setOpts($this->opts);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setIncludeSubmissionsNode(true);
+
+        $submissionsIterator = Services::get('submission')->getMany([
+            'contextId' => $journal->getId(),
+        ]);
+        $submissionsArray = iterator_to_array($submissionsIterator);
+        $articlesDoc = $exportFilter->execute($submissionsArray);
+        if ($articlesDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($articlesDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
     }
