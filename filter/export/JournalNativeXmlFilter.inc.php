@@ -157,6 +157,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addNavigationMenuItems($doc, $journalNode, $journal);
         $this->addNavigationMenus($doc, $journalNode, $journal);
         $this->addUsers($doc, $journalNode, $journal);
+        $this->addSections($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
 
         return $journalNode;
@@ -288,6 +289,51 @@ class JournalNativeXmlFilter extends NativeExportFilter
             $clone = $doc->importNode($usersDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
+    }
+
+    public function addSections($doc, $journalNode, $journal)
+    {
+        $sectionDao = DAORegistry::getDAO('SectionDAO');
+        $sections = $sectionDao->getByJournalId($journal->getId())->toArray();
+        $deployment = $this->getDeployment();
+
+        if (!count($sections)) {
+            return;
+        }
+
+        $sectionsNode = $doc->createElementNS($deployment->getNamespace(), 'sections');
+        foreach ($sections as $section) {
+            $sectionNode = $doc->createElementNS($deployment->getNamespace(), 'section');
+
+            $sectionNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'id',
+                $section->getId()
+            ));
+            $node->setAttribute('type', 'internal');
+            $node->setAttribute('advice', 'ignore');
+
+            if ($section->getReviewFormId()) {
+                $sectionNode->setAttribute('review_form_id', $section->getReviewFormId());
+            }
+            $sectionNode->setAttribute('ref', $section->getAbbrev($journal->getPrimaryLocale()));
+            $sectionNode->setAttribute('seq', (int) $section->getSequence());
+            $sectionNode->setAttribute('editor_restricted', $section->getEditorRestricted());
+            $sectionNode->setAttribute('meta_indexed', $section->getMetaIndexed());
+            $sectionNode->setAttribute('meta_reviewed', $section->getMetaReviewed());
+            $sectionNode->setAttribute('abstracts_not_required', $section->getAbstractsNotRequired());
+            $sectionNode->setAttribute('hide_title', $section->getHideTitle());
+            $sectionNode->setAttribute('hide_author', $section->getHideAuthor());
+            $sectionNode->setAttribute('abstract_word_count', (int) $section->getAbstractWordCount());
+
+            $this->createLocalizedNodes($doc, $sectionNode, 'abbrev', $section->getAbbrev(null));
+            $this->createLocalizedNodes($doc, $sectionNode, 'policy', $section->getPolicy(null));
+            $this->createLocalizedNodes($doc, $sectionNode, 'title', $section->getTitle(null));
+
+            $sectionsNode->appendChild($sectionNode);
+        }
+
+        $journalNode->appendChild($sectionsNode);
     }
 
     public function addArticles($doc, $journalNode, $journal)

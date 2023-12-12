@@ -94,5 +94,13 @@
 			</user>
         </users>
     </PKPUsers>
+    <sections>
+        <section ref="ART" seq="1" editor_restricted="0" meta_indexed="1" meta_reviewed="1" abstracts_not_required="0" hide_title="0" hide_author="0" abstract_word_count="500">
+            <id type="internal" advice="ignore">1</id>
+            <abbrev locale="en_US">ART</abbrev>
+            <policy locale="en_US">&lt;p&gt;Section default policy&lt;/p&gt;</policy>
+            <title locale="en_US">Articles</title>
+        </section>
+    </sections>
     <articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
 </journal>

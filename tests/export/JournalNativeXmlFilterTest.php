@@ -14,7 +14,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'user_group_settings', 'user_group_stage',
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
-            'users'
+            'users', 'sections', 'section_settings'
         ];
     }
     protected function getSymbolicFilterGroup()
@@ -29,7 +29,12 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
     protected function getMockedDAOs()
     {
-        return ['NavigationMenuDAO', 'NavigationMenuItemDAO', 'NavigationMenuItemAssignmentDAO'];
+        return [
+            'NavigationMenuDAO',
+            'NavigationMenuItemDAO',
+            'NavigationMenuItemAssignmentDAO',
+            'SectionDAO'
+        ];
     }
 
     protected function getMockedRegistryKeys()
@@ -98,6 +103,42 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ->will($this->returnValue($mockResult));
 
         DAORegistry::registerDAO($daoClassName, $mockDAO);
+    }
+
+    private function registerMockSectionDAO()
+    {
+        $mockDAO = $this->getMockBuilder(SectionDAO::class)
+            ->setMethods(['getByJournalId'])
+            ->getMock();
+
+        $section = $mockDAO->newDataObject();
+        $section->setId(1);
+        $section->setAbbrev('ART', 'en_US');
+        $section->setPolicy('<p>Section default policy</p>', 'en_US');
+        $section->setTitle('Articles', 'en_US');
+        $section->setSequence(1);
+        $section->setEditorRestricted(0);
+        $section->setMetaIndexed(1);
+        $section->setMetaReviewed(1);
+        $section->setAbstractsNotRequired(0);
+        $section->setHideTitle(0);
+        $section->setHideAuthor(0);
+        $section->setAbstractWordCount(500);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$section]));
+
+        $mockDAO->expects($this->any())
+            ->method('getByJournalId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('SectionDAO', $mockDAO);
     }
 
     private function getUsersExportFilter($journal)
@@ -489,6 +530,39 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $node->setAttribute('seq', 5);
     }
 
+    private function createSectionsNode($doc, $deployment, $exportFilter, $parentNode)
+    {
+        $parentNode->appendChild($sectionsNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'sections'
+        ));
+        $sectionsNode->appendChild($sectionNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'section'
+        ));
+        $sectionNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'id',
+            1
+        ));
+        $node->setAttribute('type', 'internal');
+        $node->setAttribute('advice', 'ignore');
+
+        $sectionNode->setAttribute('ref', 'ART');
+        $sectionNode->setAttribute('seq', 1);
+        $sectionNode->setAttribute('editor_restricted', 0);
+        $sectionNode->setAttribute('meta_indexed', 1);
+        $sectionNode->setAttribute('meta_reviewed', 1);
+        $sectionNode->setAttribute('abstracts_not_required', 0);
+        $sectionNode->setAttribute('hide_title', 0);
+        $sectionNode->setAttribute('hide_author', 0);
+        $sectionNode->setAttribute('abstract_word_count', 500);
+
+        $exportFilter->createLocalizedNodes($doc, $sectionNode, 'abbrev', ['en_US' => 'ART']);
+        $exportFilter->createLocalizedNodes($doc, $sectionNode, 'policy', ['en_US' => '<p>Section default policy</p>']);
+        $exportFilter->createLocalizedNodes($doc, $sectionNode, 'title', ['en_US' => 'Articles']);
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -593,6 +667,31 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    public function testAddSections()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalExportFilter->getDeployment();
+
+        $journal = $this->createJournal();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $this->createSectionsNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
+
+        $this->registerMockSectionDAO();
+        $actualJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $journalExportFilter->addSections($doc, $actualJournalNode, $journal);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedJournalNode),
+            $doc->saveXML($actualJournalNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
     public function testCreateJournalNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -689,6 +788,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
                 'seq' => 5
             ]
         );
+        $this->registerMockSectionDAO();
 
         $user = $this->createUsersAndUserGroups($journal);
         $users = [$user];
@@ -698,8 +798,12 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $clone = $doc->importNode($usersDoc->documentElement, true);
             $expectedJournalNode->appendChild($clone);
         }
+        $this->createSectionsNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
 
-        $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS($deployment->getNamespace(), 'articles'));
+        $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'articles'
+        ));
         $articlesNode->setAttributeNS(
             'http://www.w3.org/2000/xmlns/',
             'xmlns:xsi',
@@ -757,7 +861,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
                 'seq' => 5
             ]
         );
-
+        $this->registerMockSectionDAO();
         $this->createUsersAndUserGroups($journal);
 
         $doc = $journalExportFilter->execute($journal);
