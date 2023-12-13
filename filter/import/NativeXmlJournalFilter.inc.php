@@ -62,7 +62,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         return $journal;
     }
 
-    public function handleChildElement($n, $journal)
+    public function handleChildElement($node, $journal)
     {
         $deployment = $this->getDeployment();
         $deployment->setContext($journal);
@@ -71,38 +71,44 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $localizedNodeMapping = $this->getLocalizedJournalNodeMapping();
         $localesNodeMapping = $this->getLocalesJournalNodeMapping();
 
-        $propName = $this->snakeToCamel($n->tagName);
-        if (in_array($n->tagName, $simpleNodeMapping)) {
-            $journal->setData($propName, $n->textContent);
+        $propName = $this->snakeToCamel($node->tagName);
+        if (in_array($node->tagName, $simpleNodeMapping)) {
+            $journal->setData($propName, $node->textContent);
         }
-        if (in_array($n->tagName, $localizedNodeMapping)) {
-            list($locale, $value) = $this->parseLocalizedContent($n);
+        if (in_array($node->tagName, $localizedNodeMapping)) {
+            list($locale, $value) = $this->parseLocalizedContent($node);
             if (empty($locale)) {
                 $locale = $journal->getPrimaryLocale();
             }
             $journal->setData($propName, $value, $locale);
         }
-        if (in_array($n->tagName, $localesNodeMapping)) {
-            $locales = preg_split('/:/', $n->textContent);
+        if (in_array($node->tagName, $localesNodeMapping)) {
+            $locales = preg_split('/:/', $node->textContent);
             $journal->setData($propName, $locales);
         }
-        if ($n->tagName == 'submission_checklist') {
-            list($locale, $items) = $this->parseSubmissionChecklist($n);
+        if ($node->tagName == 'submission_checklist') {
+            list($locale, $items) = $this->parseSubmissionChecklist($node);
             $journal->setData($propName, $items, $locale);
         }
 
-        if (is_a($n, 'DOMElement')) {
-            if ($n->tagName == 'plugins') {
-                $this->parsePlugins($n);
+        if (is_a($node, 'DOMElement')) {
+            if ($node->tagName == 'plugins') {
+                $this->parsePlugins($node);
             }
-            if ($n->tagName == 'navigation_menu_items') {
-                $this->parseNavigationMenuItems($n, $journal);
+            if ($node->tagName == 'navigation_menu_items') {
+                $this->parseNavigationMenuItems($node, $journal);
             }
-            if ($n->tagName == 'navigation_menus') {
-                $this->parseNavigationMenus($n, $journal);
+            if ($node->tagName == 'navigation_menus') {
+                $this->parseNavigationMenus($node, $journal);
             }
-            if ($n->tagName == 'PKPUsers') {
-                $this->parseUsers($n, $journal);
+            if ($node->tagName == 'PKPUsers') {
+                $this->parseUsers($node, $journal);
+            }
+            if ($node->tagName == 'sections') {
+                $this->parseSections($node, $journal);
+            }
+            if ($node->tagName == 'articles') {
+                $this->parseArticles($node, $journal);
             }
         }
     }
@@ -274,6 +280,28 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
         }
         $deployment->addProcessedObjectId(ASSOC_TYPE_SECTION, $sectionId);
+    }
+
+    public function parseArticles($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'article') {
+                $this->parseArticle($n, $journal);
+            }
+        }
+    }
+
+    public function parseArticle($node, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>article');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $articleDoc = new DOMDocument();
+        $articleDoc->appendChild($articleDoc->importNode($node, true));
+        return $importFilter->execute($articleDoc);
     }
 
     private function getSimpleJournalNodeMapping()
