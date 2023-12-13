@@ -27,7 +27,8 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'navigation_menu_items',
             'navigation_menu_item_settings',
             'navigation_menu_item_assignments',
-            'navigation_menu_item_assignment_settings'
+            'navigation_menu_item_assignment_settings',
+            'sections', 'section_settings'
         ];
     }
 
@@ -269,6 +270,45 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         unset($userByUsername->_data['password']);
 
         $this->assertEquals($expectedUserData, $userByUsername->_data);
+    }
+
+    public function testParseSections()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+
+        $journal = new Journal();
+        $journal->setId(rand());
+
+        $expectedSectionData = [
+            'contextId' => $journal->getId(),
+            'abbrev' => ['en_US' => 'ART'],
+            'policy' => ['en_US' => '<p>Section default policy</p>'],
+            'title' => ['en_US' => 'Articles'],
+            'sequence' => 1.0,
+            'editorRestricted' => 0,
+            'metaIndexed' => 1,
+            'metaReviewed' => 1,
+            'abstractsNotRequired' => 0,
+            'hideTitle' => 0,
+            'hideAuthor' => 0,
+            'wordCount' => 500,
+            'isInactive' => 0,
+            'reviewFormId' => 0
+        ];
+
+        $doc = $this->getSampleXml('journal.xml');
+        $sectionNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'sections'
+        );
+        $journalImportFilter->parseSections($sectionNodeList->item(0), $journal);
+
+        $sectionDAO = DAORegistry::getDAO('SectionDAO');
+        $section = $sectionDAO->getByAbbrev('ART', $journal->getId(), 'en_US');
+        unset($section->_data['id']);
+
+        $this->assertEquals($expectedSectionData, $section->_data);
     }
 
     public function testHandleJournalElement()

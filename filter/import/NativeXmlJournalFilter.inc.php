@@ -201,6 +201,81 @@ class NativeXmlJournalFilter extends NativeImportFilter
         return $filter->execute($usersXml);
     }
 
+    public function parseSections($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'section') {
+                $this->parseSection($n, $journal);
+            }
+        }
+    }
+
+    public function parseSection($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $sectionDAO = DAORegistry::getDAO('SectionDAO');
+        $section = $sectionDAO->newDataObject();
+        $section->setContextId($journal->getId());
+        $section->setReviewFormId($node->getAttribute('review_form_id'));
+        $section->setSequence($node->getAttribute('seq'));
+        $section->setEditorRestricted($node->getAttribute('editor_restricted'));
+        $section->setMetaIndexed($node->getAttribute('meta_indexed'));
+        $section->setMetaReviewed($node->getAttribute('meta_reviewed'));
+        $section->setAbstractsNotRequired($node->getAttribute('abstracts_not_required'));
+        $section->setHideAuthor($node->getAttribute('hide_author'));
+        $section->setHideTitle($node->getAttribute('hide_title'));
+        $section->setAbstractWordCount($node->getAttribute('abstract_word_count'));
+
+        $unknownNodes = array();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement')) {
+                switch ($n->tagName) {
+                    case 'id':
+                        $advice = $n->getAttribute('advice');
+                        assert(!$advice || $advice == 'ignore');
+                        break;
+                    case 'abbrev':
+                        list($locale, $value) = $this->parseLocalizedContent($n);
+                        if (empty($locale)) {
+                            $locale = $journal->getPrimaryLocale();
+                        }
+                        $section->setAbbrev($value, $locale);
+                        break;
+                    case 'policy':
+                        list($locale, $value) = $this->parseLocalizedContent($n);
+                        if (empty($locale)) {
+                            $locale = $context->getPrimaryLocale();
+                        }
+                        $section->setPolicy($value, $locale);
+                        break;
+                    case 'title':
+                        list($locale, $value) = $this->parseLocalizedContent($n);
+                        if (empty($locale)) {
+                            $locale = $context->getPrimaryLocale();
+                        }
+                        $section->setTitle($value, $locale);
+                        break;
+                    default:
+                        $unknownNodes[] = $n->tagName;
+                }
+            }
+        }
+
+        $sectionId = $sectionDAO->insertObject($section);
+        if (count($unknownNodes)) {
+            foreach ($unknownNodes as $tagName) {
+                $deployment->addWarning(
+                    ASSOC_TYPE_SECTION,
+                    $sectionId,
+                    __('plugins.importexport.common.error.unknownElement', ['param' => $tagName])
+                );
+            }
+        }
+        $deployment->addProcessedObjectId(ASSOC_TYPE_SECTION, $sectionId);
+    }
+
     private function getSimpleJournalNodeMapping()
     {
         return [
