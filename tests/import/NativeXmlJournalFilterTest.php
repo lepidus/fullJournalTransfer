@@ -28,7 +28,8 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'navigation_menu_item_settings',
             'navigation_menu_item_assignments',
             'navigation_menu_item_assignment_settings',
-            'sections', 'section_settings'
+            'sections', 'section_settings',
+            'genres', 'genre_settings'
         ];
     }
 
@@ -104,6 +105,44 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         );
 
         $journal->setData('submissionChecklist', $defaultJournal->getData('submissionChecklist'));
+    }
+
+    public function testInstallDefaultGenres()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $journal = new Journal();
+        $journal->setId(rand());
+        $journal->setData('supportedLocales', ['en_US']);
+
+        $expectedGenreNames = [
+            "##default.genres.article##",
+            "##default.genres.researchInstrument##",
+            "##default.genres.researchMaterials##",
+            "##default.genres.researchResults##",
+            "##default.genres.transcripts##",
+            "##default.genres.dataAnalysis##",
+            "##default.genres.dataSet##",
+            "##default.genres.sourceTexts##",
+            "##default.genres.multimedia##",
+            "##default.genres.image##",
+            "##default.genres.styleSheet##",
+            "##default.genres.other##"
+        ];
+
+        AppLocale::requireComponents(LOCALE_COMPONENT_APP_DEFAULT);
+
+        $journalImportFilter->installDefaultGenres($journal);
+
+        $genreDao = DAORegistry::getDAO('GenreDAO');
+        $genres = $genreDao->getByContextId($journal->getId());
+        $genreNames = [];
+        while ($genre = $genres->next()) {
+            foreach ($genre->getName(null) as $locale => $name) {
+                $genreNames[] = $name;
+            }
+        }
+
+        $this->assertEquals($expectedGenreNames, $genreNames);
     }
 
     public function testJournalFilterParseSubmissionChecklist()

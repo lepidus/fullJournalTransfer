@@ -54,9 +54,8 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
     {
         $command = array_shift($args);
         $xmlFile = array_shift($args);
-        $journalPath = array_shift($args);
 
-        AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER);
+        AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER, LOCALE_COMPONENT_PKP_MANAGER, LOCALE_COMPONENT_PKP_SUBMISSION);
 
         if ($xmlFile && $this->isRelativePath($xmlFile)) {
             $xmlFile = PWD . '/' . $xmlFile;
@@ -71,9 +70,83 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         switch ($command) {
             case 'import':
-                $this->importJournal(file_get_contents($xmlFile), null, null);
+                $userName = array_shift($args);
+                $userDAO = DAORegistry::getDAO('UserDAO');
+                $user = $userDAO->getByUsername($userName);
+
+                if (!$user) {
+                    if ($userName != '') {
+                        echo __('plugins.importexport.common.cliError') . "\n";
+                        echo __('plugins.importexport.native.error.unknownUser', array('userName' => $userName)) . "\n\n";
+                    }
+                    $this->usage($scriptName);
+                    return;
+                }
+
+                $request = Application::get()->getRequest();
+                if (!$request->getUser()) {
+                    Registry::set('user', $user);
+                }
+
+                $deployment = $this->importJournal(file_get_contents($xmlFile), null, null);
+
+                $validationErrors = array_filter(libxml_get_errors(), function ($a) {
+                    return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
+                });
+
+                $errorTypes = array(
+                    ASSOC_TYPE_ISSUE => 'issue.issue',
+                    ASSOC_TYPE_SUBMISSION => 'submission.submission',
+                    ASSOC_TYPE_SECTION => 'section.section',
+                    ASSOC_TYPE_JOURNAL => 'journal.journal',
+                );
+                foreach ($errorTypes as $assocType => $localeKey) {
+                    $foundWarnings = $deployment->getProcessedObjectsWarnings($assocType);
+                    if (!empty($foundWarnings)) {
+                        echo __('plugins.importexport.common.warningsEncountered') . "\n";
+                        $i = 0;
+                        foreach ($foundWarnings as $foundWarningMessages) {
+                            if (count($foundWarningMessages) > 0) {
+                                echo ++$i . '.' . __($localeKey) . "\n";
+                                foreach ($foundWarningMessages as $foundWarningMessage) {
+                                    echo '- ' . $foundWarningMessage . "\n";
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $foundErrors = false;
+                foreach ($errorTypes as $assocType => $localeKey) {
+                    $currentErrors = $deployment->getProcessedObjectsErrors($assocType);
+                    if (!empty($currentErrors)) {
+                        echo __('plugins.importexport.common.errorsOccured') . "\n";
+                        $i = 0;
+                        foreach ($currentErrors as $currentErrorMessages) {
+                            if (count($currentErrorMessages) > 0) {
+                                echo ++$i . '.' . __($localeKey) . "\n";
+                                foreach ($currentErrorMessages as $currentErrorMessage) {
+                                    echo '- ' . $currentErrorMessage . "\n";
+                                }
+                            }
+                        }
+                        $foundErrors = true;
+                    }
+                }
+
+                if ($foundErrors || !empty($validationErrors)) {
+                    foreach (array_keys($errorTypes) as $assocType) {
+                        $deployment->removeImportedObjects($assocType);
+                    }
+                    echo __('plugins.importexport.common.validationErrors') . "\n";
+                    $i = 0;
+                    foreach ($validationErrors as $validationError) {
+                        echo ++$i . '. Line: ' . $validationError->line . ' Column: ' . $validationError->column . ' > ' . $validationError->message . "\n";
+                    }
+                }
                 return;
             case 'export':
+                $journalPath = array_shift($args);
                 $journalDao = DAORegistry::getDAO('JournalDAO');
 
                 $journal = $journalDao->getByPath($journalPath);
@@ -103,9 +176,8 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $content = $filter->execute($importXml);
 
         $journal = $filter->getDeployment()->getContext();
-        $this->createJournalDirectories($journal);
 
-        return $content;
+        return $filter->getDeployment();
     }
 
     public function exportJournal($journal, $user, &$filter = null)
@@ -143,23 +215,6 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $filter->setDeployment(new FullJournalImportExportDeployment($context, $user));
 
         return $filter;
-    }
-
-    public function createJournalDirectories($journal)
-    {
-        $contextService = Services::get('context');
-
-        import('lib.pkp.classes.file.FileManager');
-        $fileManager = new \FileManager();
-        if (
-            !$fileManager->fileExists(\Config::getVar('files', 'files_dir'), 'dir')
-            || !$fileManager->fileExists(\Config::getVar('files', 'public_files_dir'))
-        ) {
-            return;
-        }
-        foreach ($contextService->installFileDirs as $dir) {
-            $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
-        }
     }
 
     public function usage($scriptName)
