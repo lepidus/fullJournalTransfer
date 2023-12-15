@@ -28,7 +28,7 @@ php tools/importExport.php FullJournalImportExportPlugin export [xmlFileName] [j
 #### Import
 To import a journal from XML, execute the command in the application's root directory:
 ```bash
-php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName]
+php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName] [user_name]
 ```
 
 ## Running Tests
