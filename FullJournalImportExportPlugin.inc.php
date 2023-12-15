@@ -89,6 +89,61 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                 }
 
                 $deployment = $this->importJournal(file_get_contents($xmlFile), null, null);
+
+                $validationErrors = array_filter(libxml_get_errors(), function ($a) {
+                    return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
+                });
+
+                $errorTypes = array(
+                    ASSOC_TYPE_ISSUE => 'issue.issue',
+                    ASSOC_TYPE_SUBMISSION => 'submission.submission',
+                    ASSOC_TYPE_SECTION => 'section.section',
+                    ASSOC_TYPE_JOURNAL => 'journal.journal',
+                );
+                foreach ($errorTypes as $assocType => $localeKey) {
+                    $foundWarnings = $deployment->getProcessedObjectsWarnings($assocType);
+                    if (!empty($foundWarnings)) {
+                        echo __('plugins.importexport.common.warningsEncountered') . "\n";
+                        $i = 0;
+                        foreach ($foundWarnings as $foundWarningMessages) {
+                            if (count($foundWarningMessages) > 0) {
+                                echo ++$i . '.' . __($localeKey) . "\n";
+                                foreach ($foundWarningMessages as $foundWarningMessage) {
+                                    echo '- ' . $foundWarningMessage . "\n";
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $foundErrors = false;
+                foreach ($errorTypes as $assocType => $localeKey) {
+                    $currentErrors = $deployment->getProcessedObjectsErrors($assocType);
+                    if (!empty($currentErrors)) {
+                        echo __('plugins.importexport.common.errorsOccured') . "\n";
+                        $i = 0;
+                        foreach ($currentErrors as $currentErrorMessages) {
+                            if (count($currentErrorMessages) > 0) {
+                                echo ++$i . '.' . __($localeKey) . "\n";
+                                foreach ($currentErrorMessages as $currentErrorMessage) {
+                                    echo '- ' . $currentErrorMessage . "\n";
+                                }
+                            }
+                        }
+                        $foundErrors = true;
+                    }
+                }
+
+                if ($foundErrors || !empty($validationErrors)) {
+                    foreach (array_keys($errorTypes) as $assocType) {
+                        $deployment->removeImportedObjects($assocType);
+                    }
+                    echo __('plugins.importexport.common.validationErrors') . "\n";
+                    $i = 0;
+                    foreach ($validationErrors as $validationError) {
+                        echo ++$i . '. Line: ' . $validationError->line . ' Column: ' . $validationError->column . ' > ' . $validationError->message . "\n";
+                    }
+                }
                 return;
             case 'export':
                 $journalPath = array_shift($args);
