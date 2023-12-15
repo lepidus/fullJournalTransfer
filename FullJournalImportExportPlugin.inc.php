@@ -54,9 +54,8 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
     {
         $command = array_shift($args);
         $xmlFile = array_shift($args);
-        $journalPath = array_shift($args);
 
-        AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER);
+        AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER, LOCALE_COMPONENT_PKP_MANAGER, LOCALE_COMPONENT_PKP_SUBMISSION);
 
         if ($xmlFile && $this->isRelativePath($xmlFile)) {
             $xmlFile = PWD . '/' . $xmlFile;
@@ -71,9 +70,28 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         switch ($command) {
             case 'import':
-                $this->importJournal(file_get_contents($xmlFile), null, null);
+                $userName = array_shift($args);
+                $userDAO = DAORegistry::getDAO('UserDAO');
+                $user = $userDAO->getByUsername($userName);
+
+                if (!$user) {
+                    if ($userName != '') {
+                        echo __('plugins.importexport.common.cliError') . "\n";
+                        echo __('plugins.importexport.native.error.unknownUser', array('userName' => $userName)) . "\n\n";
+                    }
+                    $this->usage($scriptName);
+                    return;
+                }
+
+                $request = Application::get()->getRequest();
+                if (!$request->getUser()) {
+                    Registry::set('user', $user);
+                }
+
+                $deployment = $this->importJournal(file_get_contents($xmlFile), null, null);
                 return;
             case 'export':
+                $journalPath = array_shift($args);
                 $journalDao = DAORegistry::getDAO('JournalDAO');
 
                 $journal = $journalDao->getByPath($journalPath);
@@ -105,7 +123,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $journal = $filter->getDeployment()->getContext();
         $this->createJournalDirectories($journal);
 
-        return $content;
+        return $filter->getDeployment();
     }
 
     public function exportJournal($journal, $user, &$filter = null)
