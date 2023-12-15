@@ -49,7 +49,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $journal->setData('numWeeksPerReview', (int) $node->getAttribute('num_weeks_per_review'));
         $journal->setData('publicationFee', (int) $node->getAttribute('publication_fee'));
         $journal->setData('purchaseArticleFee', (int) $node->getAttribute('purchase_article_fee'));
-        $journal->setData('themePluginPath', $node->getAttribute('theme_plugin_path'));
+        $journal->setData('themePluginPath', $this->validateActiveTheme($node));
         $contextDAO->insertObject($journal);
 
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
@@ -60,6 +60,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $contextDAO->updateObject($journal);
 
         return $journal;
+    }
+
+    private function validateActiveTheme($node)
+    {
+        $plugin = PluginRegistry::loadPlugin('themes', $node->getAttribute('theme_plugin_path'));
+        if ($plugin) {
+            return $node->getAttribute('theme_plugin_path');
+        }
+        return 'default';
     }
 
     public function handleChildElement($node, $journal)
