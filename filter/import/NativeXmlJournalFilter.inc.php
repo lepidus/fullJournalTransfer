@@ -55,6 +55,9 @@ class NativeXmlJournalFilter extends NativeImportFilter
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
                 $this->handleChildElement($n, $journal);
+                if ($n->tagName === 'supported_locales') {
+                    $this->installDefaultGenres($journal);
+                }
             }
         }
         $contextDAO->updateObject($journal);
@@ -69,6 +72,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
             return $node->getAttribute('theme_plugin_path');
         }
         return 'default';
+    }
+
+    public function installDefaultGenres($journal)
+    {
+        $genreDao = \DAORegistry::getDAO('GenreDAO');
+        $genreDao->installDefaults($journal->getId(), $journal->getData('supportedLocales'));
     }
 
     public function handleChildElement($node, $journal)
