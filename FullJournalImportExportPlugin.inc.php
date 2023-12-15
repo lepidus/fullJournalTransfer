@@ -176,7 +176,6 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $content = $filter->execute($importXml);
 
         $journal = $filter->getDeployment()->getContext();
-        $this->createJournalDirectories($journal);
 
         return $filter->getDeployment();
     }
@@ -216,23 +215,6 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $filter->setDeployment(new FullJournalImportExportDeployment($context, $user));
 
         return $filter;
-    }
-
-    public function createJournalDirectories($journal)
-    {
-        $contextService = Services::get('context');
-
-        import('lib.pkp.classes.file.FileManager');
-        $fileManager = new \FileManager();
-        if (
-            !$fileManager->fileExists(\Config::getVar('files', 'files_dir'), 'dir')
-            || !$fileManager->fileExists(\Config::getVar('files', 'public_files_dir'))
-        ) {
-            return;
-        }
-        foreach ($contextService->installFileDirs as $dir) {
-            $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
-        }
     }
 
     public function usage($scriptName)
