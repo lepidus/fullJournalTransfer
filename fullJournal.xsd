@@ -142,6 +142,24 @@
 		<attribute name="seq" type="int" />
 	</complexType>
 
+	<element name="review_rounds">
+		<complexType>
+			<sequence>
+				<element ref="pkp:review_round" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="review_round">
+		<sequence>
+			<element ref="pkp:id" minOccurs="1" maxOccurs="1" />
+			<element name="submission_id" type="int" minOccurs="1" maxOccurs="1" />
+			<element name="stage" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="round" type="int" minOccurs="1" maxOccurs="1" />
+			<element name="status" type="int" minOccurs="1" maxOccurs="1" />
+		</sequence>
+	</complexType>
+
 	<element name="announcements">
 		<complexType>
 			<sequence>
@@ -171,4 +189,6 @@
     <element name="navigation_menu" type="pkp:navigation_menu" />
 
     <element name="announcement" type="pkp:announcement" />
+
+	<element name="review_round" type="pkp:review_round" />
 </schema>
