@@ -8,7 +8,7 @@ class ReviewRoundNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
     protected function getSymbolicFilterGroup()
     {
-        return 'announcement-type=>native-xml';
+        return 'review-round=>native-xml';
     }
 
     protected function getNativeImportExportFilterClass()
@@ -66,23 +66,24 @@ class ReviewRoundNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    public function testCreateCompleteReviewRoundXml()
+    {
+        $reviewRoundExportFilter = $this->getNativeImportExportFilter();
 
-    // public function testCreateCompleteAnnouncementTypeXml()
-    // {
-    //     $announcementTypeExportFilter = $this->getNativeImportExportFilter();
+        $reviewRound = new ReviewRound();
+        $reviewRound->setId(13);
+        $reviewRound->setSubmissionId(16);
+        $reviewRound->setStageId(3);
+        $reviewRound->setRound(1);
+        $reviewRound->setStatus(1);
+        $reviewRounds = [$reviewRound];
 
-    //     $announcementType = new AnnouncementType();
-    //     $announcementType->setAssocId(12);
-    //     $announcementType->setAssocType(ASSOC_TYPE_JOURNAL);
-    //     $announcementType->setName('Test Announcement Type', 'en_US');
-    //     $announcementTypes = [$announcementType];
+        $doc = $reviewRoundExportFilter->execute($reviewRounds);
 
-    //     $doc = $announcementTypeExportFilter->process($announcementTypes);
-
-    //     $this->assertXmlStringEqualsXmlString(
-    //         $this->getSampleXml('announcementType.xml')->saveXml(),
-    //         $doc->saveXML(),
-    //         "actual xml is equal to expected xml"
-    //     );
-    // }
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('reviewRound.xml')->saveXml(),
+            $doc->saveXML(),
+            "actual xml is equal to expected xml"
+        );
+    }
 }

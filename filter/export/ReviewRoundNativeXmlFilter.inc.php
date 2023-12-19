@@ -20,6 +20,24 @@ class ReviewRoundNativeXmlFilter extends NativeExportFilter
         return 'plugins.importexport.fullJournalTransfer.filter.export.ReviewRoundNativeXmlFilter';
     }
 
+    public function &process(&$reviewRounds)
+    {
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $deployment = $this->getDeployment();
+
+        $rootNode = $doc->createElementNS($deployment->getNamespace(), 'review_rounds');
+        foreach ($reviewRounds as $reviewRound) {
+            $rootNode->appendChild($this->createReviewRoundNode($doc, $reviewRound));
+        }
+        $doc->appendChild($rootNode);
+        $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+
+        return $doc;
+    }
+
     public function createReviewRoundNode($doc, $reviewRound)
     {
         $deployment = $this->getDeployment();
