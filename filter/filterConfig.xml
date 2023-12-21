@@ -108,7 +108,14 @@
       symbolic="review-form=>native-xml"
       displayName="plugins.importexport.fullJournalTransfer.displayName"
       description="plugins.importexport.fullJournalTransfer.description"
-      inputType="class::lib.pkp.classes.reviewForm.ReviewForm"
+      inputType="class::lib.pkp.classes.reviewForm.ReviewForm[]"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+    <!-- ReviewAssignment native XML output -->
+    <filterGroup
+      symbolic="review-assignment=>native-xml"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
+      inputType="class::lib.pkp.classes.submission.reviewAssignment.ReviewAssignment[]"
       outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
     <!-- ReviewForm native XML input -->
     <filterGroup
@@ -188,6 +195,10 @@
     <filter
       inGroup="review-form=>native-xml"
       class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="review-assignment=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.ReviewAssignmentNativeXmlFilter"
       isTemplate="0" />
     <filter
       inGroup="native-xml=>review-form"
