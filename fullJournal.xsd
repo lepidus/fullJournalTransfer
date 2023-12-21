@@ -160,6 +160,44 @@
 		</sequence>
 	</complexType>
 
+	<element name="review_assignments">
+		<complexType>
+			<sequence>
+				<element ref="pkp:review_assignment" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="review_assignment">
+		<sequence>
+			<element name="date_rated" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_reminded" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_assigned" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_notified" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_confirmed" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_completed" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_acknowledged" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_due" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="date_response_due" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="last_modified" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="declined" type="boolean" minOccurs="1" maxOccurs="1" />
+			<element name="cancelled" type="boolean" minOccurs="1" maxOccurs="1" />
+			<element name="reminder_was_automatic" type="boolean" minOccurs="1" maxOccurs="1" />
+			<element name="unconsidered" type="boolean" minOccurs="1" maxOccurs="1" />
+		</sequence>
+		<attribute name="id" type="int" />
+		<attribute name="submission_id" type="int" />
+		<attribute name="review_form_id" type="int" />
+		<attribute name="review_round_id" type="int" />
+		<attribute name="stage_id" type="int" />
+		<attribute name="quality" type="int" />
+		<attribute name="recommendation" type="int" />
+		<attribute name="round" type="int" />
+		<attribute name="review_method" type="int" />
+		<attribute name="competing_interests" type="string" />
+		<attribute name="reviewer" type="string" />
+	</complexType>
+
 	<element name="announcements">
 		<complexType>
 			<sequence>
@@ -181,14 +219,10 @@
 	</complexType>
 
     <element name="journal" type="pkp:journal" />
-
     <element name="plugin" type="pkp:plugin" />
-
     <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
-
     <element name="navigation_menu" type="pkp:navigation_menu" />
-
     <element name="announcement" type="pkp:announcement" />
-
 	<element name="review_round" type="pkp:review_round" />
+	<element name="review_assignment" type="pkp:review_assignment" />
 </schema>
