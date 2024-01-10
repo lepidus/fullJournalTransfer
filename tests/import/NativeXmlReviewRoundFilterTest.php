@@ -20,7 +20,7 @@ class NativeXmlReviewRoundFilterTest extends NativeImportExportFilterTestCase
         return ['review_rounds'];
     }
 
-    public function testHandleReviewFormElement()
+    public function testHandleReviewRoundElement()
     {
         $reviewRoundImportFilter = $this->getNativeImportExportFilter();
         $deployment = $reviewRoundImportFilter->getDeployment();
@@ -34,9 +34,8 @@ class NativeXmlReviewRoundFilterTest extends NativeImportExportFilterTestCase
 
         $doc = $this->getSampleXml('reviewRound.xml');
 
-        $reviewRoundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'review_round');
-
-        $reviewRound = $reviewRoundImportFilter->handleElement($reviewRoundNodeList->item(0));
+        $importedObjects = $reviewRoundImportFilter->execute($doc);
+        $reviewRound = array_shift($importedObjects);
         $reviewRoundId = array_pop($reviewRound->_data);
         $this->assertEquals($expectedReviewRoundData, $reviewRound->_data);
 
