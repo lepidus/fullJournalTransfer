@@ -318,8 +318,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $importFilter = array_shift($importFilters);
         $importFilter->setDeployment($this->getDeployment());
         $articleDoc = new DOMDocument();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName == 'id') {
+                $oldId = $n->textContent;
+            }
+        }
         $articleDoc->appendChild($articleDoc->importNode($node, true));
-        return $importFilter->execute($articleDoc);
+        $importedObjects = $importFilter->execute($articleDoc);
+        $this->setSubmissionDBId($oldId, $importedObjects[0]->getId());
+        return $importedObjects;
     }
 
     private function getSimpleJournalNodeMapping()
