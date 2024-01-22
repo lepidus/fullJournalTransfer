@@ -61,6 +61,7 @@
 			<element ref="pkp:PKPUsers" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:sections" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:articles" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="url_path" type="string" />
@@ -84,7 +85,7 @@
 	<element name="plugins">
 		<complexType>
 			<sequence>
-				<element ref="pkp:plugin" maxOccurs="unbounded" />
+				<element ref="pkp:plugin" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>
@@ -103,7 +104,7 @@
 	<element name="navigation_menu_items">
 		<complexType>
 			<sequence>
-				<element ref="pkp:navigation_menu_item" maxOccurs="unbounded" />
+				<element ref="pkp:navigation_menu_item" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>
@@ -123,7 +124,7 @@
 	<element name="navigation_menus">
 		<complexType>
 			<sequence>
-				<element ref="pkp:navigation_menu" maxOccurs="unbounded" />
+				<element ref="pkp:navigation_menu" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>
@@ -145,7 +146,7 @@
 	<element name="review_rounds">
 		<complexType>
 			<sequence>
-				<element ref="pkp:review_round" maxOccurs="unbounded" />
+				<element ref="pkp:review_round" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>
@@ -163,7 +164,7 @@
 	<element name="review_assignments">
 		<complexType>
 			<sequence>
-				<element ref="pkp:review_assignment" maxOccurs="unbounded" />
+				<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>
@@ -201,7 +202,7 @@
 	<element name="announcements">
 		<complexType>
 			<sequence>
-				<element ref="pkp:announcement" maxOccurs="unbounded" />
+				<element ref="pkp:announcement" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>
