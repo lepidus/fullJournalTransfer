@@ -12,12 +12,14 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $reviewForm;
     private $navigationMenuItemDBIds;
     private $reviewRoundDBIds;
+    private $submissionDBIds;
 
     public function __construct($context, $user = null)
     {
         parent::__construct($context, $user);
         $this->setNavigationMenuItemDBIds([]);
         $this->setReviewRoundDBIds([]);
+        $this->setSubmissionDBIds([]);
     }
 
     public function getSchemaFilename()
@@ -79,5 +81,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function setReviewRoundDBId($reviewRoundDBId, $DBId)
     {
         return $this->reviewRoundDBIds[$reviewRoundDBId] = $DBId;
+    }
+
+    public function getSubmissionDBIds()
+    {
+        return $this->submissionDBIds;
+    }
+
+    public function setSubmissionDBIds($submissionDBIds)
+    {
+        return $this->submissionDBIds = $submissionDBIds;
+    }
+
+    public function getSubmissionDBId($submissionDBId)
+    {
+        if (array_key_exists($submissionDBId, $this->submissionDBIds)) {
+            return $this->submissionDBIds[$submissionDBId];
+        }
+        return null;
+    }
+
+    public function setSubmissionDBId($submissionDBId, $DBId)
+    {
+        return $this->submissionDBIds[$submissionDBId] = $DBId;
     }
 }
