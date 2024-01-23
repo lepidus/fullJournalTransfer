@@ -43,4 +43,4 @@ lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit-env2.xml plu
 # License
 __This plugin is licensed under the GNU General Public License v3.0__
 
-__Copyright (c) 2014-2023 Lepidus Tecnologia__
+__Copyright (c) 2014-2024 Lepidus Tecnologia__
