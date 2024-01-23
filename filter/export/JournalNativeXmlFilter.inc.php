@@ -160,6 +160,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addSections($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
         $this->addReviewRounds($doc, $journalNode, $journal);
+        $this->addReviewAssignments($doc, $journalNode, $journal);
 
         return $journalNode;
     }
@@ -373,23 +374,48 @@ class JournalNativeXmlFilter extends NativeExportFilter
         foreach ($submissions as $submission) {
             $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
             $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId());
-            // if (!$reviewRounds->wasEmpty()) {
-
-            // }
 
             while ($reviewRound = $reviewRounds->next()) {
                 $allReviewRounds[] = $reviewRound;
             }
         }
 
-        libxml_use_internal_errors(true);
         $reviewRoundsDoc = $exportFilter->execute($allReviewRounds);
-        $errors = libxml_get_errors();
         if ($reviewRoundsDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($reviewRoundsDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
     }
+
+    public function addReviewAssignments($doc, $journalNode, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('review-assignment=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $allReviewAssignments = [];
+
+        $submissions = Services::get('submission')->getMany([
+            'contextId' => $journal->getId(),
+        ]);
+
+        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
+        foreach ($submissions as $submission) {
+            $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
+
+            foreach($reviewAssignments as $reviewAssignment) {
+                $allReviewAssignments[] = $reviewAssignment;
+            }
+        }
+
+        $reviewAssignmentsDoc = $exportFilter->execute($allReviewAssignments);
+        if ($reviewAssignmentsDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($reviewAssignmentsDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
+    }
+
 
     private function camelCaseToSnakeCase($string)
     {

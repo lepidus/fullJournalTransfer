@@ -62,6 +62,7 @@
 			<element ref="pkp:sections" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:articles" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="url_path" type="string" />

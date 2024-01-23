@@ -48,7 +48,10 @@ class ReviewAssignmentNativeXmlFilter extends NativeExportFilter
         $reviewAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'review_assignment');
 
         foreach ($this->getAttributesMapping() as $attr) {
-            $reviewAssignmentNode->setAttribute($attr, $reviewAssignment->getData($this->snakeCaseToCamelCase($attr)));
+            $attributeData = $reviewAssignment->getData($this->snakeCaseToCamelCase($attr));
+            if ($attributeData) {
+                $reviewAssignmentNode->setAttribute($attr, $attributeData);
+            }
         }
         $reviewAssignmentNode->setAttribute('reviewer', $reviewer->getUsername());
 

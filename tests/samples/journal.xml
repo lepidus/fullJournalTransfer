@@ -104,4 +104,5 @@
     </sections>
     <articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
     <review_rounds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
+    <review_assignments xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
 </journal>
