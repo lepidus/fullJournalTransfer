@@ -14,7 +14,8 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'user_group_settings', 'user_group_stage',
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
-            'users', 'sections', 'section_settings'
+            'users', 'sections', 'section_settings', 'review_assignments', 'review_rounds',
+            'submissions', 'submission_settings', 'publications', 'publication_settings'
         ];
     }
     protected function getSymbolicFilterGroup()
@@ -33,7 +34,9 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuDAO',
             'NavigationMenuItemDAO',
             'NavigationMenuItemAssignmentDAO',
-            'SectionDAO'
+            'SectionDAO',
+            'ReviewRoundDAO',
+            'SubmissionDAO'
         ];
     }
 
@@ -638,6 +641,60 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    private function createSubmission()
+    {
+        $mockDAO = $this->getMockBuilder(SubmissionDAO::class)
+            ->setMethods(['getByContextId'])
+            ->getMock();
+
+        $submission = $mockDAO->newDataObject();
+        $submission->setId(16);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$submission]));
+
+        $mockDAO->expects($this->any())
+            ->method('getByContextId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('SubmissionDAO', $mockDAO);
+    }
+
+    private function createReviewRound()
+    {
+        $mockDAO = $this->getMockBuilder(ReviewRoundDAO::class)
+            ->setMethods(['getBySubmissionId'])
+            ->getMock();
+
+        $reviewRound = $mockDAO->newDataObject();
+        $reviewRound->setId(13);
+        $reviewRound->setSubmissionId(16);
+        $reviewRound->setStageId(3);
+        $reviewRound->setRound(1);
+        $reviewRound->setStatus(1);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$reviewRound]));
+
+        $mockDAO->expects($this->any())
+            ->method('getBySubmissionId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
+    }
+
     public function testAddPlugins()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -891,6 +948,9 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
         $this->registerMockSectionDAO();
         $this->createUsersAndUserGroups($journal);
+
+        $this->createSubmission();
+        $this->createReviewRound();
 
         $doc = $journalExportFilter->execute($journal);
 

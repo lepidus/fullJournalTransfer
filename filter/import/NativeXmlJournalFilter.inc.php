@@ -128,6 +128,9 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($node->tagName == 'articles') {
                 $this->parseArticles($node, $journal);
             }
+            if ($node->tagName == 'review_rounds') {
+                $this->parseReviewRounds($node, $journal);
+            }
         }
     }
 
@@ -327,6 +330,28 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $importedObjects = $importFilter->execute($articleDoc);
         $this->setSubmissionDBId($oldId, $importedObjects[0]->getId());
         return $importedObjects;
+    }
+
+    public function parseReviewRounds($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_round') {
+                $this->parseReviewRound($n, $journal);
+            }
+        }
+    }
+
+    public function parseReviewRound($node, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-round');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $reviewRoundDoc = new DOMDocument();
+        $reviewRoundDoc->appendChild($reviewRoundDoc->importNode($node, true));
+        return $importFilter->execute($reviewRoundDoc);
     }
 
     private function getSimpleJournalNodeMapping()

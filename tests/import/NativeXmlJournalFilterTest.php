@@ -29,7 +29,8 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'navigation_menu_item_assignments',
             'navigation_menu_item_assignment_settings',
             'sections', 'section_settings',
-            'genres', 'genre_settings'
+            'genres', 'genre_settings', 'review_rounds',
+            'review_assignments'
         ];
     }
 
@@ -378,5 +379,36 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $expectedJournalData['id'] = $journalId;
 
         $this->assertEquals($expectedJournalData, $insertedJournal->_data);
+    }
+
+    public function testParseReviewRounds()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+        $deployment->setSubmissionDBId(16, 46);
+        $journal = new Journal();
+        $journal->setId(rand());
+
+        $expectedReviewRoundData = [
+            'submissionId' => 46,
+            'stageId' => 3,
+            'round' => 1,
+            'status' => 1
+        ];
+
+        $doc = $this->getSampleXml('journal.xml');
+        $reviewRoundNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'review_rounds'
+        );
+
+        $importedObjects = $journalImportFilter->parseReviewRounds($reviewRoundNodeList->item(0), $journal);
+
+        $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
+        $reviewRounds = $reviewRoundDAO->getBySubmissionId(46)->toArray();
+        $reviewRound = array_shift($reviewRounds);
+        unset($reviewRound->_data['id']);
+
+        $this->assertEquals($expectedReviewRoundData, $reviewRound->_data);
     }
 }
