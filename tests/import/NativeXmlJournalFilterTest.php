@@ -411,4 +411,55 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
         $this->assertEquals($expectedReviewRoundData, $reviewRound->_data);
     }
+
+    public function testParseReviewAssignments()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+        $deployment->setSubmissionDBId(13, 107);
+        $journal = new Journal();
+        $journal->setId(rand());
+
+        $expectedReviewAssignmentData = [
+            'submissionId' => 107,
+            'reviewerId' => 7,
+            'competingInterests' => 'test interest',
+            'recommendation' => 2,
+            'dateAssigned' => '2023-10-29 21:52:08',
+            'dateNotified' => '2023-10-28 21:52:08',
+            'dateConfirmed' => '2023-10-27 21:52:08',
+            'dateCompleted' => '2023-10-26 21:52:08',
+            'dateAcknowledged' => '2023-10-25 21:52:08',
+            'dateDue' => '2023-10-24 21:52:08',
+            'dateResponseDue' => '2023-10-23 21:52:08',
+            'lastModified' => '2023-10-22 21:52:08',
+            'declined' => 0,
+            'cancelled' => 0,
+            'quality' => 5,
+            'dateRated' => '2023-10-31 21:52:08',
+            'dateReminded' => '2023-10-30 21:52:08',
+            'reminderWasAutomatic' => 0,
+            'round' => 1,
+            'reviewMethod' => 2,
+            'stageId' => 3,
+            'unconsidered' => 0,
+            'reviewerFullName' => 'Julie Janssen',
+            'reviewRoundId' => 0
+        ];
+
+        $doc = $this->getSampleXml('journal.xml');
+        $reviewAssignmentsNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'review_assignments'
+        );
+
+        $importedObjects = $journalImportFilter->parseReviewAssignments($reviewAssignmentsNodeList->item(0), $journal);
+
+        $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
+        $reviewAssignments = $reviewAssignmentDAO->getBySubmissionId(107);
+        $reviewAssignment = array_shift($reviewAssignments);
+        unset($reviewAssignment->_data['id']);
+
+        $this->assertEquals($expectedReviewAssignmentData, $reviewAssignment->_data);
+    }
 }
