@@ -349,9 +349,15 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setIncludeSubmissionsNode(true);
 
         $submissionsIterator = Services::get('submission')->getMany([
-            'contextId' => $journal->getId(),
+            'contextId' => $journal->getId()
         ]);
-        $submissionsArray = iterator_to_array($submissionsIterator);
+        $submissionsArray = [];
+        $isComplete = 0;
+        foreach ($submissionsIterator as $submission) {
+            if ($submission->getSubmissionProgress() == $isComplete) {
+                $submissionsArray[] = $submission;
+            }
+        }
         $articlesDoc = $exportFilter->execute($submissionsArray);
         if ($articlesDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($articlesDoc->documentElement, true);

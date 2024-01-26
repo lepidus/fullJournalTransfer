@@ -45,11 +45,11 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         $reviewAssignment->setSubmissionId($deployment->getSubmissionDBId($node->getAttribute('submission_id')));
         $reviewAssignment->setReviewRoundId($deployment->getReviewRoundDBId($node->getAttribute('review_round_id')));
         $reviewAssignment->setStageId($node->getAttribute('stage_id'));
-        $reviewAssignment->setRecommendation($node->getAttribute('recommendation'));
-        $reviewAssignment->setQuality($node->getAttribute('quality'));
+        $reviewAssignment->setRecommendation($node->getAttribute('recommendation') ?: null);
+        $reviewAssignment->setQuality($node->getAttribute('quality') ?: null);
         $reviewAssignment->setRound($node->getAttribute('round'));
         $reviewAssignment->setReviewMethod($node->getAttribute('review_method'));
-        $reviewAssignment->setCompetingInterests($node->getAttribute('competing_interests'));
+        $reviewAssignment->setCompetingInterests($node->getAttribute('competing_interests') ?: null);
 
         $tagMappings = [
             'date_rated' => 'setDateRated',

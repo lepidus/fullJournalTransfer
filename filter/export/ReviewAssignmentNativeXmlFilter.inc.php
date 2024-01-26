@@ -84,7 +84,7 @@ class ReviewAssignmentNativeXmlFilter extends NativeExportFilter
 
     public function createDateNode($doc, $parentNode, $name, $value, $format)
     {
-        if ($value === '') {
+        if (!$value) {
             return;
         }
         $deployment = $this->getDeployment();

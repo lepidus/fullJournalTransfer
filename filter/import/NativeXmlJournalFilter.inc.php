@@ -331,7 +331,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         }
         $articleDoc->appendChild($articleDoc->importNode($node, true));
         $importedObjects = $importFilter->execute($articleDoc);
-        $this->setSubmissionDBId($oldId, $importedObjects[0]->getId());
+        $this->getDeployment()->setSubmissionDBId($oldId, $importedObjects[0]->getId());
         return $importedObjects;
     }
 
@@ -377,7 +377,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $reviewAssignmentDoc = new DOMDocument();
         $reviewAssignmentDoc->appendChild($reviewAssignmentDoc->importNode($node, true));
         return $importFilter->execute($reviewAssignmentDoc);
-        ;
     }
 
     private function getSimpleJournalNodeMapping()
