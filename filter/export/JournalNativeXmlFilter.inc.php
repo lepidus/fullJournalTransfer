@@ -396,10 +396,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setDeployment($this->getDeployment());
         $allReviewAssignments = [];
 
-        $submissions = Services::get('submission')->getMany([
-            'contextId' => $journal->getId(),
-        ]);
-
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
+        $submissions =  $submissionDao->getByContextId($journal->getId())->toArray();
         $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
         foreach ($submissions as $submission) {
             $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
