@@ -14,7 +14,8 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'user_group_settings', 'user_group_stage',
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
-            'users', 'sections', 'section_settings'
+            'users', 'sections', 'section_settings', 'review_assignments', 'review_rounds',
+            'submissions', 'submission_settings', 'publications', 'publication_settings'
         ];
     }
     protected function getSymbolicFilterGroup()
@@ -33,7 +34,10 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuDAO',
             'NavigationMenuItemDAO',
             'NavigationMenuItemAssignmentDAO',
-            'SectionDAO'
+            'SectionDAO',
+            'ReviewRoundDAO',
+            'SubmissionDAO',
+            'ReviewAssignmentDAO'
         ];
     }
 
@@ -638,6 +642,102 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    private function createSubmission()
+    {
+        $mockDAO = $this->getMockBuilder(SubmissionDAO::class)
+            ->setMethods(['getByContextId'])
+            ->getMock();
+
+        $submission = $mockDAO->newDataObject();
+        $submission->setId(16);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$submission]));
+
+        $mockDAO->expects($this->any())
+            ->method('getByContextId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('SubmissionDAO', $mockDAO);
+    }
+
+    private function registerMockReviewRound()
+    {
+        $mockDAO = $this->getMockBuilder(ReviewRoundDAO::class)
+            ->setMethods(['getBySubmissionId'])
+            ->getMock();
+
+        $reviewRound = $mockDAO->newDataObject();
+        $reviewRound->setId(13);
+        $reviewRound->setSubmissionId(16);
+        $reviewRound->setStageId(3);
+        $reviewRound->setRound(1);
+        $reviewRound->setStatus(1);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$reviewRound]));
+
+        $mockDAO->expects($this->any())
+            ->method('getBySubmissionId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
+    }
+
+    private function registerMockReviewAssignment()
+    {
+        $mockDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
+            ->setMethods(['getBySubmissionId'])
+            ->getMock();
+
+        $reviewAssignment = $mockDAO->newDataObject();
+        $reviewAssignment->setId(26);
+        $reviewAssignment->setReviewerId(7);
+        $reviewAssignment->setReviewFormId(2);
+        $reviewAssignment->setSubmissionId(13);
+        $reviewAssignment->setReviewRoundId(6);
+        $reviewAssignment->setStageId(3);
+        $reviewAssignment->setRecommendation(2);
+        $reviewAssignment->setQuality(5);
+        $reviewAssignment->setRound(1);
+        $reviewAssignment->setReviewMethod(2);
+        $reviewAssignment->setCompetingInterests('test interest');
+
+        $reviewAssignment->setDeclined(false);
+        $reviewAssignment->setCancelled(false);
+        $reviewAssignment->setReminderWasAutomatic(false);
+        $reviewAssignment->setUnconsidered(false);
+
+        $reviewAssignment->setDateRated('2023-10-31 21:52:08.000');
+        $reviewAssignment->setDateReminded('2023-10-30 21:52:08.000');
+        $reviewAssignment->setDateAssigned('2023-10-29 21:52:08.000');
+        $reviewAssignment->setDateNotified('2023-10-28 21:52:08.000');
+        $reviewAssignment->setDateConfirmed('2023-10-27 21:52:08.000');
+        $reviewAssignment->setDateCompleted('2023-10-26 21:52:08.000');
+        $reviewAssignment->setDateAcknowledged('2023-10-25 21:52:08.000');
+        $reviewAssignment->setDateDue('2023-10-24 21:52:08.000');
+        $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08.000');
+        $reviewAssignment->setLastModified('2023-10-22 21:52:08.000');
+
+        $mockDAO->expects($this->any())
+            ->method('getBySubmissionId')
+            ->will($this->returnValue(array($reviewAssignment)));
+
+        DAORegistry::registerDAO('ReviewAssignmentDAO', $mockDAO);
+    }
+
     public function testAddPlugins()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -891,6 +991,10 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
         $this->registerMockSectionDAO();
         $this->createUsersAndUserGroups($journal);
+
+        $this->createSubmission();
+        $this->registerMockReviewRound();
+        $this->registerMockReviewAssignment();
 
         $doc = $journalExportFilter->execute($journal);
 

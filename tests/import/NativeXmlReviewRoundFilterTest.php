@@ -24,9 +24,10 @@ class NativeXmlReviewRoundFilterTest extends NativeImportExportFilterTestCase
     {
         $reviewRoundImportFilter = $this->getNativeImportExportFilter();
         $deployment = $reviewRoundImportFilter->getDeployment();
+        $deployment->setSubmissionDBId(16, 46);
 
         $expectedReviewRoundData = [
-            'submissionId' => 16,
+            'submissionId' => 46,
             'stageId' => 3,
             'round' => 1,
             'status' => 1

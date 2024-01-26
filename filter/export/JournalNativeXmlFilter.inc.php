@@ -368,14 +368,14 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setDeployment($this->getDeployment());
         $allReviewRounds = [];
 
-        $submissions = Services::get('submission')->getMany([
-            'contextId' => $journal->getId(),
-        ]);
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
+        $submissions =  $submissionDao->getByContextId($journal->getId())->toArray();
         foreach ($submissions as $submission) {
             $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
             $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId());
+            $reviewRoundsArray = $reviewRounds->toArray();
 
-            while ($reviewRound = $reviewRounds->next()) {
+            foreach ($reviewRoundsArray as $reviewRound) {
                 $allReviewRounds[] = $reviewRound;
             }
         }
@@ -396,10 +396,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setDeployment($this->getDeployment());
         $allReviewAssignments = [];
 
-        $submissions = Services::get('submission')->getMany([
-            'contextId' => $journal->getId(),
-        ]);
-
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
+        $submissions =  $submissionDao->getByContextId($journal->getId())->toArray();
         $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
         foreach ($submissions as $submission) {
             $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());

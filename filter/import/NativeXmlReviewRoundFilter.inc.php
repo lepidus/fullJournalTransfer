@@ -25,6 +25,11 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
         return 'review_round';
     }
 
+    public function getClassName()
+    {
+        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewRoundFilter';
+    }
+
     public function handleElement($node)
     {
         $deployment = $this->getDeployment();
@@ -40,7 +45,7 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
                         $oldId = $n->textContent;
                         break;
                     case 'submission_id':
-                        $submissionId = $n->textContent;
+                        $submissionId = $deployment->getSubmissionDBId($n->textContent);
                         break;
                     case 'stage':
                         $workflowStageDao = DAORegistry::getDAO('WorkflowStageDAO');
