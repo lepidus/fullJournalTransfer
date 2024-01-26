@@ -31,6 +31,31 @@ To import a journal from XML, execute the command in the application's root dire
 php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName] [user_name]
 ```
 
+## Imported/Exported Journal Content
+
+**Using PKP native import/export**:
+
+- Users and User Roles
+- Articles
+
+**Added**:
+
+- Journal data
+- Navigation Menus
+- Plugins Configs
+- Sections
+- Review Forms
+- Review Assignments
+- Review Rounds
+
+**To Do**:
+
+- Issues
+- Editor Decissions
+- Stage Assignments
+- Review Files
+- Discursions
+
 ## Running Tests
 
 ### Unit Tests
