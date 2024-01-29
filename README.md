@@ -65,6 +65,14 @@ To execute the unit tests, run the following command from root of the PKP Apppli
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit-env2.xml plugins/importexport/fullJournalTransfer/tests
 ```
 
+# Credits
+This plugin was idealized and sponsored by the Brazilian Institute of Information in Science and Technology (IBICT) for OJS version 2.x.
+
+Funding for version 3.3 comes from the Federal University of São Paulo (Unifesp) and Federal University of Recôncavo da Bahia (UFRB).
+
+Developed by Lepidus Tecnologia.
+
+
 # License
 __This plugin is licensed under the GNU General Public License v3.0__
 
