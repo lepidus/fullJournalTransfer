@@ -74,6 +74,6 @@ Developed by Lepidus Tecnologia.
 
 
 # License
-__This plugin is licensed under the GNU General Public License v3.0__
+This plugin is licensed under the GNU General Public License v3.0
 
-__Copyright (c) 2014-2024 Lepidus Tecnologia__
+Copyright (c) 2014-2024 Lepidus Tecnologia
