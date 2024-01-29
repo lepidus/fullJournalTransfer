@@ -125,11 +125,20 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($node->tagName == 'sections') {
                 $this->parseSections($node, $journal);
             }
+            if ($node->tagName == 'issues') {
+                $this->parseIssues($node, $journal);
+            }
+            if ($node->tagName == 'issue') {
+                $this->parseIssue($node, $journal);
+            }
             if ($node->tagName == 'articles') {
                 $this->parseArticles($node, $journal);
             }
             if ($node->tagName == 'review_rounds') {
                 $this->parseReviewRounds($node, $journal);
+            }
+            if ($node->tagName == 'review_assignments') {
+                $this->parseReviewAssignments($node, $journal);
             }
             if ($node->tagName == 'review_assignments') {
                 $this->parseReviewAssignments($node, $journal);
@@ -304,6 +313,29 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
         }
         $deployment->addProcessedObjectId(ASSOC_TYPE_SECTION, $sectionId);
+    }
+
+    public function parseIssues($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'issue') {
+                $this->parseArticle($n, $journal);
+            }
+        }
+    }
+
+    public function parseIssue($node, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>issue');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $issueDoc = new DOMDocument();
+        $issueDoc->appendChild($issueDoc->importNode($node, true));
+        $importedObjects = $importFilter->execute($issueDoc);
+        return $importedObjects;
     }
 
     public function parseArticles($node, $journal)

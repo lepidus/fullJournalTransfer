@@ -351,6 +351,44 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $this->assertEquals($expectedSectionData, $section->_data);
     }
 
+    public function testParseIssues()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+        $journal = new Journal();
+        $journal->setId(rand());
+        $deployment->setContext($journal);
+
+        $expectedIssueData = [
+            'journalId' => $journal->getId(),
+            'year' => 2024,
+            'published' => 0,
+            'current' => 0,
+            'lastModified' => Core::getCurrentDate(),
+            'accessStatus' => 0,
+            'showVolume' => 0,
+            'showNumber' => 0,
+            'showYear' => 1,
+            'showTitle' => 0,
+            'urlPath' => 'testes'
+        ];
+
+        $doc = $this->getSampleXml('journal.xml');
+        $issueNodeList = $doc->getElementsByTagNameNS(
+            $deployment->getNamespace(),
+            'issue'
+        );
+
+        $journalImportFilter->parseIssue($issueNodeList->item(0), $journal);
+
+        $issueDAO = DAORegistry::getDAO('IssueDAO');
+        $issues = $issueDAO->getIssuesByIdentification($journal->getId(), null, null, 2024)->toArray();
+        $issue = array_shift($issues);
+        unset($issue->_data['id']);
+
+        $this->assertEquals($expectedIssueData, $issue->_data);
+    }
+
     public function testHandleJournalElement()
     {
         $journalImportFilter = $this->getNativeImportExportFilter();

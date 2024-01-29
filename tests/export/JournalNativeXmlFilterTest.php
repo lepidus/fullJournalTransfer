@@ -574,10 +574,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
     private function createIssuesNode($doc, $deployment, $exportFilter, $parentNode)
     {
-        // $parentNode->appendChild($issuesNode = $doc->createElementNS(
-        //     $deployment->getNamespace(),
-        //     'issues'
-        // ));
         $parentNode->appendChild($issueNode = $doc->createElementNS(
             $deployment->getNamespace(),
             'issue'
@@ -614,11 +610,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $deployment->getNamespace(),
             'issue_galleys'
         ));
-        // $issueGalleysNode->setAttributeNS(
-        //     'http://www.w3.org/2000/xmlns/',
-        //     'xmlns:xsi',
-        //     'http://www.w3.org/2001/XMLSchema-instance'
-        // );
         $issueGalleysNode->setAttribute(
             'xsi:schemaLocation',
             $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
@@ -628,11 +619,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $deployment->getNamespace(),
             'articles'
         ));
-        // $articlesNode->setAttributeNS(
-        //     'http://www.w3.org/2000/xmlns/',
-        //     'xmlns:xsi',
-        //     'http://www.w3.org/2001/XMLSchema-instance'
-        // );
         $articlesNode->setAttribute(
             'xsi:schemaLocation',
             $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
