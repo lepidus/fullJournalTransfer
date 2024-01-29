@@ -37,7 +37,8 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'SectionDAO',
             'ReviewRoundDAO',
             'SubmissionDAO',
-            'ReviewAssignmentDAO'
+            'ReviewAssignmentDAO',
+            'IssueDAO'
         ];
     }
 
@@ -112,7 +113,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     private function registerMockSectionDAO()
     {
         $mockDAO = $this->getMockBuilder(SectionDAO::class)
-            ->setMethods(['getByJournalId'])
+            ->setMethods(['getByJournalId', 'getByIssueId'])
             ->getMock();
 
         $section = $mockDAO->newDataObject();
@@ -141,6 +142,10 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $mockDAO->expects($this->any())
             ->method('getByJournalId')
             ->will($this->returnValue($mockResult));
+
+        $mockDAO->expects($this->any())
+            ->method('getByIssueId')
+            ->will($this->returnValue([]));
 
         DAORegistry::registerDAO('SectionDAO', $mockDAO);
     }
@@ -567,6 +572,78 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $exportFilter->createLocalizedNodes($doc, $sectionNode, 'title', ['en_US' => 'Articles']);
     }
 
+    private function createIssuesNode($doc, $deployment, $exportFilter, $parentNode)
+    {
+        // $parentNode->appendChild($issuesNode = $doc->createElementNS(
+        //     $deployment->getNamespace(),
+        //     'issues'
+        // ));
+        $parentNode->appendChild($issueNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'issue'
+        ));
+        $issueNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $issueNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+        $issueNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'id',
+            102
+        ));
+        $node->setAttribute('type', 'internal');
+        $node->setAttribute('advice', 'ignore');
+
+
+        $issueNode->appendChild($identificationNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'issue_identification',
+        ));
+        $identificationNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'year',
+            2024
+        ));
+
+        $issueNode->appendChild($issueGalleysNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'issue_galleys'
+        ));
+        // $issueGalleysNode->setAttributeNS(
+        //     'http://www.w3.org/2000/xmlns/',
+        //     'xmlns:xsi',
+        //     'http://www.w3.org/2001/XMLSchema-instance'
+        // );
+        $issueGalleysNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+
+        $issueNode->appendChild($articlesNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'articles'
+        ));
+        // $articlesNode->setAttributeNS(
+        //     'http://www.w3.org/2000/xmlns/',
+        //     'xmlns:xsi',
+        //     'http://www.w3.org/2001/XMLSchema-instance'
+        // );
+        $articlesNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+
+        $issueNode->setAttribute('access_status', 0);
+        $issueNode->setAttribute('current', 0);
+        $issueNode->setAttribute('published', 0);
+        $issueNode->setAttribute('url_path', 'testes');
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -665,6 +742,44 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ->will($this->returnValue($mockResult));
 
         DAORegistry::registerDAO('SubmissionDAO', $mockDAO);
+    }
+
+    private function registerMockIssues()
+    {
+        $mockDAO = $this->getMockBuilder(IssueDAO::class)
+            ->setMethods(['getIssues'])
+            ->getMock();
+
+        $issue = $mockDAO->newDataObject();
+        $issue->setId(102);
+        $issue->setJournalId(1483);
+        $issue->setVolume('17');
+        $issue->setNumber('5');
+        $issue->setYear('2024');
+        $issue->setPublished(0);
+        $issue->setDatePublished(null);
+        $issue->setCurrent(0);
+        $issue->setAccessStatus(0);
+        $issue->setShowVolume(0);
+        $issue->setShowNumber(0);
+        $issue->setShowYear(1);
+        $issue->setShowTitle(1);
+        $issue->setData('urlPath', 'testes');
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$issue]));
+
+        $mockDAO->expects($this->any())
+            ->method('getIssues')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('IssueDAO', $mockDAO);
     }
 
     private function registerMockReviewRound()
@@ -899,6 +1014,9 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $expectedJournalNode->appendChild($clone);
         }
         $this->createSectionsNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
+        $this->createIssuesNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
+
+        $this->registerMockIssues();
 
         $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS(
             $deployment->getNamespace(),
@@ -941,6 +1059,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'xsi:schemaLocation',
             $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
         );
+
 
         $actualJournalNode = $journalExportFilter->createJournalNode($doc, $journal);
 
@@ -990,6 +1109,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ]
         );
         $this->registerMockSectionDAO();
+        $this->registerMockIssues();
         $this->createUsersAndUserGroups($journal);
 
         $this->createSubmission();

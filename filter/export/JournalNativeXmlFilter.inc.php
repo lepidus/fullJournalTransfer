@@ -158,6 +158,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addNavigationMenus($doc, $journalNode, $journal);
         $this->addUsers($doc, $journalNode, $journal);
         $this->addSections($doc, $journalNode, $journal);
+        $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
         $this->addReviewRounds($doc, $journalNode, $journal);
         $this->addReviewAssignments($doc, $journalNode, $journal);
@@ -293,6 +294,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
     }
 
+
     public function addSections($doc, $journalNode, $journal)
     {
         $sectionDao = DAORegistry::getDAO('SectionDAO');
@@ -336,6 +338,25 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $journalNode->appendChild($sectionsNode);
+    }
+
+    public function addIssues($doc, $journalNode, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('issue=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setOpts($this->opts);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $issueDao = DAORegistry::getDAO('IssueDAO');
+        $issuesArray = $issueDao->getIssues($journal->getId())->toArray();
+        $issuesDoc = $exportFilter->execute($issuesArray);
+
+        if ($issuesDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($issuesDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
     }
 
     public function addArticles($doc, $journalNode, $journal)

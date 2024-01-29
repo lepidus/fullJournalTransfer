@@ -102,6 +102,14 @@
             <title locale="en_US">Articles</title>
         </section>
     </sections>
+    <issue access_status="0" current="0" published="0" url_path="testes" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <id advice="ignore" type="internal">102</id>
+        <issue_identification>
+            <year>2024</year>
+        </issue_identification>
+        <issue_galleys xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
+        <articles xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
+    </issue>
     <articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
     <review_rounds xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">

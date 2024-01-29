@@ -60,6 +60,8 @@
 			<element ref="pkp:navigation_menus" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:PKPUsers" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:sections" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:issues" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:issue" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:articles" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
