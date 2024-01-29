@@ -320,7 +320,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $deployment = $this->getDeployment();
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'issue') {
-                $this->parseArticle($n, $journal);
+                $this->parseIssue($n, $journal);
             }
         }
     }

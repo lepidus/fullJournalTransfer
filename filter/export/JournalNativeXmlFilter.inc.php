@@ -375,7 +375,10 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $submissionsArray = [];
         $isComplete = 0;
         foreach ($submissionsIterator as $submission) {
-            if ($submission->getSubmissionProgress() == $isComplete) {
+            if (
+                $submission->getSubmissionProgress() == $isComplete
+                && !$submission->getCurrentPublication()->getData('issueId')
+            ) {
                 $submissionsArray[] = $submission;
             }
         }
