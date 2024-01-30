@@ -152,6 +152,13 @@
       description="plugins.importexport.native.description"
       inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
       outputType="class::lib.pkp.classes.reviewForm.ReviewFormElement[]" />
+    <!-- ExtendedArticle native XML output -->
+    <filterGroup
+      symbolic="full-journal-article=>native-xml"
+      displayName="plugins.importexport.fullJournalTransfer.displayName"
+      description="plugins.importexport.fullJournalTransfer.description"
+      inputType="class::classes.submission.Submission[]"
+      outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
   </filterGroups>
   <filters>
     <filter
@@ -233,6 +240,10 @@
     <filter
       inGroup="native-xml=>review-assignment"
       class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewAssignmentFilter"
+      isTemplate="0" />
+    <filter
+      inGroup="full-journal-article=>native-xml"
+      class="plugins.importexport.fullJournalTransfer.filter.export.FullJournalArticleNativeXmlFilter"
       isTemplate="0" />
   </filters>
 </filterConfig>
