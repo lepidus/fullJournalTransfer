@@ -17,6 +17,30 @@
 
     <include schemaLocation="../../../lib/pkp/plugins/importexport/users/pkp-users.xsd" />
 
+    <element name="extended_article" substitutionGroup="pkp:submission">
+		<complexType>
+			<complexContent>
+				<extension base="pkp:submission">
+                    <sequence>
+						<element ref="pkp:review_rounds" minOccurs="1" maxOccurs="unbounded" />
+                        <element ref="pkp:review_assignments" minOccurs="1" maxOccurs="unbounded" />
+					</sequence>
+					<attribute name="stage" use="required">
+						<simpleType>
+							<restriction base="string">
+								<enumeration value="submission" />
+								<enumeration value="externalReview" />
+								<enumeration value="editorial" />
+								<enumeration value="production" />
+							</restriction>
+						</simpleType>
+					</attribute>
+				</extension>
+			</complexContent>
+		</complexType>
+	</element>
+	<element name="extended_articles" substitutionGroup="pkp:submissions" />
+
 	<complexType name="journal">
 		<sequence>
 			<element name="email_signature" type="string" minOccurs="1" maxOccurs="1" />
@@ -60,9 +84,9 @@
 			<element ref="pkp:navigation_menus" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:PKPUsers" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:sections" minOccurs="0" maxOccurs="unbounded" />
-			<element ref="pkp:issues" minOccurs="0" maxOccurs="unbounded" />
-			<element ref="pkp:issue" minOccurs="0" maxOccurs="unbounded" />
-			<element ref="pkp:articles" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:extended_issues" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:extended_articles" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
@@ -84,6 +108,37 @@
 		<attribute name="purchase_article_fee" type="string" />
 		<attribute name="theme_plugin_path" type="string" />
 	</complexType>
+
+    <complexType name="extended_issue">
+		<sequence>
+			<element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
+			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:issue_identification" minOccurs="1" maxOccurs="1" />
+			<!-- Metadata -->
+			<element name="date_published" type="date" minOccurs="0" maxOccurs="1" />
+			<element name="date_notified" type="date" minOccurs="0" maxOccurs="1" />
+			<element name="last_modified" type="date" minOccurs="0" maxOccurs="1" />
+			<element name="open_access_date" type="date" minOccurs="0" maxOccurs="1" />
+			<!-- sub elements -->
+			<element ref="pkp:sections" minOccurs="0" maxOccurs="1" />
+			<element ref="pkp:covers" minOccurs="0" maxOccurs="1" />
+			<element ref="pkp:issue_galleys" minOccurs="0" maxOccurs="1" />
+			<element ref="pkp:extended_articles" minOccurs="0" maxOccurs="1" />
+		</sequence>
+		<attribute name="journal_id" type="int" use="optional" />
+		<attribute name="published" type="int" use="optional" />
+		<attribute name="current" type="int" use="optional" />
+		<attribute name="access_status" type="int" use="optional" />
+		<attribute name="url_path" type="string" use="optional" />
+	</complexType>
+    
+    <element name="extended_issues">
+		<complexType>
+			<sequence>
+				<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
 
 	<element name="plugins">
 		<complexType>
@@ -223,6 +278,7 @@
 	</complexType>
 
     <element name="journal" type="pkp:journal" />
+    <element name="extended_issue" type="pkp:extended_issue" />
     <element name="plugin" type="pkp:plugin" />
     <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
     <element name="navigation_menu" type="pkp:navigation_menu" />
