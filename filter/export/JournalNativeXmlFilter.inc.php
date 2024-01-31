@@ -343,7 +343,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
     public function addIssues($doc, $journalNode, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('issue=>native-xml');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('extended-issue=>native-xml');
         assert(count($nativeExportFilters) == 1);
         $exportFilter = array_shift($nativeExportFilters);
         $exportFilter->setOpts($this->opts);
@@ -362,7 +362,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
     public function addArticles($doc, $journalNode, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('article=>native-xml');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('extended-article=>native-xml');
         assert(count($nativeExportFilters) == 1);
         $exportFilter = array_shift($nativeExportFilters);
         $exportFilter->setOpts($this->opts);

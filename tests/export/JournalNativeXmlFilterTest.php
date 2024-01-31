@@ -576,7 +576,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         $parentNode->appendChild($issueNode = $doc->createElementNS(
             $deployment->getNamespace(),
-            'issue'
+            'extended_issue'
         ));
         $issueNode->setAttributeNS(
             'http://www.w3.org/2000/xmlns/',
@@ -617,7 +617,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $issueNode->appendChild($articlesNode = $doc->createElementNS(
             $deployment->getNamespace(),
-            'articles'
+            'extended_articles'
         ));
         $articlesNode->setAttribute(
             'xsi:schemaLocation',
@@ -1006,7 +1006,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS(
             $deployment->getNamespace(),
-            'articles'
+            'extended_articles'
         ));
         $articlesNode->setAttributeNS(
             'http://www.w3.org/2000/xmlns/',
