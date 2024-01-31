@@ -27,6 +27,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return 'fullJournal.xsd';
     }
 
+    public function getSubmissionNodeName()
+    {
+        return 'extended_article';
+    }
+
+    public function getSubmissionsNodeName()
+    {
+        return 'extended_articles';
+    }
+
     public function setReviewForm($reviewForm)
     {
         $this->reviewForm = $reviewForm;
