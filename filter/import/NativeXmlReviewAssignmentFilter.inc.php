@@ -33,7 +33,10 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
     public function handleElement($node)
     {
         $deployment = $this->getDeployment();
+
         $context = $deployment->getContext();
+        $submission = $deployment->getSubmission();
+        $reviewRound = $deployment->getReviewRound();
 
         $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
         $reviewAssignment = $reviewAssignmentDAO->newDataObject();
@@ -42,8 +45,8 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         $reviewer = $userDAO->getByUsername($node->getAttribute('reviewer'));
 
         $reviewAssignment->setReviewerId($reviewer->getId());
-        $reviewAssignment->setSubmissionId($deployment->getSubmissionDBId($node->getAttribute('submission_id')));
-        $reviewAssignment->setReviewRoundId($deployment->getReviewRoundDBId($node->getAttribute('review_round_id')));
+        $reviewAssignment->setSubmissionId($submission->getId());
+        $reviewAssignment->setReviewRoundId($reviewRound->getId());
         $reviewAssignment->setStageId($node->getAttribute('stage_id'));
         $reviewAssignment->setRecommendation($node->getAttribute('recommendation') ?: null);
         $reviewAssignment->setQuality($node->getAttribute('quality') ?: null);

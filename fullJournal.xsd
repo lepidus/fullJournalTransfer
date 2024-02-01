@@ -87,8 +87,6 @@
 			<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_issues" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_articles" minOccurs="0" maxOccurs="unbounded" />
-			<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
-			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="url_path" type="string" />
@@ -216,6 +214,7 @@
 			<element name="stage" type="string" minOccurs="1" maxOccurs="1" />
 			<element name="round" type="int" minOccurs="1" maxOccurs="1" />
 			<element name="status" type="int" minOccurs="1" maxOccurs="1" />
+			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 	</complexType>
 

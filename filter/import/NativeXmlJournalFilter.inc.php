@@ -134,9 +134,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($node->tagName == 'articles') {
                 $this->parseArticles($node, $journal);
             }
-            if ($node->tagName == 'review_assignments') {
-                $this->parseReviewAssignments($node, $journal);
-            }
         }
     }
 
@@ -359,28 +356,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $importedObjects = $importFilter->execute($articleDoc);
         $this->getDeployment()->setSubmissionDBId($oldId, $importedObjects[0]->getId());
         return $importedObjects;
-    }
-
-    public function parseReviewAssignments($node, $journal)
-    {
-        $deployment = $this->getDeployment();
-        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_assignment') {
-                $this->parseReviewAssignment($n, $journal);
-            }
-        }
-    }
-
-    public function parseReviewAssignment($node, $journal)
-    {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-assignment');
-        assert(count($importFilters) == 1);
-        $importFilter = array_shift($importFilters);
-        $importFilter->setDeployment($this->getDeployment());
-        $reviewAssignmentDoc = new DOMDocument();
-        $reviewAssignmentDoc->appendChild($reviewAssignmentDoc->importNode($node, true));
-        return $importFilter->execute($reviewAssignmentDoc);
     }
 
     private function getSimpleJournalNodeMapping()

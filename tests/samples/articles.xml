@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <extended_articles xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-	<article>
+	<extended_article>
 		<review_rounds xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
             <review_round xmlns="http://pkp.sfu.ca">
-                <id type="internal" advice="ignore">13</id>
+                <id type="internal" advice="ignore">563</id>
                 <submission_id>16</submission_id>
                 <stage>externalReview</stage>
                 <round>1</round>
                 <status>1</status>
             </review_round>
         </review_rounds>
-	</article>
+	</extended_article>
 </extended_articles>

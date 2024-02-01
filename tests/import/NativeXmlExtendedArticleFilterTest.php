@@ -17,7 +17,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
     protected function getAffectedTables()
     {
-        return ['review_rounds'];
+        return ['review_rounds', 'review_assignments'];
     }
 
     public function testParseReviewRounds()

@@ -24,7 +24,14 @@ class NativeXmlReviewAssignmentFilterTest extends NativeImportExportFilterTestCa
     {
         $reviewAssignmentImportFilter = $this->getNativeImportExportFilter();
         $deployment = $reviewAssignmentImportFilter->getDeployment();
-        $deployment->setSubmissionDBId(13, 87);
+
+        $reviewRound = new ReviewRound();
+        $reviewRound->setId(93);
+        $deployment->setReviewRound($reviewRound);
+
+        $submission = new Submission();
+        $submission->setId(87);
+        $deployment->setSubmission($submission);
 
         $doc = $this->getSampleXml('reviewAssignment.xml');
 
@@ -33,8 +40,9 @@ class NativeXmlReviewAssignmentFilterTest extends NativeImportExportFilterTestCa
         $this->assertInstanceOf(ReviewAssignment::class, $reviewAssignment);
 
         $expectedReviewAssignmentData = [
-            'submissionId' => 87,
+            'submissionId' => $submission->getId(),
             'reviewerId' => 7,
+            'reviewRoundId' => $reviewRound->getId(),
             'competingInterests' => 'test interest',
             'recommendation' => '2',
             'dateAssigned' => '2023-10-29 21:52:08',
@@ -65,7 +73,6 @@ class NativeXmlReviewAssignmentFilterTest extends NativeImportExportFilterTestCa
         $expectedReviewAssignmentData = array_merge($expectedReviewAssignmentData, [
             'id' => $reviewAssignmentId,
             'reviewerFullName' => 'Julie Janssen',
-            'reviewRoundId' => 0,
         ]);
         $this->assertEquals($expectedReviewAssignmentData, $insertedReviewAssignment->_data);
     }
