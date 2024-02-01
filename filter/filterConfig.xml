@@ -159,6 +159,13 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="class::classes.submission.Submission[]"
             outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+        <!-- ExtendedArticle native XML input -->
+        <filterGroup
+            symbolic="native-xml=>extended-article"
+            displayName="plugins.importexport.fullJournalTransfer.displayName"
+            description="plugins.importexport.fullJournalTransfer.description"
+            inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+            outputType="class::classes.submission.Submission[]" />
         <!-- ExtendedIssue native XML output -->
         <filterGroup
             symbolic="extended-issue=>native-xml"
@@ -251,6 +258,10 @@
         <filter
             inGroup="extended-article=>native-xml"
             class="plugins.importexport.fullJournalTransfer.filter.export.ExtendedArticleNativeXmlFilter"
+            isTemplate="0" />
+        <filter
+            inGroup="native-xml=>extended-article"
+            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter"
             isTemplate="0" />
         <filter
             inGroup="extended-issue=>native-xml"
