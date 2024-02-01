@@ -419,37 +419,6 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $this->assertEquals($expectedJournalData, $insertedJournal->_data);
     }
 
-    public function testParseReviewRounds()
-    {
-        $journalImportFilter = $this->getNativeImportExportFilter();
-        $deployment = $journalImportFilter->getDeployment();
-        $deployment->setSubmissionDBId(16, 46);
-        $journal = new Journal();
-        $journal->setId(rand());
-
-        $expectedReviewRoundData = [
-            'submissionId' => 46,
-            'stageId' => 3,
-            'round' => 1,
-            'status' => 1
-        ];
-
-        $doc = $this->getSampleXml('journal.xml');
-        $reviewRoundNodeList = $doc->getElementsByTagNameNS(
-            $deployment->getNamespace(),
-            'review_rounds'
-        );
-
-        $importedObjects = $journalImportFilter->parseReviewRounds($reviewRoundNodeList->item(0), $journal);
-
-        $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
-        $reviewRounds = $reviewRoundDAO->getBySubmissionId(46)->toArray();
-        $reviewRound = array_shift($reviewRounds);
-        unset($reviewRound->_data['id']);
-
-        $this->assertEquals($expectedReviewRoundData, $reviewRound->_data);
-    }
-
     public function testParseReviewAssignments()
     {
         $journalImportFilter = $this->getNativeImportExportFilter();

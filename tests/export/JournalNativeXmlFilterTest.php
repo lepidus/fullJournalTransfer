@@ -1018,20 +1018,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
         );
 
-        $expectedJournalNode->appendChild($reviewRoundsNode = $doc->createElementNS(
-            $deployment->getNamespace(),
-            'review_rounds'
-        ));
-        $reviewRoundsNode->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:xsi',
-            'http://www.w3.org/2001/XMLSchema-instance'
-        );
-        $reviewRoundsNode->setAttribute(
-            'xsi:schemaLocation',
-            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
-        );
-
         $expectedJournalNode->appendChild($reviewAssignmentsNode = $doc->createElementNS(
             $deployment->getNamespace(),
             'review_assignments'
@@ -1099,7 +1085,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->createUsersAndUserGroups($journal);
 
         $this->createSubmission();
-        $this->registerMockReviewRound();
         $this->registerMockReviewAssignment();
 
         $doc = $journalExportFilter->execute($journal);

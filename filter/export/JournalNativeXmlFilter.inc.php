@@ -160,7 +160,6 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addSections($doc, $journalNode, $journal);
         $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
-        $this->addReviewRounds($doc, $journalNode, $journal);
         $this->addReviewAssignments($doc, $journalNode, $journal);
 
         return $journalNode;
@@ -385,34 +384,6 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $articlesDoc = $exportFilter->execute($submissionsArray);
         if ($articlesDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($articlesDoc->documentElement, true);
-            $journalNode->appendChild($clone);
-        }
-    }
-
-    public function addReviewRounds($doc, $journalNode, $journal)
-    {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('review-round=>native-xml');
-        assert(count($nativeExportFilters) == 1);
-        $exportFilter = array_shift($nativeExportFilters);
-        $exportFilter->setDeployment($this->getDeployment());
-        $allReviewRounds = [];
-
-        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
-        $submissions =  $submissionDao->getByContextId($journal->getId())->toArray();
-        foreach ($submissions as $submission) {
-            $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
-            $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId());
-            $reviewRoundsArray = $reviewRounds->toArray();
-
-            foreach ($reviewRoundsArray as $reviewRound) {
-                $allReviewRounds[] = $reviewRound;
-            }
-        }
-
-        $reviewRoundsDoc = $exportFilter->execute($allReviewRounds);
-        if ($reviewRoundsDoc->documentElement instanceof DOMElement) {
-            $clone = $doc->importNode($reviewRoundsDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
     }

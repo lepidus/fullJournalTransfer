@@ -33,7 +33,7 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
     public function handleElement($node)
     {
         $deployment = $this->getDeployment();
-        $context = $deployment->getContext();
+        $submission = $deployment->getSubmission();
 
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
         $reviewRound = $reviewRoundDAO->newDataObject();
@@ -43,9 +43,6 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
                 switch ($n->tagName) {
                     case 'id':
                         $oldId = $n->textContent;
-                        break;
-                    case 'submission_id':
-                        $submissionId = $deployment->getSubmissionDBId($n->textContent);
                         break;
                     case 'stage':
                         $workflowStageDao = DAORegistry::getDAO('WorkflowStageDAO');
@@ -63,7 +60,7 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
             }
         }
 
-        $reviewRound = $reviewRoundDAO->build($submissionId, $stageId, $round, $status);
+        $reviewRound = $reviewRoundDAO->build($submission->getId(), $stageId, $round, $status);
         $deployment->setReviewRoundDBId($oldId, $reviewRound->getId());
 
         return $reviewRound;
