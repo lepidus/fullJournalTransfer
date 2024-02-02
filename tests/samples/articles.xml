@@ -12,5 +12,11 @@
                 <status>1</status>
             </review_round>
         </review_rounds>
+        <editor_decisions>
+            <editor_decision submission_id="143" round="0" review_round_id="0" stage_id="1" decision="8">
+                <editor>journaleditor</editor>
+                <date_decided>2015-03-04 13:39:11</date_decided>
+            </editor_decision>
+        </editor_decisions>
 	</extended_article>
 </extended_articles>
