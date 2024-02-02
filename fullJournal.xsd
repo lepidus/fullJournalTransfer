@@ -22,7 +22,8 @@
 			<complexContent>
 				<extension base="pkp:submission">
                     <sequence>
-						<element ref="pkp:review_rounds" minOccurs="1" maxOccurs="unbounded" />
+						<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
+						<element ref="pkp:editor_decisions" minOccurs="0" maxOccurs="unbounded" />
 					</sequence>
 					<attribute name="stage" use="required">
 						<simpleType>
@@ -255,6 +256,26 @@
 		<attribute name="reviewer" type="string" />
 	</complexType>
 
+    <element name="editor_decisions">
+		<complexType>
+			<sequence>
+				<element ref="pkp:editor_decision" minOccurs="0" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="editor_decision">
+		<sequence>
+			<element name="date_decided" type="string" minOccurs="1" maxOccurs="1" />
+            <element name="editor" type="string" minOccurs="1" maxOccurs="1" />
+		</sequence>
+		<attribute name="submission_id" type="int" />
+		<attribute name="review_round_id" type="int" />
+		<attribute name="round" type="int" />
+		<attribute name="stage_id" type="int" />
+		<attribute name="decision" type="int" />
+	</complexType>
+
 	<element name="announcements">
 		<complexType>
 			<sequence>
@@ -283,4 +304,5 @@
     <element name="announcement" type="pkp:announcement" />
 	<element name="review_round" type="pkp:review_round" />
 	<element name="review_assignment" type="pkp:review_assignment" />
+	<element name="editor_decision" type="pkp:editor_decision" />
 </schema>

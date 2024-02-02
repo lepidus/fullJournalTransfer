@@ -41,4 +41,44 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $submissionNode->appendChild($clone);
         }
     }
+
+    public function addEditorDecisions($doc, $submissionNode, $submission)
+    {
+        $deployment = $this->getDeployment();
+
+        $editDecisionDao = DAORegistry::getDAO('EditDecisionDAO');
+        $editorDecisions = $editDecisionDao->getEditorDecisions($submission->getId());
+
+        if (!count($editorDecisions)) {
+            return;
+        }
+
+        $editorDecisionsNode = $doc->createElementNS($deployment->getNamespace(), 'editor_decisions');
+        foreach ($editorDecisions as $editorDecision) {
+            $userDAO = DAORegistry::getDAO('UserDAO');
+            $editor = $userDAO->getById($editorDecision['editorId']);
+
+            $editorDecisionNode = $doc->createElementNS($deployment->getNamespace(), 'editor_decision');
+            $editorDecisionNode->setAttribute('submission_id', $submission->getId());
+            $editorDecisionNode->setAttribute('round', $editorDecision['round']);
+            $editorDecisionNode->setAttribute('review_round_id', $editorDecision['reviewRoundId']);
+            $editorDecisionNode->setAttribute('stage_id', $editorDecision['stageId']);
+            $editorDecisionNode->setAttribute('decision', $editorDecision['decision']);
+
+            $editorDecisionNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'editor',
+                htmlspecialchars($editor->getUsername(), ENT_COMPAT, 'UTF-8')
+            ));
+            $editorDecisionNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'date_decided',
+                strftime('%Y-%m-%d %H:%M:%S', strtotime($editorDecision['dateDecided']))
+            ));
+
+            $editorDecisionsNode->appendChild($editorDecisionNode);
+        }
+
+        $submissionNode->appendChild($editorDecisionsNode);
+    }
 }

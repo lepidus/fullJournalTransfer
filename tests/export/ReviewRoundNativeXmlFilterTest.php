@@ -70,6 +70,36 @@ class ReviewRoundNativeXmlFilterTest extends NativeImportExportFilterTestCase
         DAORegistry::registerDAO('ReviewAssignmentDAO', $mockDAO);
     }
 
+    public function createReviewRoundNode($doc, $deployment)
+    {
+        $reviewRoundNode = $doc->createElementNS($deployment->getNamespace(), 'review_round');
+        $reviewRoundNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'id', 563));
+        $node->setAttribute('type', 'internal');
+        $node->setAttribute('advice', 'ignore');
+        $reviewRoundNode->appendChild($doc->createElementNS(
+            $deployment->getNamespace(),
+            'submission_id',
+            16
+        ));
+        $reviewRoundNode->appendChild($doc->createElementNS(
+            $deployment->getNamespace(),
+            'stage',
+            htmlspecialchars('externalReview', ENT_COMPAT, 'UTF-8')
+        ));
+        $reviewRoundNode->appendChild($doc->createElementNS(
+            $deployment->getNamespace(),
+            'round',
+            1
+        ));
+        $reviewRoundNode->appendChild($doc->createElementNS(
+            $deployment->getNamespace(),
+            'status',
+            1
+        ));
+
+        return $reviewRoundNode;
+    }
+
     private function createReviewAssignmentsNode($doc, $parentNode, $deployment)
     {
         $parentNode->appendChild($reviewAssignmentsNode = $doc->createElementNS(
@@ -134,30 +164,7 @@ class ReviewRoundNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
-        $expectedReviewRoundNode = $doc->createElementNS($deployment->getNamespace(), 'review_round');
-        $expectedReviewRoundNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'id', 563));
-        $node->setAttribute('type', 'internal');
-        $node->setAttribute('advice', 'ignore');
-        $expectedReviewRoundNode->appendChild($doc->createElementNS(
-            $deployment->getNamespace(),
-            'submission_id',
-            16
-        ));
-        $expectedReviewRoundNode->appendChild($doc->createElementNS(
-            $deployment->getNamespace(),
-            'stage',
-            htmlspecialchars('externalReview', ENT_COMPAT, 'UTF-8')
-        ));
-        $expectedReviewRoundNode->appendChild($doc->createElementNS(
-            $deployment->getNamespace(),
-            'round',
-            1
-        ));
-        $expectedReviewRoundNode->appendChild($doc->createElementNS(
-            $deployment->getNamespace(),
-            'status',
-            1
-        ));
+        $expectedReviewRoundNode = $this->createReviewRoundNode($doc, $deployment);
         $this->createReviewAssignmentsNode($doc, $expectedReviewRoundNode, $deployment);
 
         $reviewRound = new ReviewRound();
