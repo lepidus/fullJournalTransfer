@@ -266,8 +266,8 @@
 
     <complexType name="editor_decision">
 		<sequence>
-			<element name="date_decided" type="string" minOccurs="1" maxOccurs="1" />
             <element name="editor" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="date_decided" type="string" minOccurs="1" maxOccurs="1" />
 		</sequence>
 		<attribute name="submission_id" type="int" />
 		<attribute name="review_round_id" type="int" />

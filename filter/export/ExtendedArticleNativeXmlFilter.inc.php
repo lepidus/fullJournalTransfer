@@ -20,6 +20,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $submissionNode = parent::createSubmissionNode($doc, $submission);
 
         $this->addReviewRounds($doc, $submissionNode, $submission);
+        $this->addEditorDecisions($doc, $submissionNode, $submission);
 
         return $submissionNode;
     }
