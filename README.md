@@ -6,7 +6,7 @@ The latest release of this plugin is compatible with the following PKP applicati
 
 * OJS 3.3.0
 
-*Note:* This plugin is designed for the export and import of journals within the same version of OJS. Example: from `3.3.0-16` to `3.3.0-16`.
+**Note:** This plugin is designed for the export and import of journals within the same version of OJS. Example: from `3.3.0-16` to `3.3.0-16`.
 
 ## Plugin Download
 To download the plugin, go to the [Releases page](https://github.com/lepidus/fullJournalTransfer/releases) and download the tar.gz package of the latest release compatible with your website.
