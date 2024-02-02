@@ -33,7 +33,7 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
     public function handleElement($node)
     {
         $deployment = $this->getDeployment();
-        $context = $deployment->getContext();
+        $submission = $deployment->getSubmission();
 
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
         $reviewRound = $reviewRoundDAO->newDataObject();
@@ -43,9 +43,6 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
                 switch ($n->tagName) {
                     case 'id':
                         $oldId = $n->textContent;
-                        break;
-                    case 'submission_id':
-                        $submissionId = $deployment->getSubmissionDBId($n->textContent);
                         break;
                     case 'stage':
                         $workflowStageDao = DAORegistry::getDAO('WorkflowStageDAO');
@@ -63,9 +60,39 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
             }
         }
 
-        $reviewRound = $reviewRoundDAO->build($submissionId, $stageId, $round, $status);
-        $deployment->setReviewRoundDBId($oldId, $reviewRound->getId());
+        $reviewRound = $reviewRoundDAO->build($submission->getId(), $stageId, $round, $status);
+        $deployment->setReviewRound($reviewRound);
+
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (
+                is_a($n, 'DOMElement')
+                && $n->tagName === 'review_assignments'
+            ) {
+                $this->parseReviewAssignments($n, $reviewRound);
+            }
+        }
 
         return $reviewRound;
+    }
+
+    public function parseReviewAssignments($node, $reviewRound)
+    {
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_assignment') {
+                $this->parseReviewAssignment($n, $reviewRound);
+            }
+        }
+    }
+
+    public function parseReviewAssignment($node, $reviewRound)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-assignment');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $reviewAssignmentDoc = new DOMDocument();
+        $reviewAssignmentDoc->appendChild($reviewAssignmentDoc->importNode($node, true));
+        return $importFilter->execute($reviewAssignmentDoc);
     }
 }

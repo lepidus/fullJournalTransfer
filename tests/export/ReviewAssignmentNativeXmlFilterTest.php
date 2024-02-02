@@ -24,8 +24,8 @@ class ReviewAssignmentNativeXmlFilterTest extends NativeImportExportFilterTestCa
         $reviewAssignment->setId(26);
         $reviewAssignment->setReviewerId(7);
         $reviewAssignment->setReviewFormId(2);
-        $reviewAssignment->setSubmissionId(13);
-        $reviewAssignment->setReviewRoundId(6);
+        $reviewAssignment->setSubmissionId(16);
+        $reviewAssignment->setReviewRoundId(563);
         $reviewAssignment->setStageId(3);
         $reviewAssignment->setRecommendation(2);
         $reviewAssignment->setQuality(5);
@@ -55,9 +55,9 @@ class ReviewAssignmentNativeXmlFilterTest extends NativeImportExportFilterTestCa
     public function createReviewAssignmentAttributes($node)
     {
         $node->setAttribute('id', 26);
-        $node->setAttribute('submission_id', 13);
+        $node->setAttribute('submission_id', 16);
         $node->setAttribute('review_form_id', 2);
-        $node->setAttribute('review_round_id', 6);
+        $node->setAttribute('review_round_id', 563);
         $node->setAttribute('stage_id', 3);
         $node->setAttribute('quality', 5);
         $node->setAttribute('recommendation', 2);

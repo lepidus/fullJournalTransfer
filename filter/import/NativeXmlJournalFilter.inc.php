@@ -125,14 +125,14 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($node->tagName == 'sections') {
                 $this->parseSections($node, $journal);
             }
-            if ($node->tagName == 'articles') {
+            if ($node->tagName == 'extended_issues') {
+                $this->parseIssues($node, $journal);
+            }
+            if ($node->tagName == 'extended_issue') {
+                $this->parseIssue($node, $journal);
+            }
+            if ($node->tagName == 'extended_articles') {
                 $this->parseArticles($node, $journal);
-            }
-            if ($node->tagName == 'review_rounds') {
-                $this->parseReviewRounds($node, $journal);
-            }
-            if ($node->tagName == 'review_assignments') {
-                $this->parseReviewAssignments($node, $journal);
             }
         }
     }
@@ -306,11 +306,34 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $deployment->addProcessedObjectId(ASSOC_TYPE_SECTION, $sectionId);
     }
 
+    public function parseIssues($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_issue') {
+                $this->parseIssue($n, $journal);
+            }
+        }
+    }
+
+    public function parseIssue($node, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>extended-issue');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $issueDoc = new DOMDocument();
+        $issueDoc->appendChild($issueDoc->importNode($node, true));
+        $importedObjects = $importFilter->execute($issueDoc);
+        return $importedObjects;
+    }
+
     public function parseArticles($node, $journal)
     {
         $deployment = $this->getDeployment();
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'article') {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_article') {
                 $this->parseArticle($n, $journal);
             }
         }
@@ -319,64 +342,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseArticle($node, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>article');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>extended-article');
         assert(count($importFilters) == 1);
         $importFilter = array_shift($importFilters);
         $importFilter->setDeployment($this->getDeployment());
         $articleDoc = new DOMDocument();
-        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName == 'id') {
-                $oldId = $n->textContent;
-            }
-        }
         $articleDoc->appendChild($articleDoc->importNode($node, true));
-        $importedObjects = $importFilter->execute($articleDoc);
-        $this->getDeployment()->setSubmissionDBId($oldId, $importedObjects[0]->getId());
-        return $importedObjects;
-    }
-
-    public function parseReviewRounds($node, $journal)
-    {
-        $deployment = $this->getDeployment();
-        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_round') {
-                $this->parseReviewRound($n, $journal);
-            }
-        }
-    }
-
-    public function parseReviewRound($node, $journal)
-    {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-round');
-        assert(count($importFilters) == 1);
-        $importFilter = array_shift($importFilters);
-        $importFilter->setDeployment($this->getDeployment());
-        $reviewRoundDoc = new DOMDocument();
-        $reviewRoundDoc->appendChild($reviewRoundDoc->importNode($node, true));
-        return $importFilter->execute($reviewRoundDoc);
-    }
-
-    public function parseReviewAssignments($node, $journal)
-    {
-        $deployment = $this->getDeployment();
-        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_assignment') {
-                $this->parseReviewAssignment($n, $journal);
-            }
-        }
-    }
-
-    public function parseReviewAssignment($node, $journal)
-    {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-assignment');
-        assert(count($importFilters) == 1);
-        $importFilter = array_shift($importFilters);
-        $importFilter->setDeployment($this->getDeployment());
-        $reviewAssignmentDoc = new DOMDocument();
-        $reviewAssignmentDoc->appendChild($reviewAssignmentDoc->importNode($node, true));
-        return $importFilter->execute($reviewAssignmentDoc);
+        return $importFilter->execute($articleDoc);
     }
 
     private function getSimpleJournalNodeMapping()

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <review_assignments xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-    <review_assignment id="26" submission_id="13" review_form_id="2" review_round_id="6"
+    <review_assignment id="26" submission_id="16" review_form_id="2" review_round_id="563"
         stage_id="3" quality="5" recommendation="2" round="1" review_method="2" reviewer="jjanssen"
         competing_interests="test interest">
         <date_rated>2023-10-31 21:52:08</date_rated>

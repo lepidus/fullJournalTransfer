@@ -14,7 +14,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'user_group_settings', 'user_group_stage',
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
-            'users', 'sections', 'section_settings', 'review_assignments', 'review_rounds',
+            'users', 'sections', 'section_settings',
             'submissions', 'submission_settings', 'publications', 'publication_settings'
         ];
     }
@@ -35,9 +35,8 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuItemDAO',
             'NavigationMenuItemAssignmentDAO',
             'SectionDAO',
-            'ReviewRoundDAO',
             'SubmissionDAO',
-            'ReviewAssignmentDAO'
+            'IssueDAO'
         ];
     }
 
@@ -112,7 +111,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     private function registerMockSectionDAO()
     {
         $mockDAO = $this->getMockBuilder(SectionDAO::class)
-            ->setMethods(['getByJournalId'])
+            ->setMethods(['getByJournalId', 'getByIssueId'])
             ->getMock();
 
         $section = $mockDAO->newDataObject();
@@ -141,6 +140,10 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $mockDAO->expects($this->any())
             ->method('getByJournalId')
             ->will($this->returnValue($mockResult));
+
+        $mockDAO->expects($this->any())
+            ->method('getByIssueId')
+            ->will($this->returnValue([]));
 
         DAORegistry::registerDAO('SectionDAO', $mockDAO);
     }
@@ -567,6 +570,64 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $exportFilter->createLocalizedNodes($doc, $sectionNode, 'title', ['en_US' => 'Articles']);
     }
 
+    private function createIssuesNode($doc, $deployment, $exportFilter, $parentNode)
+    {
+        $parentNode->appendChild($issueNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'extended_issue'
+        ));
+        $issueNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $issueNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+        $issueNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'id',
+            102
+        ));
+        $node->setAttribute('type', 'internal');
+        $node->setAttribute('advice', 'ignore');
+
+
+        $issueNode->appendChild($identificationNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'issue_identification',
+        ));
+        $identificationNode->appendChild($node = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'year',
+            2024
+        ));
+
+        $issueNode->appendChild($issueGalleysNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'issue_galleys'
+        ));
+        $issueGalleysNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+
+        $issueNode->appendChild($articlesNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'extended_articles'
+        ));
+        $articlesNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+
+        $issueNode->setAttribute('access_status', 0);
+        $issueNode->setAttribute('current', 0);
+        $issueNode->setAttribute('published', 0);
+        $issueNode->setAttribute('url_path', 'testes');
+    }
+
     public function testCreateSubmissionChecklistNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
@@ -667,18 +728,27 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         DAORegistry::registerDAO('SubmissionDAO', $mockDAO);
     }
 
-    private function registerMockReviewRound()
+    private function registerMockIssues()
     {
-        $mockDAO = $this->getMockBuilder(ReviewRoundDAO::class)
-            ->setMethods(['getBySubmissionId'])
+        $mockDAO = $this->getMockBuilder(IssueDAO::class)
+            ->setMethods(['getIssues'])
             ->getMock();
 
-        $reviewRound = $mockDAO->newDataObject();
-        $reviewRound->setId(13);
-        $reviewRound->setSubmissionId(16);
-        $reviewRound->setStageId(3);
-        $reviewRound->setRound(1);
-        $reviewRound->setStatus(1);
+        $issue = $mockDAO->newDataObject();
+        $issue->setId(102);
+        $issue->setJournalId(1483);
+        $issue->setVolume('17');
+        $issue->setNumber('5');
+        $issue->setYear('2024');
+        $issue->setPublished(0);
+        $issue->setDatePublished(null);
+        $issue->setCurrent(0);
+        $issue->setAccessStatus(0);
+        $issue->setShowVolume(0);
+        $issue->setShowNumber(0);
+        $issue->setShowYear(1);
+        $issue->setShowTitle(1);
+        $issue->setData('urlPath', 'testes');
 
         $mockResult = $this->getMockBuilder(DAOResultFactory::class)
             ->setMethods(['toArray'])
@@ -687,55 +757,13 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $mockResult->expects($this->any())
             ->method('toArray')
-            ->will($this->returnValue([$reviewRound]));
+            ->will($this->returnValue([$issue]));
 
         $mockDAO->expects($this->any())
-            ->method('getBySubmissionId')
+            ->method('getIssues')
             ->will($this->returnValue($mockResult));
 
-        DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
-    }
-
-    private function registerMockReviewAssignment()
-    {
-        $mockDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
-            ->setMethods(['getBySubmissionId'])
-            ->getMock();
-
-        $reviewAssignment = $mockDAO->newDataObject();
-        $reviewAssignment->setId(26);
-        $reviewAssignment->setReviewerId(7);
-        $reviewAssignment->setReviewFormId(2);
-        $reviewAssignment->setSubmissionId(13);
-        $reviewAssignment->setReviewRoundId(6);
-        $reviewAssignment->setStageId(3);
-        $reviewAssignment->setRecommendation(2);
-        $reviewAssignment->setQuality(5);
-        $reviewAssignment->setRound(1);
-        $reviewAssignment->setReviewMethod(2);
-        $reviewAssignment->setCompetingInterests('test interest');
-
-        $reviewAssignment->setDeclined(false);
-        $reviewAssignment->setCancelled(false);
-        $reviewAssignment->setReminderWasAutomatic(false);
-        $reviewAssignment->setUnconsidered(false);
-
-        $reviewAssignment->setDateRated('2023-10-31 21:52:08.000');
-        $reviewAssignment->setDateReminded('2023-10-30 21:52:08.000');
-        $reviewAssignment->setDateAssigned('2023-10-29 21:52:08.000');
-        $reviewAssignment->setDateNotified('2023-10-28 21:52:08.000');
-        $reviewAssignment->setDateConfirmed('2023-10-27 21:52:08.000');
-        $reviewAssignment->setDateCompleted('2023-10-26 21:52:08.000');
-        $reviewAssignment->setDateAcknowledged('2023-10-25 21:52:08.000');
-        $reviewAssignment->setDateDue('2023-10-24 21:52:08.000');
-        $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08.000');
-        $reviewAssignment->setLastModified('2023-10-22 21:52:08.000');
-
-        $mockDAO->expects($this->any())
-            ->method('getBySubmissionId')
-            ->will($this->returnValue(array($reviewAssignment)));
-
-        DAORegistry::registerDAO('ReviewAssignmentDAO', $mockDAO);
+        DAORegistry::registerDAO('IssueDAO', $mockDAO);
     }
 
     public function testAddPlugins()
@@ -899,10 +927,13 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $expectedJournalNode->appendChild($clone);
         }
         $this->createSectionsNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
+        $this->createIssuesNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
+
+        $this->registerMockIssues();
 
         $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS(
             $deployment->getNamespace(),
-            'articles'
+            'extended_articles'
         ));
         $articlesNode->setAttributeNS(
             'http://www.w3.org/2000/xmlns/',
@@ -910,34 +941,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'http://www.w3.org/2001/XMLSchema-instance'
         );
         $articlesNode->setAttribute(
-            'xsi:schemaLocation',
-            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
-        );
-
-        $expectedJournalNode->appendChild($reviewRoundsNode = $doc->createElementNS(
-            $deployment->getNamespace(),
-            'review_rounds'
-        ));
-        $reviewRoundsNode->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:xsi',
-            'http://www.w3.org/2001/XMLSchema-instance'
-        );
-        $reviewRoundsNode->setAttribute(
-            'xsi:schemaLocation',
-            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
-        );
-
-        $expectedJournalNode->appendChild($reviewAssignmentsNode = $doc->createElementNS(
-            $deployment->getNamespace(),
-            'review_assignments'
-        ));
-        $reviewAssignmentsNode->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:xsi',
-            'http://www.w3.org/2001/XMLSchema-instance'
-        );
-        $reviewAssignmentsNode->setAttribute(
             'xsi:schemaLocation',
             $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
         );
@@ -990,11 +993,10 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ]
         );
         $this->registerMockSectionDAO();
+        $this->registerMockIssues();
         $this->createUsersAndUserGroups($journal);
 
         $this->createSubmission();
-        $this->registerMockReviewRound();
-        $this->registerMockReviewAssignment();
 
         $doc = $journalExportFilter->execute($journal);
 

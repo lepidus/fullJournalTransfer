@@ -102,36 +102,13 @@
             <title locale="en_US">Articles</title>
         </section>
     </sections>
-    <articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
-    <review_rounds xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-        <review_round xmlns="http://pkp.sfu.ca">
-            <id type="internal" advice="ignore">13</id>
-            <submission_id>16</submission_id>
-            <stage>externalReview</stage>
-            <round>1</round>
-            <status>1</status>
-        </review_round>
-    </review_rounds>
-    <review_assignments xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-        <review_assignment id="26" submission_id="13" review_form_id="2" review_round_id="6"
-            stage_id="3" quality="5" recommendation="2" round="1" review_method="2" reviewer="jjanssen"
-            competing_interests="test interest">
-            <date_rated>2023-10-31 21:52:08</date_rated>
-            <date_reminded>2023-10-30 21:52:08</date_reminded>
-            <date_assigned>2023-10-29 21:52:08</date_assigned>
-            <date_notified>2023-10-28 21:52:08</date_notified>
-            <date_confirmed>2023-10-27 21:52:08</date_confirmed>
-            <date_completed>2023-10-26 21:52:08</date_completed>
-            <date_acknowledged>2023-10-25 21:52:08</date_acknowledged>
-            <date_due>2023-10-24 21:52:08</date_due>
-            <date_response_due>2023-10-23 21:52:08</date_response_due>
-            <last_modified>2023-10-22 21:52:08</last_modified>
-            <declined>false</declined>
-            <cancelled>false</cancelled>
-            <reminder_was_automatic>false</reminder_was_automatic>
-            <unconsidered>false</unconsidered>
-        </review_assignment>
-    </review_assignments>
+    <extended_issue access_status="0" current="0" published="0" url_path="testes" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <id advice="ignore" type="internal">102</id>
+        <issue_identification>
+            <year>2024</year>
+        </issue_identification>
+        <issue_galleys xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
+        <extended_articles xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
+    </extended_issue>
+    <extended_articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
 </journal>

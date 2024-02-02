@@ -74,6 +74,26 @@ class ReviewRoundNativeXmlFilter extends NativeExportFilter
             intval($reviewRound->getStatus())
         ));
 
+        $this->addReviewAssignments($doc, $reviewRoundNode, $reviewRound);
+
         return $reviewRoundNode;
+    }
+
+    public function addReviewAssignments($doc, $reviewRoundNode, $reviewRound)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('review-assignment=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
+        $reviewRounds = $reviewAssignmentDao->getByReviewRoundId($reviewRound->getId());
+
+        $reviewAssignmentsDoc = $exportFilter->execute($reviewRounds);
+        if ($reviewAssignmentsDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($reviewAssignmentsDoc->documentElement, true);
+            $reviewRoundNode->appendChild($clone);
+        }
     }
 }

@@ -37,6 +37,7 @@ php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName] [u
 
 - Users and User Roles
 - Articles
+- Issues
 
 **Added**:
 
@@ -50,17 +51,16 @@ php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName] [u
 
 **To Do**:
 
-- Issues
-- Editor Decissions
+- Editor Decisions
 - Stage Assignments
 - Review Files
-- Discursions
+- Discussions
 
 ## Running Tests
 
 ### Unit Tests
 
-To execute the unit tests, run the following command from root of the PKP Appplication directory:
+To execute the unit tests, run the following command from root of the PKP Application directory:
 ```bash
 lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit-env2.xml plugins/importexport/fullJournalTransfer/tests
 ```
@@ -74,6 +74,6 @@ Developed by Lepidus Tecnologia.
 
 
 # License
-__This plugin is licensed under the GNU General Public License v3.0__
+This plugin is licensed under the GNU General Public License v3.0
 
-__Copyright (c) 2014-2024 Lepidus Tecnologia__
+Copyright (c) 2014-2024 Lepidus Tecnologia
