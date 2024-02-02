@@ -20,7 +20,6 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $submissionNode = parent::createSubmissionNode($doc, $submission);
 
         $this->addReviewRounds($doc, $submissionNode, $submission);
-        $this->addReviewAssignments($doc, $submissionNode, $submission);
 
         return $submissionNode;
     }
@@ -39,23 +38,6 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $reviewRoundsDoc = $exportFilter->execute($reviewRounds);
         if ($reviewRoundsDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($reviewRoundsDoc->documentElement, true);
-            $submissionNode->appendChild($clone);
-        }
-    }
-
-    public function addReviewAssignments($doc, $submissionNode, $submission)
-    {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('review-assignment=>native-xml');
-        assert(count($nativeExportFilters) == 1);
-        $exportFilter = array_shift($nativeExportFilters);
-        $exportFilter->setDeployment($this->getDeployment());
-
-        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
-        $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
-        $reviewAssignmentsDoc = $exportFilter->execute($reviewAssignments);
-        if ($reviewAssignmentsDoc->documentElement instanceof DOMElement) {
-            $clone = $doc->importNode($reviewAssignmentsDoc->documentElement, true);
             $submissionNode->appendChild($clone);
         }
     }

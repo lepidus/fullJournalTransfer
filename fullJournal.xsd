@@ -23,7 +23,6 @@
 				<extension base="pkp:submission">
                     <sequence>
 						<element ref="pkp:review_rounds" minOccurs="1" maxOccurs="unbounded" />
-                        <element ref="pkp:review_assignments" minOccurs="1" maxOccurs="unbounded" />
 					</sequence>
 					<attribute name="stage" use="required">
 						<simpleType>

@@ -375,7 +375,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $doc = $this->getSampleXml('journal.xml');
         $issueNodeList = $doc->getElementsByTagNameNS(
             $deployment->getNamespace(),
-            'issue'
+            'extended_issue'
         );
 
         $journalImportFilter->parseIssue($issueNodeList->item(0), $journal);

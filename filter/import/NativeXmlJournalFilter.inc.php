@@ -125,13 +125,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($node->tagName == 'sections') {
                 $this->parseSections($node, $journal);
             }
-            if ($node->tagName == 'issues') {
+            if ($node->tagName == 'extended_issues') {
                 $this->parseIssues($node, $journal);
             }
-            if ($node->tagName == 'issue') {
+            if ($node->tagName == 'extended_issue') {
                 $this->parseIssue($node, $journal);
             }
-            if ($node->tagName == 'articles') {
+            if ($node->tagName == 'extended_articles') {
                 $this->parseArticles($node, $journal);
             }
         }
@@ -310,7 +310,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $deployment = $this->getDeployment();
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'issue') {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_issue') {
                 $this->parseIssue($n, $journal);
             }
         }
@@ -319,7 +319,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseIssue($node, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>issue');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>extended-issue');
         assert(count($importFilters) == 1);
         $importFilter = array_shift($importFilters);
         $importFilter->setDeployment($this->getDeployment());
@@ -333,7 +333,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $deployment = $this->getDeployment();
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'article') {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_article') {
                 $this->parseArticle($n, $journal);
             }
         }
@@ -342,20 +342,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseArticle($node, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>article');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>extended-article');
         assert(count($importFilters) == 1);
         $importFilter = array_shift($importFilters);
         $importFilter->setDeployment($this->getDeployment());
         $articleDoc = new DOMDocument();
-        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName == 'id') {
-                $oldId = $n->textContent;
-            }
-        }
         $articleDoc->appendChild($articleDoc->importNode($node, true));
-        $importedObjects = $importFilter->execute($articleDoc);
-        $this->getDeployment()->setSubmissionDBId($oldId, $importedObjects[0]->getId());
-        return $importedObjects;
+        return $importFilter->execute($articleDoc);
     }
 
     private function getSimpleJournalNodeMapping()

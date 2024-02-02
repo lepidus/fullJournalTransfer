@@ -24,9 +24,6 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             case 'review_rounds':
                 $this->parseReviewRounds($n, $submission);
                 break;
-            case 'review_assignments':
-                $this->parseReviewAssignments($n, $submission);
-                break;
             default:
                 $deployment = $this->getDeployment();
                 $deployment->addWarning(ASSOC_TYPE_SUBMISSION, $submission->getId(), __('plugins.importexport.common.error.unknownElement', array('param' => $n->tagName)));

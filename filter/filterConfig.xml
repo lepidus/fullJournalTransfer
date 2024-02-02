@@ -173,6 +173,13 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="class::classes.issue.Issue[]"
             outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
+        <!-- ExtendedIssue native XML input -->
+        <filterGroup
+            symbolic="native-xml=>extended-issue"
+            displayName="plugins.importexport.fullJournalTransfer.displayName"
+            description="plugins.importexport.fullJournalTransfer.description"
+            inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+            outputType="class::classes.issue.Issue[]" />
     </filterGroups>
     <filters>
         <filter
@@ -266,6 +273,10 @@
         <filter
             inGroup="extended-issue=>native-xml"
             class="plugins.importexport.fullJournalTransfer.filter.export.ExtendedIssueNativeXmlFilter"
+            isTemplate="0" />
+        <filter
+            inGroup="native-xml=>extended-issue"
+            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedIssueFilter"
             isTemplate="0" />
     </filters>
 </filterConfig>
