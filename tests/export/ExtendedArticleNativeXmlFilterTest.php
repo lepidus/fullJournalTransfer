@@ -34,7 +34,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewRound->setStageId(3);
         $reviewRound->setRound(1);
         $reviewRound->setStatus(1);
-
         $mockResult = $this->getMockBuilder(DAOResultFactory::class)
             ->setMethods(['toArray'])
             ->disableOriginalConstructor()
