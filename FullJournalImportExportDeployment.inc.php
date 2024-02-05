@@ -34,6 +34,29 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return 'extended_articles';
     }
 
+    public function validateSubmission($submission)
+    {
+        $isComplete = 0;
+        if ($submission->getSubmissionProgress() != $isComplete) {
+            return false;
+        }
+
+        $publications = $submission->getData('publications');
+        if (empty($publications)) {
+            return false;
+        }
+        foreach ($publications as $publication) {
+            $titles = $publication->getData('title');
+            $authors = $publication->getData('authors');
+
+            if (!$titles || !$authors) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function setReviewRound($reviewRound)
     {
         $this->reviewRound = $reviewRound;

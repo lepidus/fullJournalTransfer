@@ -62,7 +62,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $editorDecisionNode = $doc->createElementNS($deployment->getNamespace(), 'editor_decision');
             $editorDecisionNode->setAttribute('submission_id', $submission->getId());
             $editorDecisionNode->setAttribute('round', $editorDecision['round']);
-            $editorDecisionNode->setAttribute('review_round_id', $editorDecision['reviewRoundId']);
+            $editorDecisionNode->setAttribute('review_round_id', $editorDecision['reviewRoundId'] ?: 0);
             $editorDecisionNode->setAttribute('stage_id', $editorDecision['stageId']);
             $editorDecisionNode->setAttribute('decision', $editorDecision['decision']);
 
