@@ -367,16 +367,18 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setDeployment($this->getDeployment());
         $exportFilter->setIncludeSubmissionsNode(true);
 
+        $submissionsArray = [];
         $submissionsIterator = Services::get('submission')->getMany([
             'contextId' => $journal->getId()
         ]);
-        $submissionsArray = [];
+
         $isComplete = 0;
         foreach ($submissionsIterator as $submission) {
-            if (
-                $submission->getSubmissionProgress() == $isComplete
-                && !$submission->getCurrentPublication()->getData('issueId')
-            ) {
+            $currentPublication = $submission->getCurrentPublication();
+            if ($submission->getSubmissionProgress() != $isComplete && !$currentPublication) {
+                continue;
+            }
+            if ($currentPublication->getData('issueId')) {
                 $submissionsArray[] = $submission;
             }
         }
