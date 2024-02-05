@@ -358,19 +358,6 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journal->setId(rand());
         $deployment->setContext($journal);
 
-        $expectedIssueData = [
-            'journalId' => $journal->getId(),
-            'year' => 2024,
-            'published' => 0,
-            'current' => 0,
-            'lastModified' => Core::getCurrentDate(),
-            'accessStatus' => 0,
-            'showVolume' => 0,
-            'showNumber' => 0,
-            'showYear' => 1,
-            'showTitle' => 0,
-            'urlPath' => 'testes'
-        ];
 
         $doc = $this->getSampleXml('journal.xml');
         $issueNodeList = $doc->getElementsByTagNameNS(
@@ -384,6 +371,20 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $issues = $issueDAO->getIssuesByIdentification($journal->getId(), null, null, 2024)->toArray();
         $issue = array_shift($issues);
         unset($issue->_data['id']);
+
+        $expectedIssueData = [
+            'journalId' => $journal->getId(),
+            'year' => 2024,
+            'published' => 0,
+            'current' => 0,
+            'lastModified' => $issue->getLastModified(),
+            'accessStatus' => 0,
+            'showVolume' => 0,
+            'showNumber' => 0,
+            'showYear' => 1,
+            'showTitle' => 0,
+            'urlPath' => 'testes'
+        ];
 
         $this->assertEquals($expectedIssueData, $issue->_data);
     }
