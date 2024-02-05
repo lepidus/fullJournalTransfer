@@ -79,7 +79,13 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
             'contextId' => $issue->getJournalId(),
             'issueIds' => $issue->getId(),
         ]);
-        $submissionsArray = iterator_to_array($submissionsIterator);
+        $submissionsArray = [];
+        foreach ($submissionsIterator as $submission) {
+            if ($this->getDeployment()->validateSubmission($submission)) {
+                $submissionsArray[] = $submission;
+            }
+            $submissionsArray[] = $submission;
+        }
         $articlesDoc = $exportFilter->execute($submissionsArray);
         if ($articlesDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($articlesDoc->documentElement, true);
