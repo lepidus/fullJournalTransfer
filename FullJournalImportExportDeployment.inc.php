@@ -49,7 +49,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             $titles = $publication->getData('title');
             $authors = $publication->getData('authors');
 
-            if (!$titles || !$authors) {
+            if (empty($titles) || empty($authors)) {
                 return false;
             }
         }
