@@ -81,8 +81,8 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
         ]);
         $submissionsArray = [];
         foreach ($submissionsIterator as $submission) {
-            if ($this->getDeployment()->validateSubmission($submission)) {
-                $submissionsArray[] = $submission;
+            if (!$this->getDeployment()->validateSubmission($submission)) {
+                continue;
             }
             $submissionsArray[] = $submission;
         }

@@ -17,6 +17,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
     public function createSubmissionNode($doc, $submission)
     {
         $deployment = $this->getDeployment();
+
         $submissionNode = parent::createSubmissionNode($doc, $submission);
 
         $this->addReviewRounds($doc, $submissionNode, $submission);
