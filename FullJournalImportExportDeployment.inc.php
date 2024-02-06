@@ -52,6 +52,19 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             if (empty($titles) || empty($authors)) {
                 return false;
             }
+
+            foreach ($authors as $author) {
+                $givenNames = $author->getGivenName(null);
+                $userGroup = $author->getUserGroup();
+
+                if (is_null($givenNames)) {
+                    return false;
+                }
+
+                if (!$userGroup) {
+                    return false;
+                }
+            }
         }
 
         return true;
