@@ -11,6 +11,6 @@
 	<application>fullJournalTransfer</application>
 	<type>plugins.importexport</type>
 	<release>2.0.4.6</release>
-	<date>2024-02-06</date>
+	<date>2024-02-07</date>
     <class>FullJournalImportExportPlugin</class>
 </version>
