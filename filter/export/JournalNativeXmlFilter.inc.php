@@ -372,7 +372,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
             'contextId' => $journal->getId()
         ]);
 
-        foreach ($submissionsIterator as $submission) {
+        while ($submission = $submissionsIterator->next()) {
             if (!$this->getDeployment()->validateSubmission($submission)) {
                 continue;
             }
@@ -381,6 +381,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
                 $submissionsArray[] = $submission;
             }
         }
+
         $articlesDoc = $exportFilter->execute($submissionsArray);
         if ($articlesDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($articlesDoc->documentElement, true);
