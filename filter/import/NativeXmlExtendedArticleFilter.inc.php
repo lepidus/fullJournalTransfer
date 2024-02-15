@@ -22,7 +22,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                 $this->parsePublication($n, $submission);
                 break;
             case 'stage_assignment':
-                $this->parseStageAssignments($n, $submission);
+                $this->parseStageAssignment($n, $submission);
                 break;
             case 'review_rounds':
                 $this->parseReviewRounds($n, $submission);

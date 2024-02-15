@@ -2,7 +2,7 @@
 <extended_articles xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
 	<extended_article>
-        <stage_assignment user="testuser" user_group_ref="External Reviewer" date_assigned="2023-12-16 00:00:20.000" stage="externalReview" recommend_only="0" can_change_metadata="0"/>
+        <stage_assignment user="testuser" user_group_ref="External Reviewer" stage="externalReview" recommend_only="0" can_change_metadata="0"/>
 		<review_rounds xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
             <review_round xmlns="http://pkp.sfu.ca">

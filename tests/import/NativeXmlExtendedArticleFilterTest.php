@@ -53,7 +53,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
         $contextId = 562;
         $userId = 489;
-        $mockDAO->assignGroupToStage($contextId, $userGroup->getId(), 3);
+        $mockDAO->assignGroupToStage($contextId, $userGroup->getId(), WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
 
         $mockResult = $this->getMockBuilder(DAOResultFactory::class)
             ->setMethods(['toArray'])
