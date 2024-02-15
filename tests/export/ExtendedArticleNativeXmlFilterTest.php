@@ -19,7 +19,35 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
     protected function getMockedDAOs()
     {
-        return ['UserDAO', 'ReviewRoundDAO', 'EditDecisionDAO'];
+        return ['UserDAO', 'UserGroupDAO', 'ReviewRoundDAO', 'EditDecisionDAO', 'StageAssignmentDAO'];
+    }
+
+    private function registerMockStageAssignmentDAO()
+    {
+        $mockDAO = $this->getMockBuilder(StageAssignmentDAO::class)
+            ->setMethods(['getBySubmissionAndStageId'])
+            ->getMock();
+
+        $stageAssignment = $mockDAO->newDataObject();
+        $stageAssignment->setId(563);
+        $stageAssignment->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $stageAssignment->getRecommendOnly(0);
+        $stageAssignment->getCanChangeMetadata(0);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($stageAssignment, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getBySubmissionAndStageId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('StageAssignmentDAO', $mockDAO);
     }
 
     private function registerMockReviewRoundDAO()
@@ -73,20 +101,37 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('EditDecisionDAO', $mockDAO);
     }
 
-    private function registerMockUserDAO()
+    private function registerMockUserDAO($username)
     {
         $mockDAO = $this->getMockBuilder(UserDAO::class)
             ->setMethods(['getById'])
             ->getMock();
 
         $user = $mockDAO->newDataObject();
-        $user->setUsername('journaleditor');
+        $user->setUsername($username);
 
         $mockDAO->expects($this->any())
             ->method('getById')
             ->will($this->returnValue($user));
 
         DAORegistry::registerDAO('UserDAO', $mockDAO);
+    }
+
+    private function registerMockUserGroupDAO()
+    {
+        $mockDAO = $this->getMockBuilder(UserGroupDAO::class)
+            ->setMethods(['getById'])
+            ->getMock();
+
+        $userGroup = $mockDAO->newDataObject();
+        $userGroup->setId(734);
+        $userGroup->setName('External Reviewer', 'en_US');
+
+        $mockDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->returnValue($userGroup));
+
+        DAORegistry::registerDAO('UserGroupDAO', $mockDAO);
     }
 
     public function createRootNode($doc, $deployment, $tagName)
@@ -103,6 +148,49 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         );
 
         return $rootNode;
+    }
+
+    public function testAddStageAssignment()
+    {
+        $extendedArticleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $extendedArticleExportFilter->getDeployment();
+
+
+        $context = new Journal();
+        $context->setPrimaryLocale('en_US');
+        $deployment->setContext($context);
+
+        $this->registerMockStageAssignmentDAO();
+        $this->registerMockUserDAO('testuser');
+        $this->registerMockUserGroupDAO();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $expectedSubmissionNode = $doc->createElementNS($deployment->getNamespace(), 'extended_article');
+        $expectedSubmissionNode->appendChild($stageAssignmentNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'stage_assignment'
+        ));
+        $stageAssignmentNode->setAttribute('user', 'testuser');
+        $stageAssignmentNode->setAttribute('user_group_ref', 'External Reviewer');
+        $stageAssignmentNode->setAttribute('stage', 'externalReview');
+        $stageAssignmentNode->setAttribute('recommend_only', 0);
+        $stageAssignmentNode->setAttribute('can_change_metadata', 0);
+
+        $submissionNode = $doc->createElementNS($deployment->getNamespace(), 'extended_article');
+
+        $submission = new Submission();
+        $submission->setId(143);
+
+        $extendedArticleExportFilter->addStageAssignments($doc, $submissionNode, $submission);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedSubmissionNode),
+            $doc->saveXML($submissionNode),
+            "actual xml is equal to expected xml"
+        );
     }
 
     public function createEditorDecisionsNode($doc, $deployment)
@@ -183,7 +271,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submission->setId(143);
 
         $this->registerMockEditorDecisionDAO();
-        $this->registerMockUserDAO();
+        $this->registerMockUserDAO('journaleditor');
 
         $expectedSubmissionNode = $doc->createElementNS($deployment->getNamespace(), 'extended_article');
         $expectedSubmissionNode->appendChild($this->createEditorDecisionsNode($doc, $deployment));
