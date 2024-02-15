@@ -143,7 +143,10 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     foreach ($validationErrors as $validationError) {
                         echo ++$i . '. Line: ' . $validationError->line . ' Column: ' . $validationError->column . ' > ' . $validationError->message . "\n";
                     }
+                } else {
+                    echo __('plugins.importexport.fullJournal.importCompleted') . "\n";
                 }
+
                 return;
             case 'export':
                 $journalPath = array_shift($args);
@@ -197,6 +200,11 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
             $this->displayXMLValidationErrors($errors, $xml);
         }
         $xml = $journalXml->saveXml();
+
+        if ($xml) {
+            echo __('plugins.importexport.fullJournal.exportCompleted') . "\n";
+        }
+
         return $xml;
     }
 

@@ -10,3 +10,39 @@ msgstr ""
 "Commands:\n"
 "import [xmlFileName] [user_name]\n"
 "export [xmlFileName] [journal_path]\n"
+
+msgid "plugins.importexport.fullJournal.exportingJournal"
+msgstr "Exporting journal {$journalName}..."
+
+msgid "plugins.importexport.fullJournal.exportingUsers"
+msgstr "Exporting users..."
+
+msgid "plugins.importexport.fullJournal.exportingSections"
+msgstr "Exporting sections..."
+
+msgid "plugins.importexport.fullJournal.exportingIssues"
+msgstr "Exporting issues..."
+
+msgid "plugins.importexport.fullJournal.exportingArticles"
+msgstr "Exporting articles..."
+
+msgid "plugins.importexport.fullJournal.exportCompleted"
+msgstr "Export completed successfully"
+
+msgid "plugins.importexport.fullJournal.importingJournal"
+msgstr "Importing journal..."
+
+msgid "plugins.importexport.fullJournal.importingUsers"
+msgstr "Importing users..."
+
+msgid "plugins.importexport.fullJournal.importingSections"
+msgstr "Importing sections..."
+
+msgid "plugins.importexport.fullJournal.importingIssues"
+msgstr "Importing issues..."
+
+msgid "plugins.importexport.fullJournal.importingArticles"
+msgstr "Importing articles..."
+
+msgid "plugins.importexport.fullJournal.importCompleted"
+msgstr "Import completed successfully"
