@@ -66,6 +66,9 @@ class PluginNativeXmlFilter extends NativeExportFilter
                 case 'array':
                     $nodeValue = htmlspecialchars(join(':', $value), ENT_COMPAT, 'UTF-8');
                     break;
+                default:
+                    $nodeValue = null;
+                    break;
             }
             $pluginNode->appendChild($node = $doc->createElementNS(
                 $deployment->getNamespace(),
