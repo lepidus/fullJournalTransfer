@@ -293,6 +293,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $usersDoc = $exportFilter->execute($users);
+        $this->removeDuplicatedInterests($usersDoc);
         if ($usersDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($usersDoc->documentElement, true);
             $journalNode->appendChild($clone);
@@ -398,6 +399,26 @@ class JournalNativeXmlFilter extends NativeExportFilter
         if ($articlesDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($articlesDoc->documentElement, true);
             $journalNode->appendChild($clone);
+        }
+    }
+
+    private function removeDuplicatedInterests($usersDoc)
+    {
+        $deployment = $this->getDeployment();
+        $userNodes = $usersDoc->getElementsByTagNameNS($deployment->getNamespace(), 'user');
+        foreach ($userNodes as $userNode) {
+            $interestNodeList = $userNode->getElementsByTagNameNS($deployment->getNamespace(), 'review_interests');
+            if ($interestNodeList->length == 1) {
+                $node = $interestNodeList->item(0);
+                if ($node) {
+                    $interests = preg_split('/,\s*/', $node->textContent);
+                    $uniqueInterests = array_intersect_key(
+                        $interests,
+                        array_unique(array_map("strtolower", $interests))
+                    );
+                    $node->nodeValue = htmlspecialchars(implode(', ', $uniqueInterests), ENT_COMPAT, 'UTF-8');
+                }
+            }
         }
     }
 
