@@ -36,6 +36,15 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             ->getBySubmissionAndStageId($submission->getId());
 
         while ($stageAssignment = $stageAssignments->next()) {
+            $validAssignment = $this->validateAssignment(
+                $context->getId(),
+                $stageAssignment->getUserId(),
+                $stageAssignment->getStageId(),
+            );
+            if (!$validAssignment) {
+                continue;
+            }
+
             $user = DAORegistry::getDAO('UserDAO')
                 ->getById($stageAssignment->getUserId());
             $userGroup = DAORegistry::getDAO('UserGroupDAO')
@@ -83,6 +92,15 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         $editorDecisionsNode = $doc->createElementNS($deployment->getNamespace(), 'editor_decisions');
         foreach ($editorDecisions as $editorDecision) {
+            $validAssignment = $this->validateAssignment(
+                $submission->getContextId(),
+                $editorDecision['editorId'],
+                $editorDecision['stageId'],
+            );
+            if (!$validAssignment) {
+                continue;
+            }
+
             $userDAO = DAORegistry::getDAO('UserDAO');
             $editor = $userDAO->getById($editorDecision['editorId']);
 
@@ -108,5 +126,15 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
 
         $submissionNode->appendChild($editorDecisionsNode);
+    }
+
+    private function validateAssignment($contextId, $userId, $stageId)
+    {
+        $userGroupDAO = DAORegistry::getDAO('UserGroupDAO');
+        if (!$userGroupDAO->userAssignmentExists($contextId, $userId, $stageId)) {
+            return false;
+        }
+
+        return true;
     }
 }
