@@ -50,13 +50,14 @@ php tools/importExport.php FullJournalImportExportPlugin import [xmlFileName] [u
 - Review Forms
 - Review Assignments
 - Review Rounds
+- Stage Assignments
+- Editor Decisions
 
 **To Do**:
 
-- Editor Decisions
-- Stage Assignments
 - Review Files
 - Discussions
+- Metrics
 
 ## Running Tests
 
