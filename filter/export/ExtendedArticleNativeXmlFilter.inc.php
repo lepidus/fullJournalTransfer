@@ -20,10 +20,45 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         $submissionNode = parent::createSubmissionNode($doc, $submission);
 
+        $this->addStageAssignments($doc, $submissionNode, $submission);
         $this->addReviewRounds($doc, $submissionNode, $submission);
         $this->addEditorDecisions($doc, $submissionNode, $submission);
 
         return $submissionNode;
+    }
+
+    public function addStageAssignments($doc, $submissionNode, $submission)
+    {
+        $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
+
+        $stageAssignments = DAORegistry::getDAO('StageAssignmentDAO')
+            ->getBySubmissionAndStageId($submission->getId());
+
+        while ($stageAssignment = $stageAssignments->next()) {
+            $validAssignment = $this->validateAssignment(
+                $context->getId(),
+                $stageAssignment->getUserId(),
+                $stageAssignment->getStageId(),
+            );
+            if (!$validAssignment) {
+                continue;
+            }
+
+            $user = DAORegistry::getDAO('UserDAO')
+                ->getById($stageAssignment->getUserId());
+            $userGroup = DAORegistry::getDAO('UserGroupDAO')
+                ->getById($stageAssignment->getUserGroupId(), $context->getId());
+            $stagePath = WorkflowStageDAO::getPathFromId($stageAssignment->getStageId());
+
+            $stageAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'stage_assignment');
+            $stageAssignmentNode->setAttribute('user', $user->getUsername());
+            $stageAssignmentNode->setAttribute('user_group_ref', $userGroup->getName($context->getPrimaryLocale()));
+            $stageAssignmentNode->setAttribute('stage', $stagePath);
+            $stageAssignmentNode->setAttribute('recommend_only', (int) $stageAssignment->getRecommendOnly());
+            $stageAssignmentNode->setAttribute('can_change_metadata', (int) $stageAssignment->getCanChangeMetadata());
+            $submissionNode->appendChild($stageAssignmentNode);
+        }
     }
 
     public function addReviewRounds($doc, $submissionNode, $submission)
@@ -57,6 +92,15 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         $editorDecisionsNode = $doc->createElementNS($deployment->getNamespace(), 'editor_decisions');
         foreach ($editorDecisions as $editorDecision) {
+            $validAssignment = $this->validateAssignment(
+                $submission->getContextId(),
+                $editorDecision['editorId'],
+                $editorDecision['stageId'],
+            );
+            if (!$validAssignment) {
+                continue;
+            }
+
             $userDAO = DAORegistry::getDAO('UserDAO');
             $editor = $userDAO->getById($editorDecision['editorId']);
 
@@ -82,5 +126,15 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
 
         $submissionNode->appendChild($editorDecisionsNode);
+    }
+
+    private function validateAssignment($contextId, $userId, $stageId)
+    {
+        $userGroupDAO = DAORegistry::getDAO('UserGroupDAO');
+        if (!$userGroupDAO->userAssignmentExists($contextId, $userId, $stageId)) {
+            return false;
+        }
+
+        return true;
     }
 }

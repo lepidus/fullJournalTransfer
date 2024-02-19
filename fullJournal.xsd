@@ -22,6 +22,7 @@
 			<complexContent>
 				<extension base="pkp:submission">
                     <sequence>
+						<element ref="pkp:stage_assignment" minOccurs="0" maxOccurs="unbounded" />
 						<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
 						<element ref="pkp:editor_decisions" minOccurs="0" maxOccurs="unbounded" />
 					</sequence>
@@ -199,6 +200,14 @@
 		<attribute name="seq" type="int" />
 	</complexType>
 
+    <complexType name="stage_assignment">
+		<attribute name="user" type="string" />
+		<attribute name="user_group_ref" type="string" />
+		<attribute name="stage" type="string" />
+		<attribute name="recommend_only" type="int" />
+		<attribute name="can_change_metadata" type="int" />
+	</complexType>
+
 	<element name="review_rounds">
 		<complexType>
 			<sequence>
@@ -303,6 +312,7 @@
     <element name="navigation_menu" type="pkp:navigation_menu" />
     <element name="announcement" type="pkp:announcement" />
 	<element name="review_round" type="pkp:review_round" />
+	<element name="stage_assignment" type="pkp:stage_assignment" />
 	<element name="review_assignment" type="pkp:review_assignment" />
 	<element name="editor_decision" type="pkp:editor_decision" />
 </schema>

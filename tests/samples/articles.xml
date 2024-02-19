@@ -2,6 +2,7 @@
 <extended_articles xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
 	<extended_article>
+        <stage_assignment user="testuser" user_group_ref="External Reviewer" stage="externalReview" recommend_only="0" can_change_metadata="0"/>
 		<review_rounds xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
             <review_round xmlns="http://pkp.sfu.ca">
@@ -13,7 +14,7 @@
             </review_round>
         </review_rounds>
         <editor_decisions>
-            <editor_decision submission_id="143" round="0" review_round_id="0" stage_id="1" decision="8">
+            <editor_decision round="0" review_round_id="0" stage_id="1" decision="8">
                 <editor>journaleditor</editor>
                 <date_decided>2015-03-04 13:39:11</date_decided>
             </editor_decision>

@@ -98,6 +98,11 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $deployment = $this->getDeployment();
         $deployment->setContext($journal);
 
+        $journalName = $journal->getName($journal->getPrimaryLocale());
+        echo __('plugins.importexport.fullJournal.exportingJournal', [
+            'journalName' => $journalName,
+        ]) . "\n";
+
         $journalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
 
         foreach ($this->getJournalAttributeProps() as $propName) {
@@ -272,6 +277,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter = array_shift($nativeExportFilters);
         $exportFilter->setDeployment(new PKPUserImportExportDeployment($journal, null));
 
+        echo __('plugins.importexport.fullJournal.exportingUsers') . "\n";
+
         $userDao = DAORegistry::getDAO('UserDAO');
         $users = [];
         foreach ($usersIterator->toArray() as $userId) {
@@ -286,6 +293,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $usersDoc = $exportFilter->execute($users);
+        $this->removeDuplicatedInterests($usersDoc);
         if ($usersDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($usersDoc->documentElement, true);
             $journalNode->appendChild($clone);
@@ -302,6 +310,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         if (!count($sections)) {
             return;
         }
+
+        echo __('plugins.importexport.fullJournal.exportingSections') . "\n";
 
         $sectionsNode = $doc->createElementNS($deployment->getNamespace(), 'sections');
         foreach ($sections as $section) {
@@ -347,6 +357,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setOpts($this->opts);
         $exportFilter->setDeployment($this->getDeployment());
 
+        echo __('plugins.importexport.fullJournal.exportingIssues') . "\n";
+
         $issueDao = DAORegistry::getDAO('IssueDAO');
         $issuesArray = $issueDao->getIssues($journal->getId())->toArray();
         $issuesDoc = $exportFilter->execute($issuesArray);
@@ -367,24 +379,46 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setDeployment($this->getDeployment());
         $exportFilter->setIncludeSubmissionsNode(true);
 
+        echo __('plugins.importexport.fullJournal.exportingArticles') . "\n";
+
         $submissionsArray = [];
-        $submissionsIterator = Services::get('submission')->getMany([
+        $submissions = Services::get('submission')->getMany([
             'contextId' => $journal->getId()
         ]);
 
-        foreach ($submissionsIterator as $submission) {
-            if (!$this->getDeployment()->validateSubmission($submission)) {
-                continue;
-            }
-            $currentPublication = $submission->getCurrentPublication();
-            if ($currentPublication && !$currentPublication->getData('issueId')) {
-                $submissionsArray[] = $submission;
+        foreach ($submissions as $submission) {
+            if ($this->getDeployment()->validateSubmission($submission)) {
+                $currentPublication = $submission->getCurrentPublication();
+                if ($currentPublication && !$currentPublication->getData('issueId')) {
+                    $submissionsArray[] = $submission;
+                }
             }
         }
+
         $articlesDoc = $exportFilter->execute($submissionsArray);
         if ($articlesDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($articlesDoc->documentElement, true);
             $journalNode->appendChild($clone);
+        }
+    }
+
+    private function removeDuplicatedInterests($usersDoc)
+    {
+        $deployment = $this->getDeployment();
+        $userNodes = $usersDoc->getElementsByTagNameNS($deployment->getNamespace(), 'user');
+        foreach ($userNodes as $userNode) {
+            $interestNodeList = $userNode->getElementsByTagNameNS($deployment->getNamespace(), 'review_interests');
+            if ($interestNodeList->length == 1) {
+                $node = $interestNodeList->item(0);
+                if ($node) {
+                    $interests = preg_split('/,\s*/', $node->textContent);
+                    $uniqueInterests = array_intersect_key(
+                        $interests,
+                        array_unique(array_map("strtolower", $interests))
+                    );
+                    $node->nodeValue = htmlspecialchars(implode(', ', $uniqueInterests), ENT_COMPAT, 'UTF-8');
+                }
+            }
         }
     }
 

@@ -30,8 +30,10 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function handleElement($node)
     {
         $deployment = $this->getDeployment();
-        $contextDAO = Application::get()->getContextDAO();
 
+        echo __('plugins.importexport.fullJournal.importingJournal') . "\n";
+
+        $contextDAO = Application::get()->getContextDAO();
         $journal = $contextDAO->newDataObject();
         $journal->setSequence((int) $node->getAttribute('seq'));
         $journal->setPath($node->getAttribute('url_path'));
@@ -219,10 +221,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
         $userFilters = $filterDao->getObjectsByGroup('user-xml=>user');
-
         assert(count($userFilters) == 1);
         $filter = array_shift($userFilters);
         $filter->setDeployment(new PKPUserImportExportDeployment($journal, null));
+
+        echo __('plugins.importexport.fullJournal.importingUsers') . "\n";
+
         $usersDoc = new DOMDocument('1.0');
         $usersDoc->preserveWhiteSpace = false;
         $usersDoc->formatOutput = true;
@@ -234,6 +238,8 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseSections($node, $journal)
     {
         $deployment = $this->getDeployment();
+        echo __('plugins.importexport.fullJournal.importingSections') . "\n";
+
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'section') {
                 $this->parseSection($n, $journal);
@@ -309,6 +315,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseIssues($node, $journal)
     {
         $deployment = $this->getDeployment();
+        echo __('plugins.importexport.fullJournal.importingIssues') . "\n";
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_issue') {
                 $this->parseIssue($n, $journal);
@@ -332,6 +339,8 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseArticles($node, $journal)
     {
         $deployment = $this->getDeployment();
+        echo __('plugins.importexport.fullJournal.importingArticles') . "\n";
+
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_article') {
                 $this->parseArticle($n, $journal);

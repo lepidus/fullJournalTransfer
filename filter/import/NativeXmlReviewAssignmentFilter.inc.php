@@ -44,6 +44,10 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         $userDAO = DAORegistry::getDAO('UserDAO');
         $reviewer = $userDAO->getByUsername($node->getAttribute('reviewer'));
 
+        if (!$reviewer) {
+            return;
+        }
+
         $reviewAssignment->setReviewerId($reviewer->getId());
         $reviewAssignment->setSubmissionId($submission->getId());
         $reviewAssignment->setReviewRoundId($reviewRound->getId());
