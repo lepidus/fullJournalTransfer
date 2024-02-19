@@ -120,7 +120,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     private function registerMockUserGroupDAO()
     {
         $mockDAO = $this->getMockBuilder(UserGroupDAO::class)
-            ->setMethods(['getById'])
+            ->setMethods(['getById', 'userAssignmentExists'])
             ->getMock();
 
         $userGroup = $mockDAO->newDataObject();
@@ -130,6 +130,10 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $mockDAO->expects($this->any())
             ->method('getById')
             ->will($this->returnValue($userGroup));
+
+        $mockDAO->expects($this->any())
+            ->method('userAssignmentExists')
+            ->will($this->returnValue(true));
 
         DAORegistry::registerDAO('UserGroupDAO', $mockDAO);
     }
@@ -154,7 +158,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     {
         $extendedArticleExportFilter = $this->getNativeImportExportFilter();
         $deployment = $extendedArticleExportFilter->getDeployment();
-
 
         $context = new Journal();
         $context->setPrimaryLocale('en_US');
@@ -272,6 +275,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $this->registerMockEditorDecisionDAO();
         $this->registerMockUserDAO('journaleditor');
+        $this->registerMockUserGroupDAO();
 
         $expectedSubmissionNode = $doc->createElementNS($deployment->getNamespace(), 'extended_article');
         $expectedSubmissionNode->appendChild($this->createEditorDecisionsNode($doc, $deployment));
