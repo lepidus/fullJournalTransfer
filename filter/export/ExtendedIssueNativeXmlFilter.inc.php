@@ -75,17 +75,16 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
         $exportFilter->setDeployment($this->getDeployment());
         $exportFilter->setIncludeSubmissionsNode(true);
 
-        $submissionsIterator = Services::get('submission')->getMany([
+        $submissionsArray = [];
+        $submissions = Services::get('submission')->getMany([
             'contextId' => $issue->getJournalId(),
             'issueIds' => $issue->getId(),
         ]);
-        $submissionsArray = [];
 
-        while ($submission = $submissionsIterator->next()) {
-            if (!$this->getDeployment()->validateSubmission($submission)) {
-                continue;
+        foreach ($submissions as $submission) {
+            if ($this->getDeployment()->validateSubmission($submission)) {
+                $submissionsArray[] = $submission;
             }
-            $submissionsArray[] = $submission;
         }
 
         $articlesDoc = $exportFilter->execute($submissionsArray);
