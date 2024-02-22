@@ -165,7 +165,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                 }
                 if ($xmlFile != '') {
                     file_put_contents($xmlFile, $this->exportJournal($journal, null, $opts));
-                    $this->archiveFiles($xmlFile);
+                    $this->archiveFiles($xmlFile, $dest, $journalPath);
                     return;
                 }
                 break;
@@ -226,18 +226,19 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         return $filter;
     }
 
-    public function archiveFiles($xmlFile)
+    public function archiveFiles($xmlPath, $dest, $journalPath)
     {
-        $xmlFilename = basename($xmlFile);
-        $xmlDir = dirname($xmlFile);
+        $xmlDir = dirname($xmlPath);
+        $xmlFile = basename($xmlPath);
+        $archivePath = $dest . DIRECTORY_SEPARATOR . $journalPath . '.tar.gz';
 
         import('lib.pkp.classes.file.FileArchive');
         if (FileArchive::tarFunctional()) {
             exec(
                 Config::getVar('cli', 'tar') . ' -c -z ' .
-                    '-f ' . escapeshellarg($xmlDir) . ' ' .
-                    '-C ' . escapeshellarg($filesDir) . ' ' .
-                    implode(' ', array_map('escapeshellarg', array_keys($files)))
+                    '-f ' . escapeshellarg($archivePath) . ' ' .
+                    '-C ' . escapeshellarg($xmlDir) . ' ' .
+                    escapeshellarg($xmlFile)
             );
         } else {
             throw new Exception('No archive tool is available!');
