@@ -52,6 +52,8 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
     public function executeCLI($scriptName, &$args)
     {
+        $args[] = '--no-embed';
+        $opts = $this->parseOpts($args, ['no-embed', 'use-file-urls']);
         $command = array_shift($args);
         $xmlFile = array_shift($args);
 
@@ -162,7 +164,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     return;
                 }
                 if ($xmlFile != '') {
-                    file_put_contents($xmlFile, $this->exportJournal($journal, null));
+                    file_put_contents($xmlFile, $this->exportJournal($journal, null, $opts));
                     return;
                 }
                 break;
@@ -183,13 +185,11 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         return $filter->getDeployment();
     }
 
-    public function exportJournal($journal, $user, &$filter = null)
+    public function exportJournal($journal, $user, $opts)
     {
         $xml = '';
-
-        if (!$filter) {
-            $filter = $this->getJournalImportExportFilter($journal, $user, false);
-        }
+        $filter = $this->getJournalImportExportFilter($journal, $user, false);
+        $filter->setOpts($opts);
 
         libxml_use_internal_errors(true);
         $journalXml = $filter->execute($journal);
@@ -223,6 +223,35 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $filter->setDeployment(new FullJournalImportExportDeployment($context, $user));
 
         return $filter;
+    }
+
+    public function parseOpts(&$args, $optCodes)
+    {
+        $newArgs = [];
+        $opts = [];
+        $sticky = null;
+        foreach ($args as $arg) {
+            if ($sticky) {
+                $opts[$sticky] = $arg;
+                $sticky = null;
+                continue;
+            }
+            if (substr($arg, 0, 2) != '--') {
+                $newArgs[] = $arg;
+                continue;
+            }
+            $opt = substr($arg, 2);
+            if (in_array($opt, $optCodes)) {
+                $opts[$opt] = true;
+                continue;
+            }
+            if (in_array($opt . ":", $optCodes)) {
+                $sticky = $opt;
+                continue;
+            }
+        }
+        $args = $newArgs;
+        return $opts;
     }
 
     public function usage($scriptName)
