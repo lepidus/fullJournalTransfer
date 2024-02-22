@@ -165,6 +165,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                 }
                 if ($xmlFile != '') {
                     file_put_contents($xmlFile, $this->exportJournal($journal, null, $opts));
+                    $this->archiveFiles($xmlFile);
                     return;
                 }
                 break;
@@ -223,6 +224,26 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $filter->setDeployment(new FullJournalImportExportDeployment($context, $user));
 
         return $filter;
+    }
+
+    public function archiveFiles($xmlFile)
+    {
+        $xmlFilename = basename($xmlFile);
+        $xmlDir = dirname($xmlFile);
+
+        import('lib.pkp.classes.file.FileArchive');
+        if (FileArchive::tarFunctional()) {
+            exec(
+                Config::getVar('cli', 'tar') . ' -c -z ' .
+                    '-f ' . escapeshellarg($xmlDir) . ' ' .
+                    '-C ' . escapeshellarg($filesDir) . ' ' .
+                    implode(' ', array_map('escapeshellarg', array_keys($files)))
+            );
+        } else {
+            throw new Exception('No archive tool is available!');
+        }
+
+        return $archivePath;
     }
 
     public function parseOpts(&$args, $optCodes)
