@@ -10,15 +10,15 @@ class FullJournalImportExportPluginTest extends PKPTestCase
         $plugin = new FullJournalImportExportPlugin();
         $journalPath = 'publicknowledge';
         $xmlFile = 'journal.xml';
-        $dest = __DIR__ . '/samples';
         $xmlPath = __DIR__ . '/samples/' . $xmlFile;
+        $archivePath = __DIR__ . '/samples/' . $journalPath . '.tar.gz';
 
-        $archiveFile = $plugin->archiveFiles($xmlPath, $dest, $journalPath);
-        $this->assertTrue(file_exists($archiveFile));
+        $plugin->archiveFiles($xmlPath, $archivePath, $journalPath);
+        $this->assertTrue(file_exists($archivePath));
 
-        exec(Config::getVar('cli', 'tar') . ' -ztf ' . $archiveFile, $archiveContent);
+        exec(Config::getVar('cli', 'tar') . ' -ztf ' . $archivePath, $archiveContent);
         $this->assertTrue(in_array($xmlFile, $archiveContent));
 
-        unlink($archiveFile);
+        unlink($archivePath);
     }
 }

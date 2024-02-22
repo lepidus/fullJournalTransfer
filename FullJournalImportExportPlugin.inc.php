@@ -55,17 +55,17 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $args[] = '--no-embed';
         $opts = $this->parseOpts($args, ['no-embed', 'use-file-urls']);
         $command = array_shift($args);
-        $xmlFile = array_shift($args);
+        $archivePath = array_shift($args);
 
         AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER, LOCALE_COMPONENT_PKP_MANAGER, LOCALE_COMPONENT_PKP_SUBMISSION);
 
-        if ($xmlFile && $this->isRelativePath($xmlFile)) {
-            $xmlFile = PWD . '/' . $xmlFile;
+        if ($archivePath && $this->isRelativePath($archivePath)) {
+            $archivePath = PWD . '/' . $archivePath;
         }
-        $outputDir = dirname($xmlFile);
-        if (!is_writable($outputDir) || (file_exists($xmlFile) && !is_writable($xmlFile))) {
+        $outputDir = dirname($archivePath);
+        if (!is_writable($outputDir) || (file_exists($archivePath) && !is_writable($archivePath))) {
             echo __('plugins.importexport.common.cliError') . "\n";
-            echo __('plugins.importexport.common.export.error.outputFileNotWritable', ['param' => $xmlFile]) . "\n\n";
+            echo __('plugins.importexport.common.export.error.outputFileNotWritable', ['param' => $archivePath]) . "\n\n";
             $this->usage($scriptName);
             return;
         }
@@ -163,9 +163,10 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     $this->usage($scriptName);
                     return;
                 }
-                if ($xmlFile != '') {
-                    file_put_contents($xmlFile, $this->exportJournal($journal, null, $opts));
-                    $this->archiveFiles($xmlFile, $dest, $journalPath);
+                if ($archivePath != '') {
+                    if ($this->exportJournal($journal, $archivePath, $opts)) {
+                        echo __('plugins.importexport.fullJournal.exportCompleted') . "\n";
+                    }
                     return;
                 }
                 break;
@@ -186,27 +187,39 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         return $filter->getDeployment();
     }
 
-    public function exportJournal($journal, $user, $opts)
+    public function exportJournal($journal, $archivePath, $opts)
     {
-        $xml = '';
-        $filter = $this->getJournalImportExportFilter($journal, $user, false);
+        $journalPath = $journal->getPath();
+        $xmlPath = '/tmp/' . $journalPath . '.xml';
+
+        $filter = $this->getJournalImportExportFilter($journal, null, false);
         $filter->setOpts($opts);
 
         libxml_use_internal_errors(true);
         $journalXml = $filter->execute($journal);
-        $errors = array_filter(libxml_get_errors(), function ($a) {
-            return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
-        });
-        if (!empty($errors)) {
-            $this->displayXMLValidationErrors($errors, $xml);
-        }
         $xml = $journalXml->saveXml();
 
-        if ($xml) {
-            echo __('plugins.importexport.fullJournal.exportCompleted') . "\n";
+        $errors = array_filter(libxml_get_errors(), function ($error) {
+            return $error->level == LIBXML_ERR_ERROR || $error->level == LIBXML_ERR_FATAL;
+        });
+
+        if (!empty($errors)) {
+            $this->displayXMLValidationErrors($errors, $xml);
+            return false;
         }
 
-        return $xml;
+        if (empty($xml)) {
+            return false;
+        }
+
+        if (!file_put_contents($xmlPath, $xml)) {
+            return false;
+        }
+
+        $this->archiveFiles($xmlPath, $archivePath, $journalPath);
+        unlink($xmlPath);
+
+        return file_exists($archivePath);
     }
 
     public function getJournalImportExportFilter($context, $user, $isImport = true)
@@ -226,11 +239,10 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         return $filter;
     }
 
-    public function archiveFiles($xmlPath, $dest, $journalPath)
+    public function archiveFiles($xmlPath, $archivePath, $journalPath)
     {
         $xmlDir = dirname($xmlPath);
         $xmlFile = basename($xmlPath);
-        $archivePath = $dest . DIRECTORY_SEPARATOR . $journalPath . '.tar.gz';
 
         import('lib.pkp.classes.file.FileArchive');
         if (FileArchive::tarFunctional()) {
@@ -243,8 +255,6 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         } else {
             throw new Exception('No archive tool is available!');
         }
-
-        return $archivePath;
     }
 
     public function parseOpts(&$args, $optCodes)
