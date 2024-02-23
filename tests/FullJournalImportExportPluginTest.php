@@ -18,7 +18,7 @@ class FullJournalImportExportPluginTest extends PKPTestCase
         $plugin->archiveFiles($archivePath, $xmlPath, $journalFilesDir);
         $this->assertTrue(file_exists($archivePath));
 
-        exec(Config::getVar('cli', 'tar') . ' -ztf ' . $archivePath, $archiveContent);
+        exec(Config::getVar('cli', 'tar') . ' -ztf ' . escapeshellarg($archivePath), $archiveContent);
         $this->assertTrue(in_array($xmlFile, $archiveContent));
         $this->assertTrue(in_array('5/', $archiveContent));
 

@@ -90,7 +90,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     Registry::set('user', $user);
                 }
 
-                $deployment = $this->importJournal(file_get_contents($xmlFile), null, null);
+                $this->importJournal($archivePath, $user, $opts);
+
+                break;
 
                 $validationErrors = array_filter(libxml_get_errors(), function ($a) {
                     return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
@@ -174,15 +176,34 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $this->usage($scriptName);
     }
 
-    public function importJournal($importXml, $journal, $user, &$filter = null)
+    public function importJournal($archivePath, $user, $opts = [])
     {
-        if (!$filter) {
-            $filter = $this->getJournalImportExportFilter($journal, $user);
+        $extractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($archivePath, '.tar.gz');
+        mkdir($extractDir);
+
+        exec(
+            Config::getVar('cli', 'tar') . ' -xzf ' .
+            escapeshellarg($archivePath) .
+            ' -C ' . escapeshellarg($extractDir)
+        );
+
+        $xmlFile = null;
+        foreach (scandir($extractDir) as $item) {
+            if (strtolower(substr($item, -4)) == '.xml') {
+                $xmlFile = $extractDir . DIRECTORY_SEPARATOR . $item;
+            }
         }
 
-        $content = $filter->execute($importXml);
+        $xml = file_get_contents($xmlFile);
+
+        $filter = $this->getJournalImportExportFilter(null, $user);
+        $content = $filter->execute($xml);
 
         $journal = $filter->getDeployment()->getContext();
+
+        import('lib.pkp.classes.file.FileManager');
+        $fileManager = new FileManager();
+        $fileManager->rmtree($extractDir);
 
         return $filter->getDeployment();
     }
