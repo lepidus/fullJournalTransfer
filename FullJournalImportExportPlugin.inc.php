@@ -216,10 +216,17 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
             return false;
         }
 
-        $this->archiveFiles($xmlPath, $archivePath, $journalPath);
+        import('lib.pkp.classes.file.ContextFileManager');
+        $contextFileManager = new ContextFileManager($journal->getId());
+        $journalFilesDir = $contextFileManager->getBasePath();
+        $this->archiveFiles($archivePath, $xmlPath, $journalFilesDir);
         unlink($xmlPath);
 
-        return file_exists($archivePath);
+        if (!file_exists($archivePath)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getJournalImportExportFilter($context, $user, $isImport = true)
@@ -239,18 +246,17 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         return $filter;
     }
 
-    public function archiveFiles($xmlPath, $archivePath, $journalPath)
+    public function archiveFiles($archivePath, $xmlPath, $journalFilesDir)
     {
-        $xmlDir = dirname($xmlPath);
-        $xmlFile = basename($xmlPath);
-
         import('lib.pkp.classes.file.FileArchive');
         if (FileArchive::tarFunctional()) {
             exec(
                 Config::getVar('cli', 'tar') . ' -c -z ' .
                     '-f ' . escapeshellarg($archivePath) . ' ' .
-                    '-C ' . escapeshellarg($xmlDir) . ' ' .
-                    escapeshellarg($xmlFile)
+                    '-C ' . escapeshellarg(dirname($xmlPath)) . ' ' .
+                    escapeshellarg(basename($xmlPath)) . ' ' .
+                    '-C ' . escapeshellarg(dirname($journalFilesDir)) . ' ' .
+                    escapeshellarg(basename($journalFilesDir))
             );
         } else {
             throw new Exception('No archive tool is available!');
