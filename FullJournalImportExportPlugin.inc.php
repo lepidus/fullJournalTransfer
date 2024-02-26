@@ -90,9 +90,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     Registry::set('user', $user);
                 }
 
-                $this->importJournal($archivePath, $user, $opts);
-
-                break;
+                $filter = $this->getJournalImportExportFilter(null, $user);
+                $imported = $this->importJournal($archivePath, $user, $filter, $opts);
+                $deployment = $filter->getDeployment();
 
                 $validationErrors = array_filter(libxml_get_errors(), function ($a) {
                     return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
@@ -147,7 +147,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     foreach ($validationErrors as $validationError) {
                         echo ++$i . '. Line: ' . $validationError->line . ' Column: ' . $validationError->column . ' > ' . $validationError->message . "\n";
                     }
-                } else {
+                }
+
+                if ($imported) {
                     echo __('plugins.importexport.fullJournal.importCompleted') . "\n";
                 }
 
@@ -176,10 +178,14 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $this->usage($scriptName);
     }
 
-    public function importJournal($archivePath, $user, $opts = [])
+    public function importJournal($archivePath, $user, $filter, $opts = [])
     {
         $extractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($archivePath, '.tar.gz');
-        mkdir($extractDir);
+
+        if (!mkdir($extractDir)) {
+            echo "Could not create directory "  . $extractDir . "\n";
+            return false;
+        }
 
         exec(
             Config::getVar('cli', 'tar') . ' -xzf ' .
@@ -196,17 +202,14 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         $xml = file_get_contents($xmlFile);
 
-        $filter = $this->getJournalImportExportFilter(null, $user);
         $filter->getDeployment()->setImportPath($extractDir);
         $content = $filter->execute($xml);
-
-        $journal = $filter->getDeployment()->getContext();
 
         import('lib.pkp.classes.file.FileManager');
         $fileManager = new FileManager();
         $fileManager->rmtree($extractDir);
 
-        return $filter->getDeployment();
+        return true;
     }
 
     public function exportJournal($journal, $archivePath, $opts)
