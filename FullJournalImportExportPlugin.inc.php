@@ -197,6 +197,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $xml = file_get_contents($xmlFile);
 
         $filter = $this->getJournalImportExportFilter(null, $user);
+        $filter->getDeployment()->setImportPath($extractDir);
         $content = $filter->execute($xml);
 
         $journal = $filter->getDeployment()->getContext();
@@ -270,15 +271,21 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
     public function archiveFiles($archivePath, $xmlPath, $journalFilesDir)
     {
         import('lib.pkp.classes.file.FileArchive');
-        if (FileArchive::tarFunctional()) {
-            exec(
-                Config::getVar('cli', 'tar') . ' -c -z ' .
-                    '-f ' . escapeshellarg($archivePath) . ' ' .
-                    '-C ' . escapeshellarg(dirname($xmlPath)) . ' ' .
-                    escapeshellarg(basename($xmlPath)) . ' ' .
-                    '-C ' . escapeshellarg(dirname($journalFilesDir)) . ' ' .
-                    escapeshellarg(basename($journalFilesDir))
-            );
+        $tarCommand = Config::getVar('cli', 'tar');
+
+        if (FileArchive::tarFunctional() && $tarCommand) {
+            $xmlDir = dirname($xmlPath);
+            $journalParentDir = dirname($journalFilesDir, 2);
+            $journalDir = basename(dirname($journalFilesDir)) . DIRECTORY_SEPARATOR . basename($journalFilesDir);
+
+            $command = "$tarCommand -czf " .
+                escapeshellarg($archivePath) . " " .
+                "-C " . escapeshellarg($xmlDir) . " " .
+                escapeshellarg(basename($xmlPath)) . " " .
+                "-C " . escapeshellarg($journalParentDir) . " " .
+                escapeshellarg($journalDir);
+
+            exec($command);
         } else {
             throw new Exception('No archive tool is available!');
         }
