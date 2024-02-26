@@ -20,7 +20,7 @@ class FullJournalImportExportPluginTest extends PKPTestCase
 
         exec(Config::getVar('cli', 'tar') . ' -ztf ' . escapeshellarg($archivePath), $archiveContent);
         $this->assertTrue(in_array($xmlFile, $archiveContent));
-        $this->assertTrue(in_array('5/', $archiveContent));
+        $this->assertTrue(in_array('journals/5/', $archiveContent));
 
         unlink($archivePath);
     }
