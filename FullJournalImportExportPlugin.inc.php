@@ -278,15 +278,20 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         if (FileArchive::tarFunctional() && $tarCommand) {
             $xmlDir = dirname($xmlPath);
-            $journalParentDir = dirname($journalFilesDir, 2);
-            $journalDir = basename(dirname($journalFilesDir)) . DIRECTORY_SEPARATOR . basename($journalFilesDir);
 
             $command = "$tarCommand -czf " .
                 escapeshellarg($archivePath) . " " .
                 "-C " . escapeshellarg($xmlDir) . " " .
-                escapeshellarg(basename($xmlPath)) . " " .
-                "-C " . escapeshellarg($journalParentDir) . " " .
-                escapeshellarg($journalDir);
+                escapeshellarg(basename($xmlPath));
+
+            if (is_dir($journalFilesDir)) {
+                $journalParentDir = dirname($journalFilesDir, 2);
+                $journalDir = basename(dirname($journalFilesDir)) . DIRECTORY_SEPARATOR . basename($journalFilesDir);
+
+                $command .= " -C " .
+                    escapeshellarg($journalParentDir) . " " .
+                    escapeshellarg($journalDir);
+            }
 
             exec($command);
         } else {
