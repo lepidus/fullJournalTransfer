@@ -54,6 +54,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $journal->setData('themePluginPath', $this->validateActiveTheme($node));
         $contextDAO->insertObject($journal);
 
+        import('lib.pkp.classes.file.FileManager');
+        $fileManager = new \FileManager();
+        $contextService = Services::get('context');
+        foreach ($contextService->installFileDirs as $dir) {
+            $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
+        }
+
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
                 $this->handleChildElement($n, $journal);
