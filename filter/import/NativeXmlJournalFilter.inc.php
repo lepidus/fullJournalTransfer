@@ -54,15 +54,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $journal->setData('themePluginPath', $this->validateActiveTheme($node));
         $contextDAO->insertObject($journal);
 
-        import('lib.pkp.classes.file.FileManager');
-        $fileManager = new \FileManager();
-        $contextService = Services::get('context');
-        foreach ($contextService->installFileDirs as $dir) {
-            $journalFileDir = sprintf($dir, $contextService->contextsFileDirName, $journal->getId());
-            if (!is_dir($journalFileDir)) {
-                $fileManager->mkdir($journalFileDir);
-            }
-        }
+        $this->createJournalDirs($journal, $deployment);
 
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
@@ -84,6 +76,23 @@ class NativeXmlJournalFilter extends NativeImportFilter
             return $node->getAttribute('theme_plugin_path');
         }
         return 'default';
+    }
+
+    public function createJournalDirs($journal, $deployment)
+    {
+        if ($deployment->isTestEnv) {
+            return;
+        }
+
+        import('lib.pkp.classes.file.FileManager');
+        $fileManager = new \FileManager();
+        $contextService = Services::get('context');
+        foreach ($contextService->installFileDirs as $dir) {
+            $journalFileDir = sprintf($dir, $contextService->contextsFileDirName, $journal->getId());
+            if (!is_dir($journalFileDir)) {
+                $fileManager->mkdir($journalFileDir);
+            }
+        }
     }
 
     public function installDefaultGenres($journal)
