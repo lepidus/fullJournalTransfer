@@ -58,7 +58,10 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $fileManager = new \FileManager();
         $contextService = Services::get('context');
         foreach ($contextService->installFileDirs as $dir) {
-            $fileManager->mkdir(sprintf($dir, $contextService->contextsFileDirName, $journal->getId()));
+            $journalFileDir = sprintf($dir, $contextService->contextsFileDirName, $journal->getId());
+            if (!is_dir($journalFileDir)) {
+                $fileManager->mkdir($journalFileDir);
+            }
         }
 
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
