@@ -393,6 +393,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
     {
         $journalImportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalImportFilter->getDeployment();
+        $deployment->isTestEnv = true;
 
         $journal = new Journal();
         $this->setJournalAttributeData($journal);

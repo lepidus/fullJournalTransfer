@@ -12,6 +12,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $reviewForm;
     private $navigationMenuItemDBIds;
     private $reviewRound;
+    public $isTestEnv;
 
     public function __construct($context, $user = null)
     {
