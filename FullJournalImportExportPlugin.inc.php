@@ -52,18 +52,20 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
     public function executeCLI($scriptName, &$args)
     {
+        $args[] = '--no-embed';
+        $opts = $this->parseOpts($args, ['no-embed', 'use-file-urls']);
         $command = array_shift($args);
-        $xmlFile = array_shift($args);
+        $archivePath = array_shift($args);
 
         AppLocale::requireComponents(LOCALE_COMPONENT_APP_MANAGER, LOCALE_COMPONENT_PKP_MANAGER, LOCALE_COMPONENT_PKP_SUBMISSION);
 
-        if ($xmlFile && $this->isRelativePath($xmlFile)) {
-            $xmlFile = PWD . '/' . $xmlFile;
+        if ($archivePath && $this->isRelativePath($archivePath)) {
+            $archivePath = PWD . '/' . $archivePath;
         }
-        $outputDir = dirname($xmlFile);
-        if (!is_writable($outputDir) || (file_exists($xmlFile) && !is_writable($xmlFile))) {
+        $outputDir = dirname($archivePath);
+        if (!is_writable($outputDir) || (file_exists($archivePath) && !is_writable($archivePath))) {
             echo __('plugins.importexport.common.cliError') . "\n";
-            echo __('plugins.importexport.common.export.error.outputFileNotWritable', ['param' => $xmlFile]) . "\n\n";
+            echo __('plugins.importexport.common.export.error.outputFileNotWritable', ['param' => $archivePath]) . "\n\n";
             $this->usage($scriptName);
             return;
         }
@@ -88,7 +90,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     Registry::set('user', $user);
                 }
 
-                $deployment = $this->importJournal(file_get_contents($xmlFile), null, null);
+                $filter = $this->getJournalImportExportFilter(null, $user);
+                $imported = $this->importJournal($archivePath, $user, $filter, $opts);
+                $deployment = $filter->getDeployment();
 
                 $validationErrors = array_filter(libxml_get_errors(), function ($a) {
                     return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
@@ -143,7 +147,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     foreach ($validationErrors as $validationError) {
                         echo ++$i . '. Line: ' . $validationError->line . ' Column: ' . $validationError->column . ' > ' . $validationError->message . "\n";
                     }
-                } else {
+                }
+
+                if ($imported) {
                     echo __('plugins.importexport.fullJournal.importCompleted') . "\n";
                 }
 
@@ -161,8 +167,10 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
                     $this->usage($scriptName);
                     return;
                 }
-                if ($xmlFile != '') {
-                    file_put_contents($xmlFile, $this->exportJournal($journal, null));
+                if ($archivePath != '') {
+                    if ($this->exportJournal($journal, $archivePath, $opts)) {
+                        echo __('plugins.importexport.fullJournal.exportCompleted') . "\n";
+                    }
                     return;
                 }
                 break;
@@ -170,42 +178,80 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $this->usage($scriptName);
     }
 
-    public function importJournal($importXml, $journal, $user, &$filter = null)
+    public function importJournal($archivePath, $user, $filter, $opts = [])
     {
-        if (!$filter) {
-            $filter = $this->getJournalImportExportFilter($journal, $user);
+        $extractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($archivePath, '.tar.gz');
+
+        if (!mkdir($extractDir)) {
+            echo "Could not create directory "  . $extractDir . "\n";
+            return false;
         }
 
-        $content = $filter->execute($importXml);
+        exec(
+            Config::getVar('cli', 'tar') . ' -xzf ' .
+            escapeshellarg($archivePath) .
+            ' -C ' . escapeshellarg($extractDir)
+        );
 
-        $journal = $filter->getDeployment()->getContext();
+        $xmlFile = null;
+        foreach (scandir($extractDir) as $item) {
+            if (strtolower(substr($item, -4)) == '.xml') {
+                $xmlFile = $extractDir . DIRECTORY_SEPARATOR . $item;
+            }
+        }
 
-        return $filter->getDeployment();
+        $xml = file_get_contents($xmlFile);
+
+        $filter->getDeployment()->setImportPath($extractDir);
+        $content = $filter->execute($xml);
+
+        import('lib.pkp.classes.file.FileManager');
+        $fileManager = new FileManager();
+        $fileManager->rmtree($extractDir);
+
+        return true;
     }
 
-    public function exportJournal($journal, $user, &$filter = null)
+    public function exportJournal($journal, $archivePath, $opts)
     {
-        $xml = '';
+        $journalPath = $journal->getPath();
+        $xmlPath = '/tmp/' . $journalPath . '.xml';
 
-        if (!$filter) {
-            $filter = $this->getJournalImportExportFilter($journal, $user, false);
-        }
+        $filter = $this->getJournalImportExportFilter($journal, null, false);
+        $filter->setOpts($opts);
 
         libxml_use_internal_errors(true);
         $journalXml = $filter->execute($journal);
-        $errors = array_filter(libxml_get_errors(), function ($a) {
-            return $a->level == LIBXML_ERR_ERROR || $a->level == LIBXML_ERR_FATAL;
-        });
-        if (!empty($errors)) {
-            $this->displayXMLValidationErrors($errors, $xml);
-        }
         $xml = $journalXml->saveXml();
 
-        if ($xml) {
-            echo __('plugins.importexport.fullJournal.exportCompleted') . "\n";
+        $errors = array_filter(libxml_get_errors(), function ($error) {
+            return $error->level == LIBXML_ERR_ERROR || $error->level == LIBXML_ERR_FATAL;
+        });
+
+        if (!empty($errors)) {
+            $this->displayXMLValidationErrors($errors, $xml);
+            return false;
         }
 
-        return $xml;
+        if (empty($xml)) {
+            return false;
+        }
+
+        if (!file_put_contents($xmlPath, $xml)) {
+            return false;
+        }
+
+        import('lib.pkp.classes.file.ContextFileManager');
+        $contextFileManager = new ContextFileManager($journal->getId());
+        $journalFilesDir = $contextFileManager->getBasePath();
+        $this->archiveFiles($archivePath, $xmlPath, $journalFilesDir);
+        unlink($xmlPath);
+
+        if (!file_exists($archivePath)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getJournalImportExportFilter($context, $user, $isImport = true)
@@ -223,6 +269,63 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $filter->setDeployment(new FullJournalImportExportDeployment($context, $user));
 
         return $filter;
+    }
+
+    public function archiveFiles($archivePath, $xmlPath, $journalFilesDir)
+    {
+        import('lib.pkp.classes.file.FileArchive');
+        $tarCommand = Config::getVar('cli', 'tar');
+
+        if (FileArchive::tarFunctional() && $tarCommand) {
+            $xmlDir = dirname($xmlPath);
+
+            $command = "$tarCommand -czf " .
+                escapeshellarg($archivePath) . " " .
+                "-C " . escapeshellarg($xmlDir) . " " .
+                escapeshellarg(basename($xmlPath));
+
+            if (is_dir($journalFilesDir)) {
+                $journalParentDir = dirname($journalFilesDir, 2);
+                $journalDir = basename(dirname($journalFilesDir)) . DIRECTORY_SEPARATOR . basename($journalFilesDir);
+
+                $command .= " -C " .
+                    escapeshellarg($journalParentDir) . " " .
+                    escapeshellarg($journalDir);
+            }
+
+            exec($command);
+        } else {
+            throw new Exception('No archive tool is available!');
+        }
+    }
+
+    public function parseOpts(&$args, $optCodes)
+    {
+        $newArgs = [];
+        $opts = [];
+        $sticky = null;
+        foreach ($args as $arg) {
+            if ($sticky) {
+                $opts[$sticky] = $arg;
+                $sticky = null;
+                continue;
+            }
+            if (substr($arg, 0, 2) != '--') {
+                $newArgs[] = $arg;
+                continue;
+            }
+            $opt = substr($arg, 2);
+            if (in_array($opt, $optCodes)) {
+                $opts[$opt] = true;
+                continue;
+            }
+            if (in_array($opt . ":", $optCodes)) {
+                $sticky = $opt;
+                continue;
+            }
+        }
+        $args = $newArgs;
+        return $opts;
     }
 
     public function usage($scriptName)

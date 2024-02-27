@@ -91,50 +91,49 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $localizedNodeMapping = $this->getLocalizedJournalNodeMapping();
         $localesNodeMapping = $this->getLocalesJournalNodeMapping();
 
-        $propName = $this->snakeToCamel($node->tagName);
-        if (in_array($node->tagName, $simpleNodeMapping)) {
+        $tagName = $node->tagName;
+        $propName = $this->snakeToCamel($tagName);
+
+        if (in_array($tagName, $simpleNodeMapping)) {
             $journal->setData($propName, $node->textContent);
-        }
-        if (in_array($node->tagName, $localizedNodeMapping)) {
+        } elseif (in_array($tagName, $localizedNodeMapping)) {
             list($locale, $value) = $this->parseLocalizedContent($node);
-            if (empty($locale)) {
-                $locale = $journal->getPrimaryLocale();
-            }
+            $locale = empty($locale) ? $journal->getPrimaryLocale() : $locale;
             $journal->setData($propName, $value, $locale);
-        }
-        if (in_array($node->tagName, $localesNodeMapping)) {
+        } elseif (in_array($tagName, $localesNodeMapping)) {
             $locales = preg_split('/:/', $node->textContent);
             $journal->setData($propName, $locales);
-        }
-        if ($node->tagName == 'submission_checklist') {
+        } elseif ($tagName === 'submission_checklist') {
             list($locale, $items) = $this->parseSubmissionChecklist($node);
             $journal->setData($propName, $items, $locale);
         }
 
-        if (is_a($node, 'DOMElement')) {
-            if ($node->tagName == 'plugins') {
-                $this->parsePlugins($node);
-            }
-            if ($node->tagName == 'navigation_menu_items') {
-                $this->parseNavigationMenuItems($node, $journal);
-            }
-            if ($node->tagName == 'navigation_menus') {
-                $this->parseNavigationMenus($node, $journal);
-            }
-            if ($node->tagName == 'PKPUsers') {
-                $this->parseUsers($node, $journal);
-            }
-            if ($node->tagName == 'sections') {
-                $this->parseSections($node, $journal);
-            }
-            if ($node->tagName == 'extended_issues') {
-                $this->parseIssues($node, $journal);
-            }
-            if ($node->tagName == 'extended_issue') {
-                $this->parseIssue($node, $journal);
-            }
-            if ($node->tagName == 'extended_articles') {
-                $this->parseArticles($node, $journal);
+        if ($node instanceof DOMElement) {
+            switch ($tagName) {
+                case 'plugins':
+                    $this->parsePlugins($node);
+                    break;
+                case 'navigation_menu_items':
+                    $this->parseNavigationMenuItems($node, $journal);
+                    break;
+                case 'navigation_menus':
+                    $this->parseNavigationMenus($node, $journal);
+                    break;
+                case 'PKPUsers':
+                    $this->parseUsers($node, $journal);
+                    break;
+                case 'sections':
+                    $this->parseSections($node, $journal);
+                    break;
+                case 'extended_issues':
+                    $this->parseIssues($node, $journal);
+                    break;
+                case 'extended_issue':
+                    $this->parseIssue($node, $journal);
+                    break;
+                case 'extended_articles':
+                    $this->parseArticles($node, $journal);
+                    break;
             }
         }
     }
