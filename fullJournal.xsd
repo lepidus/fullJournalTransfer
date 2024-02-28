@@ -84,6 +84,7 @@
 			<element ref="pkp:navigation_menu_items" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:navigation_menus" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:PKPUsers" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:genres" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:sections" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_issues" minOccurs="0" maxOccurs="unbounded" />
@@ -208,6 +209,27 @@
 		<attribute name="can_change_metadata" type="int" />
 	</complexType>
 
+    <element name="genres">
+		<complexType>
+			<sequence>
+				<element ref="pkp:genre" minOccurs="0" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="genre">
+		<sequence>
+            <element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
+			<element name="name" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+		<attribute name="key" type="string" />
+		<attribute name="category" type="int" />
+		<attribute name="dependent" type="int" />
+		<attribute name="supplementary" type="int" />
+		<attribute name="seq" type="int" />
+		<attribute name="enabled" type="int" />
+	</complexType>
+
 	<element name="review_rounds">
 		<complexType>
 			<sequence>
@@ -311,6 +333,7 @@
     <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
     <element name="navigation_menu" type="pkp:navigation_menu" />
     <element name="announcement" type="pkp:announcement" />
+    <element name="genre" type="pkp:genre" />
 	<element name="review_round" type="pkp:review_round" />
 	<element name="stage_assignment" type="pkp:stage_assignment" />
 	<element name="review_assignment" type="pkp:review_assignment" />

@@ -162,6 +162,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addNavigationMenuItems($doc, $journalNode, $journal);
         $this->addNavigationMenus($doc, $journalNode, $journal);
         $this->addUsers($doc, $journalNode, $journal);
+        $this->addGenres($doc, $journalNode, $journal);
         $this->addSections($doc, $journalNode, $journal);
         $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
@@ -300,6 +301,42 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
     }
 
+    public function addGenres($doc, $journalNode, $journal)
+    {
+        $genreDAO = DAORegistry::getDAO('GenreDAO');
+        $genres = $genreDAO->getByContextId($journal->getId())->toArray();
+        $deployment = $this->getDeployment();
+
+        if (!count($genres)) {
+            return;
+        }
+
+        $genresNode = $doc->createElementNS($deployment->getNamespace(), 'genres');
+        foreach ($genres as $genre) {
+            $genreNode = $doc->createElementNS($deployment->getNamespace(), 'genre');
+
+            $genreNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'id',
+                $genre->getId()
+            ));
+            $node->setAttribute('type', 'internal');
+            $node->setAttribute('advice', 'ignore');
+
+            $genreNode->setAttribute('key', $genre->getKey());
+            $genreNode->setAttribute('category', (int) $genre->getCategory());
+            $genreNode->setAttribute('dependent', (int) $genre->getDependent());
+            $genreNode->setAttribute('supplementary', (int) $genre->getSupplementary());
+            $genreNode->setAttribute('seq', $genre->getSequence());
+            $genreNode->setAttribute('enabled', $genre->getEnabled());
+
+            $this->createLocalizedNodes($doc, $genreNode, 'name', $genre->getName(null));
+
+            $genresNode->appendChild($genreNode);
+        }
+
+        $journalNode->appendChild($genresNode);
+    }
 
     public function addSections($doc, $journalNode, $journal)
     {

@@ -59,9 +59,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
                 $this->handleChildElement($n, $journal);
-                if ($n->tagName === 'supported_locales') {
-                    $this->installDefaultGenres($journal);
-                }
             }
         }
         $contextDAO->updateObject($journal);
@@ -93,12 +90,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 $fileManager->mkdir($journalFileDir);
             }
         }
-    }
-
-    public function installDefaultGenres($journal)
-    {
-        $genreDao = \DAORegistry::getDAO('GenreDAO');
-        $genreDao->installDefaults($journal->getId(), $journal->getData('supportedLocales'));
     }
 
     public function handleChildElement($node, $journal)
@@ -140,6 +131,9 @@ class NativeXmlJournalFilter extends NativeImportFilter
                     break;
                 case 'PKPUsers':
                     $this->parseUsers($node, $journal);
+                    break;
+                case 'genres':
+                    $this->parseGenres($node, $journal);
                     break;
                 case 'sections':
                     $this->parseSections($node, $journal);
@@ -251,6 +245,44 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $usersDoc->appendChild($usersDoc->importNode($node, true));
         $usersXml = $usersDoc->saveXML();
         return $filter->execute($usersXml);
+    }
+
+    public function parseGenres($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'genre') {
+                $this->parseGenre($n, $journal);
+            }
+        }
+    }
+
+    public function parseGenre($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $genreDAO = DAORegistry::getDAO('GenreDAO');
+        $genre = $genreDAO->newDataObject();
+        $genre->setContextId($journal->getId());
+        $genre->setKey($node->getAttribute('key'));
+        $genre->setCategory($node->getAttribute('category'));
+        $genre->setDependent($node->getAttribute('dependent'));
+        $genre->setSupplementary($node->getAttribute('supplementary'));
+        $genre->setSequence($node->getAttribute('seq'));
+        $genre->setEnabled($node->getAttribute('enabled'));
+
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName === 'name') {
+                list($locale, $value) = $this->parseLocalizedContent($n);
+                if (empty($locale)) {
+                    $locale = $context->getPrimaryLocale();
+                }
+                $genre->setName($value, $locale);
+            }
+        }
+
+        $genreId = $genreDAO->insertObject($genre);
     }
 
     public function parseSections($node, $journal)
