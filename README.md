@@ -1,6 +1,8 @@
 # Full Journal Transfer
 This plugin allows you to import and export all the content of a journal.
 
+_This plugin is not yet ready for general use. We are releasing preliminary versions for testing._
+
 ## Compatibility
 The latest release of this plugin is compatible with the following PKP applications:
 
