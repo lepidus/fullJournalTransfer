@@ -75,7 +75,7 @@
 			<element name="submission_checklist" minOccurs="1" maxOccurs="unbounded">
 				<complexType>
 					<sequence>
-						<element name="submission_checklist_item" minOccurs="1" maxOccurs="unbounded" />
+						<element name="submission_checklist_item" minOccurs="0" maxOccurs="unbounded" />
 					</sequence>
 					<attribute name="locale" type="string" />
 				</complexType>
