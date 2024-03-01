@@ -451,12 +451,23 @@ class JournalNativeXmlFilter extends NativeExportFilter
                     $interests = preg_split('/,\s*/', $node->textContent);
                     $uniqueInterests = array_intersect_key(
                         $interests,
-                        array_unique(array_map("strtolower", $interests))
+                        array_unique(array_map([$this, 'removeAccents'], $interests))
                     );
                     $node->nodeValue = htmlspecialchars(implode(', ', $uniqueInterests), ENT_COMPAT, 'UTF-8');
                 }
             }
         }
+    }
+
+    public function removeAccents($string)
+    {
+        $transliterator = Transliterator::createFromRules(
+            ':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;',
+            Transliterator::FORWARD
+        );
+        $normalized = $transliterator->transliterate(strtolower($string));
+
+        return $normalized;
     }
 
     private function camelCaseToSnakeCase($string)
