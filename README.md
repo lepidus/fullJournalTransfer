@@ -49,7 +49,6 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 - Navigation Menus
 - Plugins Configs
 - Sections
-- Review Forms
 - Review Assignments
 - Review Rounds
 - Stage Assignments
@@ -57,6 +56,7 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 
 **To Do**:
 
+- Review Forms
 - Review Files
 - Discussions
 - Metrics
