@@ -465,9 +465,9 @@ class JournalNativeXmlFilter extends NativeExportFilter
             ':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;',
             Transliterator::FORWARD
         );
-        $normalized = $transliterator->transliterate(strtolower($string));
+        $normalized = $transliterator->transliterate($string);
 
-        return $normalized;
+        return strtolower($normalized);
     }
 
     private function camelCaseToSnakeCase($string)
