@@ -35,6 +35,8 @@ To import a journal from tar.gz file, execute the command in the application's r
 php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] [user_name]
 ```
 
+**Obs**.: Journals containing substantial data will consume a large memory resources. In such instances, employ the PHP parameter `-d memory_limit=-1` during import/export operations.
+
 ## Imported/Exported Journal Content
 
 **Using PKP native import/export**:
