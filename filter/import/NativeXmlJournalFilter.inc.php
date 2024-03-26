@@ -118,35 +118,24 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $journal->setData($propName, $items, $locale);
         }
 
+        $tagMethodMap = [
+            'plugins' => 'parsePlugins',
+            'navigation_menu_items' => 'parseNavigationMenuItems',
+            'navigation_menus' => 'parseNavigationMenus',
+            'PKPUsers' => 'parseUsers',
+            'genres' => 'parseGenres',
+            'sections' => 'parseSections',
+            'review_forms' => 'parseReviewForms',
+            'extended_issues' => 'parseIssues',
+            'extended_issue' => 'parseIssue',
+            'extended_articles' => 'parseArticles',
+        ];
+
         if ($node instanceof DOMElement) {
-            switch ($tagName) {
-                case 'plugins':
-                    $this->parsePlugins($node);
-                    break;
-                case 'navigation_menu_items':
-                    $this->parseNavigationMenuItems($node, $journal);
-                    break;
-                case 'navigation_menus':
-                    $this->parseNavigationMenus($node, $journal);
-                    break;
-                case 'PKPUsers':
-                    $this->parseUsers($node, $journal);
-                    break;
-                case 'genres':
-                    $this->parseGenres($node, $journal);
-                    break;
-                case 'sections':
-                    $this->parseSections($node, $journal);
-                    break;
-                case 'extended_issues':
-                    $this->parseIssues($node, $journal);
-                    break;
-                case 'extended_issue':
-                    $this->parseIssue($node, $journal);
-                    break;
-                case 'extended_articles':
-                    $this->parseArticles($node, $journal);
-                    break;
+            $tagName = $node->tagName;
+            if (array_key_exists($tagName, $tagMethodMap)) {
+                $method = $tagMethodMap[$tagName];
+                $this->$method($node, $journal);
             }
         }
     }
@@ -360,6 +349,29 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
         }
         $deployment->addProcessedObjectId(ASSOC_TYPE_SECTION, $sectionId);
+    }
+
+    public function parseReviewForms($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_form') {
+                $this->parseReviewForm($n, $journal);
+            }
+        }
+    }
+
+    public function parseReviewForm($node, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review_form');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $reviewFormDoc = new DOMDocument();
+        $reviewFormDoc->appendChild($reviewFormDoc->importNode($node, true));
+        $importedObjects = $importFilter->execute($reviewFormDoc);
+        return $importedObjects;
     }
 
     public function parseIssues($node, $journal)

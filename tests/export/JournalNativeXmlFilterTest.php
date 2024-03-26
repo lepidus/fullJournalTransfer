@@ -927,8 +927,22 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             $expectedJournalNode->appendChild($clone);
         }
         $this->createSectionsNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
-        $this->createIssuesNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
 
+        $expectedJournalNode->appendChild($reviewFormsNode = $doc->createElementNS(
+            $deployment->getNamespace(),
+            'review_forms'
+        ));
+        $reviewFormsNode->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:xsi',
+            'http://www.w3.org/2001/XMLSchema-instance'
+        );
+        $reviewFormsNode->setAttribute(
+            'xsi:schemaLocation',
+            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
+        );
+
+        $this->createIssuesNode($doc, $deployment, $journalExportFilter, $expectedJournalNode);
         $this->registerMockIssues();
 
         $expectedJournalNode->appendChild($articlesNode = $doc->createElementNS(

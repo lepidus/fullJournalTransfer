@@ -43,6 +43,7 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
         $deployment = $this->getDeployment();
 
         $reviewFormNode = $doc->createElementNS($deployment->getNamespace(), 'review_form');
+        $reviewFormNode->setAttribute('id', $reviewForm->getId());
         $reviewFormNode->setAttribute('seq', $reviewForm->getSequence());
         $reviewFormNode->setAttribute('is_active', $reviewForm->getActive());
 
@@ -63,7 +64,7 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
 
         $reviewFormElementDAO = DAORegistry::getDAO('ReviewFormElementDAO');
         $reviewFormElements = $reviewFormElementDAO->getByReviewFormId($reviewForm->getId())->toArray();
-        $reviewFormElementsDoc = $exportFilter->execute($reviewFormElements, true);
+        $reviewFormElementsDoc = $exportFilter->execute($reviewFormElements);
         if ($reviewFormElementsDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($reviewFormElementsDoc->documentElement, true);
             $reviewFormNode->appendChild($clone);

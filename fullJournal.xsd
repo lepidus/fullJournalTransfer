@@ -86,6 +86,7 @@
 			<element ref="pkp:PKPUsers" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:genres" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:sections" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:review_forms" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_issues" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_articles" minOccurs="0" maxOccurs="unbounded" />
@@ -287,6 +288,52 @@
 		<attribute name="reviewer" type="string" />
 	</complexType>
 
+    <element name="review_forms">
+		<complexType>
+			<sequence>
+				<element ref="pkp:review_form" minOccurs="0" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="review_form">
+		<sequence>
+			<element name="title" type="pkp:localizedNode" minOccurs="1" maxOccurs="unbounded" />
+			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+            <element ref="pkp:review_form_elements" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+		<attribute name="id" type="int" />
+		<attribute name="seq" type="int" />
+		<attribute name="is_active" type="int" />
+	</complexType>
+
+    <element name="review_form_elements">
+		<complexType>
+			<sequence>
+				<element ref="pkp:review_form_element" minOccurs="0" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+    <complexType name="review_form_element">
+		<sequence>
+			<element name="question" type="pkp:localizedNode" minOccurs="1" maxOccurs="unbounded" />
+			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
+			<element name="possible_responses" minOccurs="0" maxOccurs="unbounded">
+				<complexType>
+					<sequence>
+						<element name="possible_response" minOccurs="1" maxOccurs="unbounded" />
+					</sequence>
+					<attribute name="locale" type="string" />
+				</complexType>
+			</element>
+		</sequence>
+		<attribute name="seq" type="int" />
+		<attribute name="element_type" type="int" />
+		<attribute name="required" type="int" />
+		<attribute name="included" type="int" />
+	</complexType>
+
     <element name="editor_decisions">
 		<complexType>
 			<sequence>
@@ -335,6 +382,8 @@
     <element name="announcement" type="pkp:announcement" />
     <element name="genre" type="pkp:genre" />
 	<element name="review_round" type="pkp:review_round" />
+	<element name="review_form" type="pkp:review_form" />
+	<element name="review_form_element" type="pkp:review_form_element" />
 	<element name="stage_assignment" type="pkp:stage_assignment" />
 	<element name="review_assignment" type="pkp:review_assignment" />
 	<element name="editor_decision" type="pkp:editor_decision" />

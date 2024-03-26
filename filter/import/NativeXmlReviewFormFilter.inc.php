@@ -48,22 +48,53 @@ class NativeXmlReviewFormFilter extends NativeImportFilter
             $reviewForm->setSequence($node->getAttribute('seq'));
         }
 
-        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement')) {
-                switch ($n->tagName) {
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                switch ($childNode->tagName) {
                     case 'title':
-                        $locale = $n->getAttribute('locale');
-                        $reviewForm->setTitle($n->textContent, $locale);
+                        $locale = $childNode->getAttribute('locale');
+                        $reviewForm->setTitle($childNode->textContent, $locale);
                         break;
                     case 'description':
-                        $locale = $n->getAttribute('locale');
-                        $reviewForm->setDescription($n->textContent, $locale);
+                        $locale = $childNode->getAttribute('locale');
+                        $reviewForm->setDescription($childNode->textContent, $locale);
+                        break;
+                    case 'review_form_elements':
+                        $reviewFormElementsNode = $childNode;
                         break;
                 }
             }
         }
 
         $reviewFormDAO->insertObject($reviewForm);
+        $deployment->setReviewFormDBId($node->getAttribute('id'), $reviewForm->getId());
+
+        if ($reviewFormElementsNode) {
+            $this->parseReviewFormElements($reviewFormElementsNode);
+        }
+
+        $deployment->setReviewForm($reviewForm);
         return $reviewForm;
+    }
+
+    public function parseReviewFormElements($node)
+    {
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName  === 'review_form_element') {
+                $this->parseReviewFormElement($n);
+            }
+        }
+    }
+
+    public function parseReviewFormElement($node)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-form-element');
+        assert(count($importFilters) == 1);
+        $importFilter = array_shift($importFilters);
+        $importFilter->setDeployment($this->getDeployment());
+        $reviewFormElementsDocs = new DOMDocument();
+        $reviewFormElementsDocs->appendChild($reviewFormElementsDocs->importNode($node, true));
+        return $importFilter->execute($reviewFormElementsDocs);
     }
 }
