@@ -67,13 +67,13 @@ class NativeXmlReviewFormFilter extends NativeImportFilter
         }
 
         $reviewFormDAO->insertObject($reviewForm);
+        $deployment->setReviewForm($reviewForm);
         $deployment->setReviewFormDBId($node->getAttribute('id'), $reviewForm->getId());
 
         if ($reviewFormElementsNode) {
             $this->parseReviewFormElements($reviewFormElementsNode);
         }
 
-        $deployment->setReviewForm($reviewForm);
         return $reviewForm;
     }
 

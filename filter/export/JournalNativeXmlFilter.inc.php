@@ -395,7 +395,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $exportFilter->setDeployment($this->getDeployment());
 
         $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO');
-        $reviewForms = $reviewFormDao->getActiveByAssocId(ASSOC_TYPE_JOURNAL, $journal->getId())->toArray();
+        $reviewForms = $reviewFormDao->getByAssocId(ASSOC_TYPE_JOURNAL, $journal->getId())->toArray();
         $reviewFormDoc = $exportFilter->execute($reviewForms);
 
         if ($reviewFormDoc->documentElement instanceof DOMElement) {

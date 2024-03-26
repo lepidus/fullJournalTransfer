@@ -364,7 +364,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseReviewForm($node, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review_form');
+        $importFilters = $filterDao->getObjectsByGroup('native-xml=>review-form');
         assert(count($importFilters) == 1);
         $importFilter = array_shift($importFilters);
         $importFilter->setDeployment($this->getDeployment());
