@@ -174,7 +174,7 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
         ];
         $reviewForms = [$reviewForm];
 
-        $doc = $reviewFormExportFilter->process($reviewForms);
+        $doc = $reviewFormExportFilter->execute($reviewForms);
 
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('reviewForm.xml')->saveXml(),

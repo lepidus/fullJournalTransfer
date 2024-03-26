@@ -127,7 +127,8 @@ class ReviewFormElementNativeXmlFilterTest extends NativeImportExportFilterTestC
         $reviewFormElement->setPossibleResponses(['Fine','Same as always', 'Bad'], 'en_US');
         $reviewFormElements = [$reviewFormElement];
 
-        $doc = $reviewFormElementExportFilter->process($reviewFormElements);
+        $doc = $reviewFormElementExportFilter->execute($reviewFormElements);
+
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('reviewFormElement.xml')->saveXml(),
             $doc->saveXML(),
