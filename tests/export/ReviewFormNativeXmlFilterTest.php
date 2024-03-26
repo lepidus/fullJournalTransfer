@@ -123,6 +123,7 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->formatOutput = true;
 
         $expectedReviewFormNode = $doc->createElementNS($deployment->getNamespace(), 'review_form');
+        $expectedReviewFormNode->setAttribute('id', 98);
         $expectedReviewFormNode->setAttribute('seq', 1);
         $expectedReviewFormNode->setAttribute('is_active', 1);
         $reviewFormExportFilter->createLocalizedNodes(
@@ -142,6 +143,7 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $reviewForm = new ReviewForm();
         $reviewForm->_data = [
+            'id' => 98,
             'assocId' => 12,
             'assocType' => ASSOC_TYPE_JOURNAL,
             'sequence' => 1,
@@ -165,6 +167,7 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $reviewForm = new ReviewForm();
         $reviewForm->_data = [
+            'id' => 98,
             'assocId' => 12,
             'assocType' => ASSOC_TYPE_JOURNAL,
             'sequence' => 1,

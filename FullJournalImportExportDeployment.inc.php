@@ -9,10 +9,11 @@ import('plugins.importexport.native.NativeImportExportDeployment');
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
-    private $reviewForm;
-    private $navigationMenuItemDBIds;
-    private $reviewRound;
     public $isTestEnv;
+    private $reviewForm;
+    private $reviewRound;
+    private $navigationMenuItemDBIds;
+    private $reviewFormDBIds;
 
     public function __construct($context, $user = null)
     {
@@ -116,5 +117,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function setNavigationMenuItemDBId($navigationMenuItemDBId, $DBId)
     {
         return $this->navigationMenuItemDBIds[$navigationMenuItemDBId] = $DBId;
+    }
+
+    public function getReviewFormDBIds()
+    {
+        return $this->reviewFormDBIds;
+    }
+
+    public function setReviewFormDBIds($reviewFormDBIds)
+    {
+        return $this->reviewFormDBIds = $reviewFormDBIds;
+    }
+
+    public function getReviewFormDBId($reviewFormDBIds)
+    {
+        if (array_key_exists($reviewFormDBIds, $this->reviewFormDBIds)) {
+            return $this->reviewFormDBIds[$reviewFormDBIds];
+        }
+        return null;
+    }
+
+    public function setReviewFormDBId($reviewFormDBIds, $DBId)
+    {
+        return $this->reviewFormDBIds[$reviewFormDBIds] = $DBId;
     }
 }

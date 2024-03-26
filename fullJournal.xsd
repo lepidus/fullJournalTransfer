@@ -302,6 +302,7 @@
 			<element name="description" type="pkp:localizedNode" minOccurs="0" maxOccurs="unbounded" />
             <element ref="pkp:review_form_elements" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
+		<attribute name="id" type="int" />
 		<attribute name="seq" type="int" />
 		<attribute name="is_active" type="int" />
 	</complexType>

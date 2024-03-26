@@ -29,7 +29,11 @@ class NativeXmlReviewFormFilterTest extends NativeImportExportFilterTestCase
     {
         $reviewFormImportFilter = $this->getNativeImportExportFilter();
         $deployment = $reviewFormImportFilter->getDeployment();
+
         $reviewFormDAO = DAORegistry::getDAO('ReviewFormDAO');
+        $reviewForm = $reviewFormDAO->newDataObject();
+        $reviewForm->setId(98);
+        $deployment->setReviewForm($reviewForm);
 
         $expectedReviewFormData = [
             'assocId' => $this->context->getId(),
