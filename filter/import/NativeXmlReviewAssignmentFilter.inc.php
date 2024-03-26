@@ -51,6 +51,7 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         $reviewAssignment->setReviewerId($reviewer->getId());
         $reviewAssignment->setSubmissionId($submission->getId());
         $reviewAssignment->setReviewRoundId($reviewRound->getId());
+        $reviewAssignment->setReviewFormId($deployment->getReviewFormDBId($node->getAttribute('review_form_id')));
         $reviewAssignment->setStageId($node->getAttribute('stage_id'));
         $reviewAssignment->setRecommendation($node->getAttribute('recommendation') ?: null);
         $reviewAssignment->setQuality($node->getAttribute('quality') ?: null);

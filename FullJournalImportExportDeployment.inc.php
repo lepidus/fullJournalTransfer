@@ -19,6 +19,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     {
         parent::__construct($context, $user);
         $this->setNavigationMenuItemDBIds([]);
+        $this->setReviewFormDBIds([]);
     }
 
     public function getSchemaFilename()
