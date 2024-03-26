@@ -102,6 +102,7 @@
             <title locale="en_US">Articles</title>
         </section>
     </sections>
+    <review_forms xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
     <extended_issue access_status="0" current="0" published="0" url_path="testes" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
         <id advice="ignore" type="internal">102</id>
         <issue_identification>

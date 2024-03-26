@@ -164,6 +164,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addUsers($doc, $journalNode, $journal);
         $this->addGenres($doc, $journalNode, $journal);
         $this->addSections($doc, $journalNode, $journal);
+        $this->addReviewForms($doc, $journalNode, $journal);
         $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
 
@@ -383,6 +384,24 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $journalNode->appendChild($sectionsNode);
+    }
+
+    public function addReviewForms($doc, $journalNode, $journal)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('review-form=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+
+        $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO');
+        $reviewForms = $reviewFormDao->getActiveByAssocId(ASSOC_TYPE_JOURNAL, $journal->getId())->toArray();
+        $reviewFormDoc = $exportFilter->execute($reviewForms);
+
+        if ($reviewFormDoc->documentElement instanceof DOMElement) {
+            $clone = $doc->importNode($reviewFormDoc->documentElement, true);
+            $journalNode->appendChild($clone);
+        }
     }
 
     public function addIssues($doc, $journalNode, $journal)
