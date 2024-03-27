@@ -24,6 +24,7 @@
                     <sequence>
 						<element ref="pkp:stage_assignment" minOccurs="0" maxOccurs="unbounded" />
 						<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
+						<element ref="pkp:submission_file" minOccurs="0" maxOccurs="unbounded" />
 						<element ref="pkp:editor_decisions" minOccurs="0" maxOccurs="unbounded" />
 					</sequence>
 					<attribute name="stage" use="required">

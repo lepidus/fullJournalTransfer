@@ -22,6 +22,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         $this->addStageAssignments($doc, $submissionNode, $submission);
         $this->addReviewRounds($doc, $submissionNode, $submission);
+        $this->addReviewFiles($doc, $submissionNode, $submission);
         $this->addEditorDecisions($doc, $submissionNode, $submission);
 
         return $submissionNode;
@@ -76,6 +77,40 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         if ($reviewRoundsDoc->documentElement instanceof DOMElement) {
             $clone = $doc->importNode($reviewRoundsDoc->documentElement, true);
             $submissionNode->appendChild($clone);
+        }
+    }
+
+    public function addReviewFiles($doc, $submissionNode, $submission)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $submissionFilesIterator = Services::get('submissionFile')->getMany([
+            'submissionIds' => [$submission->getId()],
+            'includeDependentFiles' => true,
+            'fileStages' => [
+                SUBMISSION_FILE_QUERY,
+                SUBMISSION_FILE_NOTE,
+                SUBMISSION_FILE_REVIEW_ATTACHMENT,
+                SUBMISSION_FILE_REVIEW_FILE,
+                SUBMISSION_FILE_REVIEW_ATTACHMENT,
+                SUBMISSION_FILE_REVIEW_REVISION,
+                SUBMISSION_FILE_INTERNAL_REVIEW_FILE,
+                SUBMISSION_FILE_INTERNAL_REVIEW_REVISION
+            ]
+        ]);
+
+        $deployment = $this->getDeployment();
+        foreach ($submissionFilesIterator as $submissionFile) {
+            $nativeExportFilters = $filterDao->getObjectsByGroup(get_class($submissionFile) . '=>native-xml');
+            assert(count($nativeExportFilters) == 1);
+            $exportFilter = array_shift($nativeExportFilters);
+            $exportFilter->setDeployment($this->getDeployment());
+
+            $exportFilter->setOpts($this->opts);
+            $submissionFileDoc = $exportFilter->execute($submissionFile, true);
+            if ($submissionFileDoc) {
+                $clone = $doc->importNode($submissionFileDoc->documentElement, true);
+                $submissionNode->appendChild($clone);
+            }
         }
     }
 
