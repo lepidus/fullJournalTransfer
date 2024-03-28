@@ -74,9 +74,36 @@ class ReviewRoundNativeXmlFilter extends NativeExportFilter
             intval($reviewRound->getStatus())
         ));
 
+        $this->addReviewFiles($doc, $reviewRoundNode, $reviewRound);
         $this->addReviewAssignments($doc, $reviewRoundNode, $reviewRound);
 
         return $reviewRoundNode;
+    }
+
+    public function addReviewFiles($doc, $reviewRoundNode, $reviewRound)
+    {
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $fileStages = $this->getFileStagesByStageId($reviewRound->getStageId());
+        $submissionFilesIterator = Services::get('submissionFile')->getMany([
+            'submissionIds' => [$reviewRound->getSubmissionId()],
+            'reviewRoundIds' => [$reviewRound->getId()],
+            'fileStages' => $fileStages,
+        ]);
+
+        $deployment = $this->getDeployment();
+        foreach ($submissionFilesIterator as $submissionFile) {
+            $nativeExportFilters = $filterDao->getObjectsByGroup('review-file=>native-xml');
+            assert(count($nativeExportFilters) == 1);
+            $exportFilter = array_shift($nativeExportFilters);
+            $exportFilter->setDeployment($this->getDeployment());
+
+            $exportFilter->setOpts($this->opts);
+            $submissionFileDoc = $exportFilter->execute($submissionFile, true);
+            if ($submissionFileDoc) {
+                $clone = $doc->importNode($submissionFileDoc->documentElement, true);
+                $reviewRoundNode->appendChild($clone);
+            }
+        }
     }
 
     public function addReviewAssignments($doc, $reviewRoundNode, $reviewRound)
@@ -95,5 +122,29 @@ class ReviewRoundNativeXmlFilter extends NativeExportFilter
             $clone = $doc->importNode($reviewAssignmentsDoc->documentElement, true);
             $reviewRoundNode->appendChild($clone);
         }
+    }
+
+    public function getFileStagesByStageId($stageId)
+    {
+        switch ($stageId) {
+            case WORKFLOW_STAGE_ID_SUBMISSION:
+                return [SUBMISSION_FILE_SUBMISSION];
+                break;
+            case WORKFLOW_STAGE_ID_INTERNAL_REVIEW:
+                return [SUBMISSION_FILE_INTERNAL_REVIEW_FILE, SUBMISSION_FILE_INTERNAL_REVIEW_REVISION];
+                break;
+            case WORKFLOW_STAGE_ID_EXTERNAL_REVIEW:
+                return [SUBMISSION_FILE_REVIEW_FILE, SUBMISSION_FILE_REVIEW_REVISION];
+                break;
+            case WORKFLOW_STAGE_ID_EDITING:
+                return [SUBMISSION_FILE_FINAL, SUBMISSION_FILE_COPYEDIT];
+                break;
+            case WORKFLOW_STAGE_ID_PRODUCTION:
+                return [SUBMISSION_FILE_PRODUCTION_READY];
+                break;
+            default:
+                break;
+        }
+        return [];
     }
 }

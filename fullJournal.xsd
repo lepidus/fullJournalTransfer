@@ -24,7 +24,6 @@
                     <sequence>
 						<element ref="pkp:stage_assignment" minOccurs="0" maxOccurs="unbounded" />
 						<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
-						<element ref="pkp:submission_file" minOccurs="0" maxOccurs="unbounded" />
 						<element ref="pkp:editor_decisions" minOccurs="0" maxOccurs="unbounded" />
 					</sequence>
 					<attribute name="stage" use="required">
@@ -133,7 +132,7 @@
 		<attribute name="access_status" type="int" use="optional" />
 		<attribute name="url_path" type="string" use="optional" />
 	</complexType>
-    
+
     <element name="extended_issues">
 		<complexType>
 			<sequence>
@@ -247,9 +246,12 @@
 			<element name="stage" type="string" minOccurs="1" maxOccurs="1" />
 			<element name="round" type="int" minOccurs="1" maxOccurs="1" />
 			<element name="status" type="int" minOccurs="1" maxOccurs="1" />
+			<element ref="pkp:review_file" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 	</complexType>
+
+	<element name="review_file" substitutionGroup="pkp:submission_file" />
 
 	<element name="review_assignments">
 		<complexType>
