@@ -21,17 +21,11 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         return ['UserDAO', 'UserGroupDAO', 'StageAssignmentDAO'];
     }
 
-    private function registerMockStageAssignmentDAO()
+    private function registerMockStageAssignmentDAO($stageAssignment)
     {
         $mockDAO = $this->getMockBuilder(StageAssignmentDAO::class)
             ->setMethods(['getBySubmissionAndStageId'])
             ->getMock();
-
-        $stageAssignment = $mockDAO->newDataObject();
-        $stageAssignment->setId(563);
-        $stageAssignment->setStageId(WORKFLOW_STAGE_ID_SUBMISSION);
-        $stageAssignment->getRecommendOnly(0);
-        $stageAssignment->getCanChangeMetadata(0);
 
         $mockResult = $this->getMockBuilder(DAOResultFactory::class)
             ->setMethods(['next'])
@@ -92,6 +86,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $deployment = $articleExportFilter->getDeployment();
 
         $submission = new Submission();
+        $this->registerMockStageAssignmentDAO(null);
 
         $expectedArticleNode = $this->doc->createElementNS($deployment->getNamespace(), 'extended_article');
         $expectedArticleNode->appendChild($stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage'));
@@ -110,7 +105,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $this->assertEquals($expectedArticleNode, $articleNode);
     }
 
-    public function testParticipantNodeCreation()
+    public function testAddingParticipants()
     {
         $articleExportFilter = $this->getNativeImportExportFilter();
         $deployment = $articleExportFilter->getDeployment();
@@ -119,9 +114,15 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $context->setPrimaryLocale('en_US');
         $deployment->setContext($context);
 
+        $stageAssignment = new StageAssignment();
+        $stageAssignment->setId(563);
+        $stageAssignment->setStageId(WORKFLOW_STAGE_ID_SUBMISSION);
+        $stageAssignment->getRecommendOnly(0);
+        $stageAssignment->getCanChangeMetadata(0);
+
         $this->registerMockUserDAO('editor');
         $this->registerMockUserGroupDAO();
-        $this->registerMockStageAssignmentDAO();
+        $this->registerMockStageAssignmentDAO($stageAssignment);
 
         $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
         $expectedStageNode->appendChild($participantNode = $this->doc->createElementNS(
@@ -135,7 +136,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submission = new Submission();
         $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
-        $articleExportFilter->createParticipantNode($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
+        $articleExportFilter->addParticipants($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
 
         $this->assertEquals($expectedStageNode, $stageNode);
     }

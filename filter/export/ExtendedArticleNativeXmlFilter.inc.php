@@ -28,10 +28,11 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         foreach ($this->getStageMapping() as $stageId => $stagePath) {
             $submissionNode->appendChild($stageNode = $doc->createElementNS($deployment->getNamespace(), 'stage'));
             $stageNode->setAttribute('path', $stagePath);
+            $this->addParticipants($doc, $stageNode, $submission, $stageId);
         }
     }
 
-    public function createParticipantNode($doc, $stageNode, $submission, $stageId)
+    public function addParticipants($doc, $stageNode, $submission, $stageId)
     {
         $deployment = $this->getDeployment();
         $context = $deployment->getContext();
