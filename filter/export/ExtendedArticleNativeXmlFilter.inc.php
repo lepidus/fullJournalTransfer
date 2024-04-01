@@ -31,6 +31,29 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
+    public function createParticipantNode($doc, $stageNode, $submission, $stageId)
+    {
+        $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
+
+        $stageAssignmentDAO = DAORegistry::getDAO('StageAssignmentDAO');
+        $stageAssignments = $stageAssignmentDAO->getBySubmissionAndStageId($submission->getId(), $stageId);
+
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $userGroupDAO = DAORegistry::getDAO('UserGroupDAO');
+        while ($stageAssignment = $stageAssignments->next()) {
+            $user = $userDAO->getById($stageAssignment->getUserId());
+            $userGroup = $userGroupDAO->getById($stageAssignment->getUserGroupId(), $context->getId());
+
+            $participantNode = $doc->createElementNS($deployment->getNamespace(), 'participant');
+            $participantNode->setAttribute('user', $user->getUsername());
+            $participantNode->setAttribute('user_group_ref', $userGroup->getName($context->getPrimaryLocale()));
+            $participantNode->setAttribute('recommend_only', (int) $stageAssignment->getRecommendOnly());
+            $participantNode->setAttribute('can_change_metadata', (int) $stageAssignment->getCanChangeMetadata());
+            $stageNode->appendChild($participantNode);
+        }
+    }
+
     private function getStageMapping()
     {
         return [
