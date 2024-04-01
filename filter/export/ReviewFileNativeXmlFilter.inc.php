@@ -20,6 +20,7 @@ class ReviewFileNativeXmlFilter extends SubmissionFileNativeXmlFilter
 {
     public function __construct($filterGroup)
     {
+        $this->setDisplayName('Native XML review file export');
         parent::__construct($filterGroup);
     }
 
