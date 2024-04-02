@@ -55,6 +55,35 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
+    public function addEditorDecisions($doc, $stageNode, $submission, $stageId)
+    {
+        $deployment = $this->getDeployment();
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $userGroupDAO = DAORegistry::getDAO('UserGroupDAO');
+
+        $editDecisionDao = DAORegistry::getDAO('EditDecisionDAO');
+        $editorDecisions = $editDecisionDao->getEditorDecisions($submission->getId(), $stageId);
+
+        foreach ($editorDecisions as $editorDecision) {
+            $contextId = $submission->getContextId();
+            $userId = $editorDecision['editorId'];
+
+            if (!$userGroupDAO->userAssignmentExists($contextId, $userId, $stageId)) {
+                continue;
+            }
+
+            $editor = $userDAO->getById($editorDecision['editorId']);
+            $decisionNode = $doc->createElementNS($deployment->getNamespace(), 'decision');
+            $decisionNode->setAttribute('round', $editorDecision['round']);
+            $decisionNode->setAttribute('review_round_id', $editorDecision['reviewRoundId'] ?: 0);
+            $decisionNode->setAttribute('decision', $editorDecision['decision']);
+            $decisionNode->setAttribute('editor', $editor->getUsername());
+            $decisionNode->setAttribute('date_decided', $editorDecision['dateDecided']);
+
+            $stageNode->appendChild($decisionNode);
+        }
+    }
+
     private function getStageMapping()
     {
         return [

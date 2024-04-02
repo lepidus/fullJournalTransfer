@@ -1,6 +1,7 @@
 <?php
 
 import('classes.submission.Submission');
+import('classes.workflow.EditorDecisionActionsManager');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.ExtendedArticleNativeXmlFilter');
 
@@ -18,7 +19,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
     protected function getMockedDAOs()
     {
-        return ['UserDAO', 'UserGroupDAO', 'StageAssignmentDAO'];
+        return ['UserDAO', 'UserGroupDAO', 'StageAssignmentDAO', 'EditDecisionDAO'];
     }
 
     private function registerMockStageAssignmentDAO($stageAssignment)
@@ -80,6 +81,30 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('UserGroupDAO', $mockDAO);
     }
 
+    private function registerMockEditorDecisionDAO()
+    {
+        $mockDAO = $this->getMockBuilder(EditDecisionDAO::class)
+            ->setMethods(['getEditorDecisions'])
+            ->getMock();
+
+        $editorDecision = [
+            'editDecisionId' => 123,
+            'reviewRoundId' => 0,
+            'stageId' => 1,
+            'round' => 0,
+            'editorId' => 784,
+            'decision' => 8,
+            'dateDecided' => '2015-03-04 13:39:11'
+        ];
+
+        $mockDAO->expects($this->any())
+            ->method('getEditorDecisions')
+            ->will($this->returnValue([$editorDecision]));
+
+        DAORegistry::registerDAO('EditDecisionDAO', $mockDAO);
+    }
+
+
     public function testStagesNodeCreation()
     {
         $articleExportFilter = $this->getNativeImportExportFilter();
@@ -139,5 +164,34 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $articleExportFilter->addParticipants($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
 
         $this->assertEquals($expectedStageNode, $stageNode);
+    }
+
+    public function testAddingEditorDecision()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $this->registerMockUserDAO('editor');
+        $this->registerMockUserGroupDAO();
+        $this->registerMockEditorDecisionDAO();
+
+        $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $decisionNode = $this->doc->createElementNS($deployment->getNamespace(), 'decision');
+        $decisionNode->setAttribute('round', 0);
+        $decisionNode->setAttribute('review_round_id', 0);
+        $decisionNode->setAttribute('editor', 'editor');
+        $decisionNode->setAttribute('decision', SUBMISSION_EDITOR_DECISION_EXTERNAL_REVIEW);
+        $decisionNode->setAttribute('date_decided', '2015-03-04 13:39:11');
+        $expectedStageNode->appendChild($decisionNode);
+
+        $submission = new Submission();
+        $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $articleExportFilter->addEditorDecisions($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedStageNode),
+            $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
     }
 }
