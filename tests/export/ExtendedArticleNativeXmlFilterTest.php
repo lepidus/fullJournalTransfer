@@ -20,7 +20,11 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
     protected function getMockedDAOs()
     {
-        return ['UserDAO', 'UserGroupDAO', 'StageAssignmentDAO', 'EditDecisionDAO', 'ReviewRoundDAO'];
+        return [
+            'UserDAO', 'UserGroupDAO',
+            'StageAssignmentDAO', 'EditDecisionDAO',
+            'ReviewRoundDAO', 'ReviewAssignmentDAO'
+        ];
     }
 
     private function registerMockUserDAO($username)
@@ -131,6 +135,41 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
     }
+
+    private function registerMockReviewAssignmentDAO()
+    {
+        $mockDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
+            ->setMethods(['getByReviewRoundId'])
+            ->getMock();
+
+        $reviewAssignment = $mockDAO->newDataObject();
+        $reviewAssignment->setReviewFormId(2);
+        $reviewAssignment->setRecommendation(SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
+        $reviewAssignment->setQuality(SUBMISSION_REVIEWER_RATING_VERY_GOOD);
+        $reviewAssignment->setReviewMethod(SUBMISSION_REVIEW_METHOD_OPEN);
+        $reviewAssignment->setCompetingInterests('There is no competing interest');
+        $reviewAssignment->setDeclined(false);
+        $reviewAssignment->setCancelled(false);
+        $reviewAssignment->setReminderWasAutomatic(false);
+        $reviewAssignment->setUnconsidered(REVIEW_ASSIGNMENT_NOT_UNCONSIDERED);
+        $reviewAssignment->setDateRated('2023-10-31 21:52:08.000');
+        $reviewAssignment->setDateReminded('2023-10-30 21:52:08.000');
+        $reviewAssignment->setDateAssigned('2023-10-29 21:52:08.000');
+        $reviewAssignment->setDateNotified('2023-10-28 21:52:08.000');
+        $reviewAssignment->setDateConfirmed('2023-10-27 21:52:08.000');
+        $reviewAssignment->setDateCompleted('2023-10-26 21:52:08.000');
+        $reviewAssignment->setDateAcknowledged('2023-10-25 21:52:08.000');
+        $reviewAssignment->setDateDue('2023-10-24 21:52:08.000');
+        $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08.000');
+        $reviewAssignment->setLastModified('2023-10-22 21:52:08.000');
+
+        $mockDAO->expects($this->any())
+            ->method('getByReviewRoundId')
+            ->will($this->returnValue(array($reviewAssignment)));
+
+        DAORegistry::registerDAO('ReviewAssignmentDAO', $mockDAO);
+    }
+
 
     public function testStagesNodeCreation()
     {
@@ -251,6 +290,48 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedStageNode),
             $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testAddingReviewAssignments()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $this->registerMockUserDAO('reviewer');
+        $this->registerMockReviewAssignmentDAO();
+
+        $expectedRoundNode = $this->doc->createElementNS($deployment->getNamespace(), 'round');
+        $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+        $assignmentNode->setAttribute('reviewer', 'reviewer');
+        $assignmentNode->setAttribute('recommendation', SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
+        $assignmentNode->setAttribute('quality', SUBMISSION_REVIEWER_RATING_VERY_GOOD);
+        $assignmentNode->setAttribute('method', SUBMISSION_REVIEW_METHOD_OPEN);
+        $assignmentNode->setAttribute('unconsidered', REVIEW_ASSIGNMENT_NOT_UNCONSIDERED);
+        $assignmentNode->setAttribute('competing_interests', 'There is no competing interest');
+        $assignmentNode->setAttribute('declined', 0);
+        $assignmentNode->setAttribute('cancelled', 0);
+        $assignmentNode->setAttribute('was_automatic', 0);
+        $assignmentNode->setAttribute('date_rated', '2023-10-31 21:52:08.000');
+        $assignmentNode->setAttribute('date_reminded', '2023-10-30 21:52:08.000');
+        $assignmentNode->setAttribute('date_assigned', '2023-10-29 21:52:08.000');
+        $assignmentNode->setAttribute('date_notified', '2023-10-28 21:52:08.000');
+        $assignmentNode->setAttribute('date_confirmed', '2023-10-27 21:52:08.000');
+        $assignmentNode->setAttribute('date_completed', '2023-10-26 21:52:08.000');
+        $assignmentNode->setAttribute('date_acknowledged', '2023-10-25 21:52:08.000');
+        $assignmentNode->setAttribute('date_due', '2023-10-24 21:52:08.000');
+        $assignmentNode->setAttribute('date_response_due', '2023-10-23 21:52:08.000');
+        $assignmentNode->setAttribute('last_modified', '2023-10-22 21:52:08.000');
+        $expectedRoundNode->appendChild($assignmentNode);
+
+        $reviewRound = new ReviewRound();
+        $roundNode = $this->doc->createElementNS($deployment->getNamespace(), 'round');
+        $articleExportFilter->addReviewAssignments($this->doc, $roundNode, $reviewRound);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedRoundNode),
+            $this->doc->saveXML($roundNode),
             "actual xml is equal to expected xml"
         );
     }

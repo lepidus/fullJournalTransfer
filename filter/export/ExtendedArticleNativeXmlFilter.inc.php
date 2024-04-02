@@ -93,10 +93,42 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
         $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId(), $stageId);
         while ($reviewRound = $reviewRounds->next()) {
-            $roundNode = $doc->createElementNS($deployment->getNamespace(), 'round');
+            $stageNode->appendChild($roundNode = $doc->createElementNS($deployment->getNamespace(), 'round'));
             $roundNode->setAttribute('round', $reviewRound->getRound());
             $roundNode->setAttribute('status', $reviewRound->getStatus());
-            $stageNode->appendChild($roundNode);
+        }
+    }
+
+    public function addReviewAssignments($doc, $roundNode, $reviewRound)
+    {
+        $deployment = $this->getDeployment();
+        $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
+        $reviewAssignments = $reviewAssignmentDAO->getByReviewRoundId($reviewRound->getId());
+
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        foreach ($reviewAssignments as $reviewAssignment) {
+            $reviewer = $userDAO->getById($reviewAssignment->getReviewerId());
+            $reviewAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+            $reviewAssignmentNode->setAttribute('reviewer', $reviewer->getUsername());
+            $reviewAssignmentNode->setAttribute('recommendation', $reviewAssignment->getRecommendation());
+            $reviewAssignmentNode->setAttribute('quality', $reviewAssignment->getQuality());
+            $reviewAssignmentNode->setAttribute('method', $reviewAssignment->getReviewMethod());
+            $reviewAssignmentNode->setAttribute('unconsidered', $reviewAssignment->getUnconsidered());
+            $reviewAssignmentNode->setAttribute('competing_interests', $reviewAssignment->getCompetingInterests());
+            $reviewAssignmentNode->setAttribute('declined', (int) $reviewAssignment->getDeclined());
+            $reviewAssignmentNode->setAttribute('cancelled', (int) $reviewAssignment->getCancelled());
+            $reviewAssignmentNode->setAttribute('was_automatic', $reviewAssignment->getReminderWasAutomatic());
+            $reviewAssignmentNode->setAttribute('date_rated', $reviewAssignment->getDateRated());
+            $reviewAssignmentNode->setAttribute('date_reminded', $reviewAssignment->getDateReminded());
+            $reviewAssignmentNode->setAttribute('date_assigned', $reviewAssignment->getDateAssigned());
+            $reviewAssignmentNode->setAttribute('date_notified', $reviewAssignment->getDateNotified());
+            $reviewAssignmentNode->setAttribute('date_confirmed', $reviewAssignment->getDateConfirmed());
+            $reviewAssignmentNode->setAttribute('date_completed', $reviewAssignment->getDateCompleted());
+            $reviewAssignmentNode->setAttribute('date_acknowledged', $reviewAssignment->getDateAcknowledged());
+            $reviewAssignmentNode->setAttribute('date_due', $reviewAssignment->getDateDue());
+            $reviewAssignmentNode->setAttribute('date_response_due', $reviewAssignment->getDateResponseDue());
+            $reviewAssignmentNode->setAttribute('last_modified', $reviewAssignment->getLastModified());
+            $roundNode->appendChild($reviewAssignmentNode);
         }
     }
 
