@@ -29,6 +29,9 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $submissionNode->appendChild($stageNode = $doc->createElementNS($deployment->getNamespace(), 'stage'));
             $stageNode->setAttribute('path', $stagePath);
             $this->addParticipants($doc, $stageNode, $submission, $stageId);
+            if ($stageId === WORKFLOW_STAGE_ID_EXTERNAL_REVIEW) {
+            }
+            $this->addEditorDecisions($doc, $stageNode, $submission, $stageId);
         }
     }
 
@@ -79,8 +82,21 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $decisionNode->setAttribute('decision', $editorDecision['decision']);
             $decisionNode->setAttribute('editor', $editor->getUsername());
             $decisionNode->setAttribute('date_decided', $editorDecision['dateDecided']);
-
             $stageNode->appendChild($decisionNode);
+        }
+    }
+
+    public function addReviewRounds($doc, $stageNode, $submission, $stageId)
+    {
+        $deployment = $this->getDeployment();
+
+        $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
+        $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId(), $stageId);
+        while ($reviewRound = $reviewRounds->next()) {
+            $roundNode = $doc->createElementNS($deployment->getNamespace(), 'round');
+            $roundNode->setAttribute('round', $reviewRound->getRound());
+            $roundNode->setAttribute('status', $reviewRound->getStatus());
+            $stageNode->appendChild($roundNode);
         }
     }
 

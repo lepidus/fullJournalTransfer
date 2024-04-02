@@ -2,6 +2,7 @@
 
 import('classes.submission.Submission');
 import('classes.workflow.EditorDecisionActionsManager');
+import('lib.pkp.classes.submission.reviewRound.ReviewRound');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.export.ExtendedArticleNativeXmlFilter');
 
@@ -19,29 +20,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
     protected function getMockedDAOs()
     {
-        return ['UserDAO', 'UserGroupDAO', 'StageAssignmentDAO', 'EditDecisionDAO'];
-    }
-
-    private function registerMockStageAssignmentDAO($stageAssignment)
-    {
-        $mockDAO = $this->getMockBuilder(StageAssignmentDAO::class)
-            ->setMethods(['getBySubmissionAndStageId'])
-            ->getMock();
-
-        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
-            ->setMethods(['next'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $mockResult->expects($this->any())
-            ->method('next')
-            ->will($this->onConsecutiveCalls($stageAssignment, null));
-
-        $mockDAO->expects($this->any())
-            ->method('getBySubmissionAndStageId')
-            ->will($this->returnValue($mockResult));
-
-        DAORegistry::registerDAO('StageAssignmentDAO', $mockDAO);
+        return ['UserDAO', 'UserGroupDAO', 'StageAssignmentDAO', 'EditDecisionDAO', 'ReviewRoundDAO'];
     }
 
     private function registerMockUserDAO($username)
@@ -81,6 +60,28 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('UserGroupDAO', $mockDAO);
     }
 
+    private function registerMockStageAssignmentDAO($stageAssignment)
+    {
+        $mockDAO = $this->getMockBuilder(StageAssignmentDAO::class)
+            ->setMethods(['getBySubmissionAndStageId'])
+            ->getMock();
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($stageAssignment, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getBySubmissionAndStageId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('StageAssignmentDAO', $mockDAO);
+    }
+
     private function registerMockEditorDecisionDAO()
     {
         $mockDAO = $this->getMockBuilder(EditDecisionDAO::class)
@@ -104,6 +105,32 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('EditDecisionDAO', $mockDAO);
     }
 
+    private function registerMockReviewRoundDAO()
+    {
+        $mockDAO = $this->getMockBuilder(ReviewRoundDAO::class)
+            ->setMethods(['getBySubmissionId'])
+            ->getMock();
+
+        $reviewRound = $mockDAO->newDataObject();
+        $reviewRound->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $reviewRound->setRound(1);
+        $reviewRound->setStatus(REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($reviewRound, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getBySubmissionId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
+    }
 
     public function testStagesNodeCreation()
     {
@@ -196,6 +223,30 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submission = new Submission();
         $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
         $articleExportFilter->addEditorDecisions($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedStageNode),
+            $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testAddingReviewRounds()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $this->registerMockReviewRoundDAO();
+
+        $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $roundNode = $this->doc->createElementNS($deployment->getNamespace(), 'round');
+        $roundNode->setAttribute('round', 1);
+        $roundNode->setAttribute('status', REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
+        $expectedStageNode->appendChild($roundNode);
+
+        $submission = new Submission();
+        $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $articleExportFilter->addReviewRounds($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
 
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedStageNode),
