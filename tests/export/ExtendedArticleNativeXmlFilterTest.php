@@ -127,7 +127,12 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $articleNode = $this->doc->createElementNS($deployment->getNamespace(), 'extended_article');
         $articleExportFilter->createStageNodes($this->doc, $articleNode, $submission);
-        $this->assertEquals($expectedArticleNode, $articleNode);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedArticleNode),
+            $this->doc->saveXML($articleNode),
+            "actual xml is equal to expected xml"
+        );
     }
 
     public function testAddingParticipants()
@@ -163,7 +168,11 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
         $articleExportFilter->addParticipants($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
 
-        $this->assertEquals($expectedStageNode, $stageNode);
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedStageNode),
+            $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
     }
 
     public function testAddingEditorDecision()
