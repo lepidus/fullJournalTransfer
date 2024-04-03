@@ -144,7 +144,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->getMock();
 
         $reviewAssignment = $mockDAO->newDataObject();
-        $reviewAssignment->setReviewFormId(2);
         $reviewAssignment->setRecommendation(SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
         $reviewAssignment->setQuality(SUBMISSION_REVIEWER_RATING_VERY_GOOD);
         $reviewAssignment->setReviewMethod(SUBMISSION_REVIEW_METHOD_OPEN);
