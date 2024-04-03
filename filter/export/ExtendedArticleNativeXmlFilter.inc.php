@@ -132,6 +132,32 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
+    public function addReviewFormResponses($doc, $reviewAssignmentNode, $reviewAssignment)
+    {
+        $deployment = $this->getDeployment();
+        $reviewFormResponseDAO = DAORegistry::getDAO('ReviewFormResponseDAO');
+        $reviewFormResponses = $reviewFormResponseDAO->getReviewReviewFormResponseValues($reviewAssignment->getId());
+        foreach ($reviewFormResponses as $response) {
+            $responseValue = null;
+            switch ($response->getResponseType()) {
+                case 'int':
+                    $responseValue = intval($response->getValue());
+                    break;
+                case 'string':
+                    $responseValue = htmlspecialchars($response->getValue(), ENT_COMPAT, 'UTF-8');
+                    break;
+                case 'object':
+                    $responseValue = join(':', $response->getValue());
+                    break;
+                default:
+                    break;
+            }
+            $responseNode = $doc->createElementNS($deployment->getNamespace(), 'response', $responseValue);
+            $responseNode->setAttribute('form_element_id', $response->getReviewFormElementId());
+            $reviewAssignmentNode->appendChild($responseNode);
+        }
+    }
+
     private function getStageMapping()
     {
         return [

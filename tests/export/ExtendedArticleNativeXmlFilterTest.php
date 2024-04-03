@@ -23,7 +23,8 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         return [
             'UserDAO', 'UserGroupDAO',
             'StageAssignmentDAO', 'EditDecisionDAO',
-            'ReviewRoundDAO', 'ReviewAssignmentDAO'
+            'ReviewRoundDAO', 'ReviewAssignmentDAO',
+            'ReviewFormResponseDAO'
         ];
     }
 
@@ -170,6 +171,38 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('ReviewAssignmentDAO', $mockDAO);
     }
 
+    private function registerMockReviewFormResponseDAO()
+    {
+        $mockDAO = $this->getMockBuilder(ReviewFormResponseDAO::class)
+            ->setMethods(['getReviewReviewFormResponseValues'])
+            ->getMock();
+
+        $responses = [];
+
+        $response = $mockDAO->newDataObject();
+        $response->setReviewFormElementId(14);
+        $response->setResponseType('string');
+        $response->setValue('Reviewer response');
+        $responses[] = $response;
+
+        $response = $mockDAO->newDataObject();
+        $response->setReviewFormElementId(15);
+        $response->setResponseType('int');
+        $response->setValue(2);
+        $responses[] = $response;
+
+        $response = $mockDAO->newDataObject();
+        $response->setReviewFormElementId(16);
+        $response->setResponseType('object');
+        $response->setValue([1, 3, 6]);
+        $responses[] = $response;
+
+        $mockDAO->expects($this->any())
+            ->method('getReviewReviewFormResponseValues')
+            ->will($this->returnValue($responses));
+
+        DAORegistry::registerDAO('ReviewFormResponseDAO', $mockDAO);
+    }
 
     public function testStagesNodeCreation()
     {
@@ -332,6 +365,44 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedRoundNode),
             $this->doc->saveXML($roundNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testAddingReviewFormResponses()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $this->registerMockReviewFormResponseDAO();
+
+        $expectedAssignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+        $expectedAssignmentNode->appendChild($responseNode = $this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'response',
+            htmlspecialchars('Reviewer response', ENT_COMPAT, 'UTF-8')
+        ));
+        $responseNode->setAttribute('form_element_id', 14);
+        $expectedAssignmentNode->appendChild($responseNode = $this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'response',
+            intval(2)
+        ));
+        $responseNode->setAttribute('form_element_id', 15);
+        $expectedAssignmentNode->appendChild($responseNode = $this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'response',
+            join(':', [1,3,6])
+        ));
+        $responseNode->setAttribute('form_element_id', 16);
+
+        $reviewAssignment = new ReviewAssignment();
+        $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+        $articleExportFilter->addReviewFormResponses($this->doc, $assignmentNode, $reviewAssignment);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedAssignmentNode),
+            $this->doc->saveXML($assignmentNode),
             "actual xml is equal to expected xml"
         );
     }
