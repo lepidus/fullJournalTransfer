@@ -96,20 +96,6 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
             outputType="class::lib.pkp.classes.announcement.AnnouncementType" />
-        <!-- ReviewRound native XML output -->
-        <filterGroup
-            symbolic="review-round=>native-xml"
-            displayName="plugins.importexport.fullJournalTransfer.displayName"
-            description="plugins.importexport.fullJournalTransfer.description"
-            inputType="class::lib.pkp.classes.submission.reviewRound.ReviewRound[]"
-            outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
-        <!-- ReviewRound native XML input -->
-        <filterGroup
-            symbolic="native-xml=>review-round"
-            displayName="plugins.importexport.fullJournalTransfer.displayName"
-            description="plugins.importexport.fullJournalTransfer.description"
-            inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::lib.pkp.classes.submission.reviewRound.ReviewRound[]" />
         <!-- ReviewForm native XML output -->
         <filterGroup
             symbolic="review-form=>native-xml"
@@ -124,20 +110,6 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
             outputType="class::lib.pkp.classes.reviewForm.ReviewForm" />
-        <!-- ReviewAssignment native XML output -->
-        <filterGroup
-            symbolic="review-assignment=>native-xml"
-            displayName="plugins.importexport.fullJournalTransfer.displayName"
-            description="plugins.importexport.fullJournalTransfer.description"
-            inputType="class::lib.pkp.classes.submission.reviewAssignment.ReviewAssignment[]"
-            outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
-        <!-- ReviewAssignment native XML input -->
-        <filterGroup
-            symbolic="native-xml=>review-assignment"
-            displayName="plugins.importexport.fullJournalTransfer.displayName"
-            description="plugins.importexport.fullJournalTransfer.description"
-            inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::lib.pkp.classes.submission.reviewAssignment.ReviewAssignment[]" />
 		<!-- ReviewFile native XML output -->
         <filterGroup
             symbolic="review-file=>native-xml"
@@ -145,7 +117,7 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="class::lib.pkp.classes.submission.SubmissionFile"
             outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
-		<!-- ReviewAssignment native XML input -->
+		<!-- ReviewFile native XML input -->
         <filterGroup
             symbolic="native-xml=>review-file"
             displayName="plugins.importexport.fullJournalTransfer.displayName"
@@ -245,14 +217,6 @@
             class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlAnnouncementTypeFilter"
             isTemplate="0" />
         <filter
-            inGroup="review-round=>native-xml"
-            class="plugins.importexport.fullJournalTransfer.filter.export.ReviewRoundNativeXmlFilter"
-            isTemplate="0" />
-        <filter
-            inGroup="native-xml=>review-round"
-            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewRoundFilter"
-            isTemplate="0" />
-        <filter
             inGroup="review-form=>native-xml"
             class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFormNativeXmlFilter"
             isTemplate="0" />
@@ -267,14 +231,6 @@
         <filter
             inGroup="native-xml=>review-form-element"
             class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewFormElementFilter"
-            isTemplate="0" />
-        <filter
-            inGroup="review-assignment=>native-xml"
-            class="plugins.importexport.fullJournalTransfer.filter.export.ReviewAssignmentNativeXmlFilter"
-            isTemplate="0" />
-        <filter
-            inGroup="native-xml=>review-assignment"
-            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewAssignmentFilter"
             isTemplate="0" />
 		<filter
             inGroup="review-file=>native-xml"
