@@ -561,9 +561,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->will($this->onConsecutiveCalls([$submissionStageEditorDecision], [], [$reviewStageEditorDecision]));
         DAORegistry::registerDAO('EditDecisionDAO', $mockEditorDecisionDAO);
 
-        libxml_use_internal_errors(true);
         $doc = $articleExportFilter->execute($submissions);
-        dump(libxml_get_errors());
 
         $this->assertXmlStringEqualsXmlString(
             $this->getSampleXml('articles.xml')->saveXml(),

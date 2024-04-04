@@ -1,5 +1,6 @@
 <?php
 
+import('lib.pkp.classes.submission.SubmissionFile');
 import('plugins.importexport.native.filter.ArticleNativeXmlFilter');
 
 class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
@@ -114,6 +115,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $roundNode->setAttribute('round', $reviewRound->getRound());
             $roundNode->setAttribute('status', $reviewRound->getStatus());
             $this->addReviewAssignments($doc, $roundNode, $reviewRound);
+            $this->addReviewFiles($doc, $roundNode, $submission, $stageId, $reviewRound);
             $this->addEditorDecisions($doc, $roundNode, $submission, $stageId, $reviewRound);
         }
     }
@@ -180,6 +182,32 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $responseNode = $doc->createElementNS($deployment->getNamespace(), 'response', $responseValue);
             $responseNode->setAttribute('form_element_id', $response->getReviewFormElementId());
             $reviewAssignmentNode->appendChild($responseNode);
+        }
+    }
+
+    public function addReviewFiles($doc, $roundNode, $submission, $stageId, $reviewRound)
+    {
+        $fileStages = [SUBMISSION_FILE_REVIEW_REVISION, SUBMISSION_FILE_REVIEW_FILE];
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $submissionFilesIterator = Services::get('submissionFile')->getMany([
+            'submissionIds' => [$submission->getId()],
+            'fileStages' => $fileStages,
+            'reviewRoundIds' => [$reviewRound->getId()],
+        ]);
+
+        $deployment = $this->getDeployment();
+        foreach ($submissionFilesIterator as $submissionFile) {
+            $nativeExportFilters = $filterDao->getObjectsByGroup('review-file=>native-xml');
+            assert(count($nativeExportFilters) == 1);
+            $exportFilter = array_shift($nativeExportFilters);
+            $exportFilter->setDeployment($this->getDeployment());
+
+            $exportFilter->setOpts($this->opts);
+            $submissionFileDoc = $exportFilter->execute($submissionFile, true);
+            if ($submissionFileDoc) {
+                $clone = $doc->importNode($submissionFileDoc->documentElement, true);
+                $roundNode->appendChild($clone);
+            }
         }
     }
 

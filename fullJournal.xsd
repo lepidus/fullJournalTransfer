@@ -306,6 +306,7 @@
     <complexType name="round">
         <sequence>
 			<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
+            <element ref="pkp:review_file" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="round" type="int" />
@@ -337,6 +338,8 @@
         <attribute name="last_modified" type="string" />
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
+
+    <element name="review_file" substitutionGroup="pkp:submission_file" />
 
     <complexType name="response" mixed="true">
         <attribute name="form_element_id" type="int" />
