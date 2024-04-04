@@ -306,6 +306,7 @@
     <complexType name="round">
         <sequence>
 			<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="round" type="int" />
         <attribute name="status" type="int" />
@@ -313,7 +314,7 @@
 
     <complexType name="review_assignment">
         <sequence>
-			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="reviewer" type="string" />
         <attribute name="recommendation" type="string" />
@@ -334,6 +335,11 @@
         <attribute name="date_due" type="string" />
         <attribute name="date_response_due" type="string" />
         <attribute name="last_modified" type="string" />
+        <attribute name="review_form_id" type="int" use="optional"/>
+	</complexType>
+
+    <complexType name="response" mixed="true">
+        <attribute name="form_element_id" type="int" />
 	</complexType>
 
     <complexType name="decision">
@@ -365,6 +371,8 @@
     <element name="round" type="pkp:round" />
     
     <element name="review_assignment" type="pkp:review_assignment" />
+
+    <element name="response" type="pkp:response" />
     
     <element name="decision" type="pkp:decision" />
 

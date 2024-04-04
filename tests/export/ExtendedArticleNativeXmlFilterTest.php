@@ -1,6 +1,8 @@
 <?php
 
+import('classes.article.Author');
 import('classes.submission.Submission');
+import('classes.publication.Publication');
 import('classes.workflow.EditorDecisionActionsManager');
 import('lib.pkp.classes.submission.reviewRound.ReviewRound');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
@@ -24,8 +26,26 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             'UserDAO', 'UserGroupDAO',
             'StageAssignmentDAO', 'EditDecisionDAO',
             'ReviewRoundDAO', 'ReviewAssignmentDAO',
-            'ReviewFormResponseDAO'
+            'ReviewFormResponseDAO', 'SectionDAO'
         ];
+    }
+
+    protected function getMockedRegistryKeys()
+    {
+        return ['application'];
+    }
+
+    public function registerApplicationMock()
+    {
+        $mockApplication = $this->getMockBuilder(Application::class)
+            ->setMethods(['getEnabledProducts'])
+            ->getMock();
+
+        $mockApplication->expects($this->any())
+            ->method('getEnabledProducts')
+            ->will($this->returnValue([]));
+
+        Registry::set('application', $mockApplication);
     }
 
     private function registerMockUserDAO($username)
@@ -44,7 +64,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('UserDAO', $mockDAO);
     }
 
-    private function registerMockUserGroupDAO()
+    private function registerMockUserGroupDAO($userGroupName)
     {
         $mockDAO = $this->getMockBuilder(UserGroupDAO::class)
             ->setMethods(['getById', 'userAssignmentExists'])
@@ -52,7 +72,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $userGroup = $mockDAO->newDataObject();
         $userGroup->setId(734);
-        $userGroup->setName('External Reviewer', 'en_US');
+        $userGroup->setName($userGroupName, 'en_US');
 
         $mockDAO->expects($this->any())
             ->method('getById')
@@ -137,7 +157,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
     }
 
-    private function registerMockReviewAssignmentDAO()
+    private function registerMockReviewAssignmentDAO($hasResponse = false)
     {
         $mockDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
             ->setMethods(['getByReviewRoundId'])
@@ -162,6 +182,10 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewAssignment->setDateDue('2023-10-24 21:52:08.000');
         $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08.000');
         $reviewAssignment->setLastModified('2023-10-22 21:52:08.000');
+
+        if ($hasResponse) {
+            $reviewAssignment->setReviewFormId(35);
+        }
 
         $mockDAO->expects($this->any())
             ->method('getByReviewRoundId')
@@ -203,7 +227,23 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('ReviewFormResponseDAO', $mockDAO);
     }
 
-    public function testStagesNodeCreation()
+    private function registerMockSectionDAO()
+    {
+        $mockDAO = $this->getMockBuilder(SectionDAO::class)
+            ->setMethods(['getById'])
+            ->getMock();
+
+        $section = $mockDAO->newDataObject();
+        $section->getLocalizedAbbrev('ART');
+
+        $mockDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->returnValue($section));
+
+        DAORegistry::registerDAO('SectionDAO', $mockDAO);
+    }
+
+    public function testAddingStages()
     {
         $articleExportFilter = $this->getNativeImportExportFilter();
         $deployment = $articleExportFilter->getDeployment();
@@ -224,7 +264,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $stageNode->setAttribute('path', WORKFLOW_STAGE_PATH_PRODUCTION);
 
         $articleNode = $this->doc->createElementNS($deployment->getNamespace(), 'extended_article');
-        $articleExportFilter->createStageNodes($this->doc, $articleNode, $submission);
+        $articleExportFilter->addStages($this->doc, $articleNode, $submission);
 
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedArticleNode),
@@ -249,7 +289,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $stageAssignment->getCanChangeMetadata(0);
 
         $this->registerMockUserDAO('editor');
-        $this->registerMockUserGroupDAO();
+        $this->registerMockUserGroupDAO('External Reviewer');
         $this->registerMockStageAssignmentDAO($stageAssignment);
 
         $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
@@ -279,7 +319,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $deployment = $articleExportFilter->getDeployment();
 
         $this->registerMockUserDAO('editor');
-        $this->registerMockUserGroupDAO();
+        $this->registerMockUserGroupDAO('External Reviewer');
         $this->registerMockEditorDecisionDAO();
 
         $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
@@ -402,6 +442,132 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedAssignmentNode),
             $this->doc->saveXML($assignmentNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testParseArticleToXML()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $context = new Journal();
+        $context->setPrimaryLocale('en_US');
+        $deployment->setContext($context);
+
+        $author = new Author();
+        $author->setId(679);
+        $author->setSequence(1);
+        $author->setGivenName('Author', 'en_US');
+        $author->setEmail('test@mail.com');
+
+        $publication = new Publication();
+        $publication->setId(1023);
+        $publication->setData('authors', [$author]);
+        $publication->setData('status', STATUS_QUEUED);
+        $publication->setData('sectionId', 531);
+        $publication->setData('title', 'Test article', 'en_US');
+
+        $submission = new Submission();
+        $submission->setId(901);
+        $submission->setSubmissionProgress(0);
+        $submission->setData('currentPublicationId', 1023);
+        $submission->setData('stageId', WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $submission->setData('status', STATUS_PUBLISHED);
+        $submission->setData('locale', 'en_US');
+        $submission->setDateSubmitted('2020-01-01');
+        $submission->setData('publications', [$publication]);
+        $submissions = [$submission];
+
+        $this->registerApplicationMock();
+        $this->registerMockReviewRoundDAO();
+        $this->registerMockReviewAssignmentDAO(true);
+        $this->registerMockReviewFormResponseDAO();
+        $this->registerMockSectionDAO();
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById'])
+            ->getMock();
+        $editorUser = $mockUserDAO->newDataObject();
+        $editorUser->setUsername('editor');
+        $reviewerUser = $mockUserDAO->newDataObject();
+        $reviewerUser->setUsername('reviewer');
+        $mockUserDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
+            ->setMethods(['getById', 'userAssignmentExists'])
+            ->getMock();
+        $authorUserGroup = $mockUserGroupDAO->newDataObject();
+        $authorUserGroup->setName('Author', 'en_US');
+        $editorUserGroup = $mockUserGroupDAO->newDataObject();
+        $editorUserGroup->setName('Editor', 'en_US');
+        $reviewerUserGroup = $mockUserGroupDAO->newDataObject();
+        $reviewerUserGroup->setName('External Reviewer', 'en_US');
+        $mockUserGroupDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->onConsecutiveCalls($authorUserGroup, $editorUserGroup, $reviewerUserGroup));
+        $mockUserGroupDAO->expects($this->any())
+            ->method('userAssignmentExists')
+            ->will($this->returnValue(true));
+        DAORegistry::registerDAO('UserGroupDAO', $mockUserGroupDAO);
+
+        $mockStageAssignmentDAO = $this->getMockBuilder(StageAssignmentDAO::class)
+            ->setMethods(['getBySubmissionAndStageId'])
+            ->getMock();
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $editorStageAssignment = new StageAssignment();
+        $editorStageAssignment->setStageId(WORKFLOW_STAGE_ID_SUBMISSION);
+        $editorStageAssignment->getRecommendOnly(0);
+        $editorStageAssignment->getCanChangeMetadata(0);
+        $reviewerStageAssignment = new StageAssignment();
+        $reviewerStageAssignment->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $reviewerStageAssignment->getRecommendOnly(0);
+        $reviewerStageAssignment->getCanChangeMetadata(0);
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($editorStageAssignment, null, null, $reviewerStageAssignment));
+        $mockStageAssignmentDAO->expects($this->any())
+            ->method('getBySubmissionAndStageId')
+            ->will($this->returnValue($mockResult));
+        DAORegistry::registerDAO('StageAssignmentDAO', $mockStageAssignmentDAO);
+
+        $mockEditorDecisionDAO = $this->getMockBuilder(EditDecisionDAO::class)
+            ->setMethods(['getEditorDecisions'])
+            ->getMock();
+        $submissionStageEditorDecision = [
+            'editDecisionId' => 123,
+            'reviewRoundId' => 0,
+            'round' => 0,
+            'editorId' => 784,
+            'decision' => SUBMISSION_EDITOR_DECISION_EXTERNAL_REVIEW,
+            'dateDecided' => '2015-03-04 13:39:11'
+        ];
+        $reviewStageEditorDecision = [
+            'editDecisionId' => 123,
+            'reviewRoundId' => 76,
+            'round' => 1,
+            'editorId' => 784,
+            'decision' => SUBMISSION_EDITOR_DECISION_ACCEPT,
+            'dateDecided' => '2015-03-10 12:00:00'
+        ];
+        $mockEditorDecisionDAO->expects($this->any())
+            ->method('getEditorDecisions')
+            ->will($this->onConsecutiveCalls([$submissionStageEditorDecision], [], [$reviewStageEditorDecision]));
+        DAORegistry::registerDAO('EditDecisionDAO', $mockEditorDecisionDAO);
+
+        libxml_use_internal_errors(true);
+        $doc = $articleExportFilter->execute($submissions);
+        dump(libxml_get_errors());
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->getSampleXml('articles.xml')->saveXml(),
+            $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
     }
