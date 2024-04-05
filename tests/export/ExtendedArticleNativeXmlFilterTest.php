@@ -422,18 +422,21 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             htmlspecialchars('Reviewer response', ENT_COMPAT, 'UTF-8')
         ));
         $responseNode->setAttribute('form_element_id', 14);
+        $responseNode->setAttribute('type', 'string');
         $expectedAssignmentNode->appendChild($responseNode = $this->doc->createElementNS(
             $deployment->getNamespace(),
             'response',
             intval(2)
         ));
         $responseNode->setAttribute('form_element_id', 15);
+        $responseNode->setAttribute('type', 'int');
         $expectedAssignmentNode->appendChild($responseNode = $this->doc->createElementNS(
             $deployment->getNamespace(),
             'response',
             join(':', [1,3,6])
         ));
         $responseNode->setAttribute('form_element_id', 16);
+        $responseNode->setAttribute('type', 'object');
 
         $reviewAssignment = new ReviewAssignment();
         $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
@@ -564,7 +567,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $doc = $articleExportFilter->execute($submissions);
 
         $this->assertXmlStringEqualsXmlString(
-            $this->getSampleXml('articles.xml')->saveXml(),
+            $this->getSampleXml('article.xml')->saveXml(),
             $doc->saveXML(),
             "actual xml is equal to expected xml"
         );

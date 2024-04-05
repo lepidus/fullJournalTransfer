@@ -181,6 +181,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             }
             $responseNode = $doc->createElementNS($deployment->getNamespace(), 'response', $responseValue);
             $responseNode->setAttribute('form_element_id', $response->getReviewFormElementId());
+            $responseNode->setAttribute('type', $response->getResponseType());
             $reviewAssignmentNode->appendChild($responseNode);
         }
     }

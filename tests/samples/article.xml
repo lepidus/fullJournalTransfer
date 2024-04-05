@@ -20,9 +20,9 @@
         <participant can_change_metadata="0" recommend_only="0" user="reviewer" user_group_ref="External Reviewer"/>
         <round round="1" status="9">
             <review_assignment cancelled="0" competing_interests="There is no competing interest" date_acknowledged="2023-10-25 21:52:08.000" date_assigned="2023-10-29 21:52:08.000" date_completed="2023-10-26 21:52:08.000" date_confirmed="2023-10-27 21:52:08.000" date_due="2023-10-24 21:52:08.000" date_notified="2023-10-28 21:52:08.000" date_rated="2023-10-31 21:52:08.000" date_reminded="2023-10-30 21:52:08.000" date_response_due="2023-10-23 21:52:08.000" declined="0" last_modified="2023-10-22 21:52:08.000" method="3" quality="5" recommendation="1" review_form_id="35" reviewer="reviewer" unconsidered="0" was_automatic="0">
-                <response form_element_id="14">Reviewer response</response>
-                <response form_element_id="15">2</response>
-                <response form_element_id="16">1:3:6</response>
+                <response form_element_id="14" type="string">Reviewer response</response>
+                <response form_element_id="15" type="int">2</response>
+                <response form_element_id="16" type="object">1:3:6</response>
             </review_assignment>
             <decision date_decided="2015-03-10 12:00:00" decision="1" editor="editor" review_round_id="76" round="1"/>
         </round>

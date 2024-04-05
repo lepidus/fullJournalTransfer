@@ -261,6 +261,7 @@
 				</complexType>
 			</element>
 		</sequence>
+		<attribute name="id" type="int" />
 		<attribute name="seq" type="int" />
 		<attribute name="element_type" type="int" />
 		<attribute name="required" type="int" />
@@ -343,6 +344,7 @@
 
     <complexType name="response" mixed="true">
         <attribute name="form_element_id" type="int" />
+        <attribute name="type" type="string" />
 	</complexType>
 
     <complexType name="decision">
