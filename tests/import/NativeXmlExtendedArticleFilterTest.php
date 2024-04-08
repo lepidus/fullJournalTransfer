@@ -17,7 +17,8 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
     protected function getAffectedTables()
     {
-        return ['review_form_responses', 'review_assignments',
+        return [
+            'review_form_responses', 'review_assignments',
             'edit_decisions', 'review_rounds',
             'stage_assignments', 'user_group_stage'
         ];
@@ -64,6 +65,10 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $articleImportFilter = $this->getNativeImportExportFilter();
         $deployment = $articleImportFilter->getDeployment();
         $doc = $this->getSampleXml('article.xml');
+
+        $deployment->setReviewFormElementDBId(14, 41);
+        $deployment->setReviewFormElementDBId(15, 42);
+        $deployment->setReviewFormElementDBId(16, 43);
 
         $reviewRound = new ReviewRound();
         $reviewRound->setId(23);
@@ -144,9 +149,14 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $deployment = $articleImportFilter->getDeployment();
         $doc = $this->getSampleXml('article.xml');
 
+        $submission = new Submission();
+        $submission->setId(78);
+
+        $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
+
         $reviewRound = new ReviewRound();
-        $reviewRound->setSubmissionId(78);
-        $reviewRound->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $reviewRound->setSubmissionId($submission->getId());
+        $reviewRound->setStageId($stageId);
         $reviewRound->setRound(1);
 
         $mockUserDAO = $this->getMockBuilder(UserDAO::class)
@@ -167,6 +177,8 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $decisionNodeList = $roundNodeList->item(0)->getElementsByTagNameNS($deployment->getNamespace(), 'decision');
         $articleImportFilter->parseDecision(
             $decisionNodeList->item(0),
+            $submission,
+            $stageId,
             $reviewRound
         );
 
@@ -198,9 +210,36 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $deployment = $articleImportFilter->getDeployment();
         $doc = $this->getSampleXml('article.xml');
 
+        $deployment->setReviewFormElementDBId(14, 41);
+        $deployment->setReviewFormElementDBId(15, 42);
+        $deployment->setReviewFormElementDBId(16, 43);
+
         $submission = new Submission();
         $submission->setId(32);
         $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById', 'getByUsername'])
+            ->getMock();
+        $reviewer = $mockUserDAO->newDataObject();
+        $reviewer->setId(52);
+        $reviewer->setUsername('reviewer');
+        $reviewer->setGivenName('reviewer', 'en_US');
+        $mockUserDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->returnValue($reviewer));
+        $mockUserDAO->expects($this->any())
+            ->method('getByUsername')
+            ->will($this->returnValue($reviewer));
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $mockReviewAssignmentDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
+            ->setMethods(['newDataObject'])
+            ->getMock();
+        $mockReviewAssignmentDAO->expects($this->any())
+            ->method('newDataObject')
+            ->will($this->returnValue(new ReviewAssignment()));
+        DAORegistry::registerDAO('ReviewAssignmentDAO', $mockReviewAssignmentDAO);
 
         $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'round');
         $articleImportFilter->parseReviewRound($roundNodeList->item(0), $submission, $stageId);

@@ -172,16 +172,16 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewAssignment->setCancelled(false);
         $reviewAssignment->setReminderWasAutomatic(false);
         $reviewAssignment->setUnconsidered(REVIEW_ASSIGNMENT_NOT_UNCONSIDERED);
-        $reviewAssignment->setDateRated('2023-10-31 21:52:08.000');
-        $reviewAssignment->setDateReminded('2023-10-30 21:52:08.000');
-        $reviewAssignment->setDateAssigned('2023-10-29 21:52:08.000');
-        $reviewAssignment->setDateNotified('2023-10-28 21:52:08.000');
-        $reviewAssignment->setDateConfirmed('2023-10-27 21:52:08.000');
-        $reviewAssignment->setDateCompleted('2023-10-26 21:52:08.000');
-        $reviewAssignment->setDateAcknowledged('2023-10-25 21:52:08.000');
-        $reviewAssignment->setDateDue('2023-10-24 21:52:08.000');
-        $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08.000');
-        $reviewAssignment->setLastModified('2023-10-22 21:52:08.000');
+        $reviewAssignment->setDateRated('2023-10-31 21:52:08');
+        $reviewAssignment->setDateReminded('2023-10-30 21:52:08');
+        $reviewAssignment->setDateAssigned('2023-10-29 21:52:08');
+        $reviewAssignment->setDateNotified('2023-10-28 21:52:08');
+        $reviewAssignment->setDateConfirmed('2023-10-27 21:52:08');
+        $reviewAssignment->setDateCompleted('2023-10-26 21:52:08');
+        $reviewAssignment->setDateAcknowledged('2023-10-25 21:52:08');
+        $reviewAssignment->setDateDue('2023-10-24 21:52:08');
+        $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08');
+        $reviewAssignment->setLastModified('2023-10-22 21:52:08');
 
         if ($hasResponse) {
             $reviewAssignment->setReviewFormId(35);
@@ -385,16 +385,16 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $assignmentNode->setAttribute('declined', 0);
         $assignmentNode->setAttribute('cancelled', 0);
         $assignmentNode->setAttribute('was_automatic', 0);
-        $assignmentNode->setAttribute('date_rated', '2023-10-31 21:52:08.000');
-        $assignmentNode->setAttribute('date_reminded', '2023-10-30 21:52:08.000');
-        $assignmentNode->setAttribute('date_assigned', '2023-10-29 21:52:08.000');
-        $assignmentNode->setAttribute('date_notified', '2023-10-28 21:52:08.000');
-        $assignmentNode->setAttribute('date_confirmed', '2023-10-27 21:52:08.000');
-        $assignmentNode->setAttribute('date_completed', '2023-10-26 21:52:08.000');
-        $assignmentNode->setAttribute('date_acknowledged', '2023-10-25 21:52:08.000');
-        $assignmentNode->setAttribute('date_due', '2023-10-24 21:52:08.000');
-        $assignmentNode->setAttribute('date_response_due', '2023-10-23 21:52:08.000');
-        $assignmentNode->setAttribute('last_modified', '2023-10-22 21:52:08.000');
+        $assignmentNode->setAttribute('date_rated', '2023-10-31 21:52:08');
+        $assignmentNode->setAttribute('date_reminded', '2023-10-30 21:52:08');
+        $assignmentNode->setAttribute('date_assigned', '2023-10-29 21:52:08');
+        $assignmentNode->setAttribute('date_notified', '2023-10-28 21:52:08');
+        $assignmentNode->setAttribute('date_confirmed', '2023-10-27 21:52:08');
+        $assignmentNode->setAttribute('date_completed', '2023-10-26 21:52:08');
+        $assignmentNode->setAttribute('date_acknowledged', '2023-10-25 21:52:08');
+        $assignmentNode->setAttribute('date_due', '2023-10-24 21:52:08');
+        $assignmentNode->setAttribute('date_response_due', '2023-10-23 21:52:08');
+        $assignmentNode->setAttribute('last_modified', '2023-10-22 21:52:08');
         $expectedRoundNode->appendChild($assignmentNode);
 
         $reviewRound = new ReviewRound();

@@ -9,6 +9,29 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter';
     }
 
+    public function parseStage($node, $submission)
+    {
+        $stageId = WorkflowStageDAO::getIdFromPath($node->getAttribute('path'));
+
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                switch ($childNode->tagName) {
+                    case 'participant':
+                        $this->parseStageAssignment($childNode, $submission, $stageId);
+                        break;
+                    case 'decision':
+                        $this->parseDecision($childNode, $submission, $stageId);
+                        break;
+                    case 'round':
+                        $this->parseReviewRound($childNode, $submission, $stageId);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
     public function parseStageAssignment($node, $submission, $stageId)
     {
         $user = DAORegistry::getDAO('UserDAO')
@@ -44,10 +67,25 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             $node->getAttribute('status')
         );
 
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                switch ($childNode->tagName) {
+                    case 'review_assignment':
+                        $this->parseReviewAssignment($childNode, $reviewRound);
+                        break;
+                    case 'decision':
+                        $this->parseDecision($childNode, $submission, $stageId, $reviewRound);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         return $reviewRound;
     }
 
-    public function parseDecision($node, $reviewRound)
+    public function parseDecision($node, $submission, $stageId, $reviewRound = null)
     {
         $userDAO = DAORegistry::getDAO('UserDAO');
         $editor = $userDAO->getByUsername($node->getAttribute('editor'));
@@ -61,10 +99,10 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
         $editDecisionDao = DAORegistry::getDAO('EditDecisionDAO');
         $editDecisionDao->updateEditorDecision(
-            $reviewRound->getSubmissionId(),
+            $submission->getId(),
             $editorDecision,
-            $reviewRound->getStageId(),
-            $reviewRound
+            $stageId,
+            $reviewRound ?? null
         );
     }
 
@@ -100,8 +138,16 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewAssignment->setReviewMethod((int) $node->getAttribute('method'));
         $reviewAssignment->setStageId($reviewRound->getStageId());
         $reviewAssignment->setUnconsidered((int) $node->getAttribute('unconsidered'));
-
         $reviewAssignmentDAO->insertObject($reviewAssignment);
+
+        if ($node->getAttribute('review_form_id')) {
+            for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                if (is_a($childNode, 'DOMElement') && $childNode->tagName === 'response') {
+                    $this->parseResponse($childNode, $reviewAssignment);
+                }
+            }
+        }
+
         return $reviewAssignment;
     }
 
@@ -114,8 +160,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewFormResponseDAO = DAORegistry::getDAO('ReviewFormResponseDAO');
         $reviewFormResponse = $reviewFormResponseDAO->newDataObject();
         $reviewFormResponse->setReviewId($reviewAssignment->getId());
-        $reviewFormResponse->setReviewFormElementId($newReviewFormElementId);
         $reviewFormResponse->setResponseType($node->getAttribute('type'));
+        $reviewFormResponse->setReviewFormElementId($newReviewFormElementId);
 
         if ($node->getAttribute('type') === 'object') {
             $reviewFormResponse->setValue(preg_split('/:/', $node->textContent));
