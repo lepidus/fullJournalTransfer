@@ -17,7 +17,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
     protected function getAffectedTables()
     {
-        return ['review_form_responses', 'review_assignments'];
+        return ['review_form_responses', 'review_assignments', 'edit_decisions', 'review_rounds'];
     }
 
     protected function getMockedDAOs()
@@ -187,5 +187,32 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         ];
 
         $this->assertEquals($expectedDecision, $decision);
+    }
+
+    public function testParseReviewRound()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $submission = new Submission();
+        $submission->setId(32);
+        $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
+
+        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'round');
+        $articleImportFilter->parseReviewRound($roundNodeList->item(0), $submission, $stageId);
+
+        $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
+        $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId(), $stageId)->toArray();
+        $reviewRound = array_shift($reviewRounds);
+        unset($reviewRound->_data['id']);
+
+        $expectedReviewRound = new ReviewRound();
+        $expectedReviewRound->setSubmissionId($submission->getId());
+        $expectedReviewRound->setStageId($stageId);
+        $expectedReviewRound->setRound(1);
+        $expectedReviewRound->setStatus(REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
+
+        $this->assertEquals($expectedReviewRound, $reviewRound);
     }
 }
