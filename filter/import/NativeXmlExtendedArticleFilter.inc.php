@@ -9,31 +9,29 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter';
     }
 
-    public function parseResponse($node, $reviewAssignment)
+    public function parseDecision($node, $reviewRound)
     {
-        $deployment = $this->getDeployment();
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $editor = $userDAO->getByUsername($node->getAttribute('editor'));
 
-        $newReviewFormElementId = $deployment->getReviewFormElementDBId($node->getAttribute('form_element_id'));
+        $editorDecision = [
+            'editDecisionId' => null,
+            'editorId' => $editor->getId(),
+            'decision' => $node->getAttribute('decision'),
+            'dateDecided' => $node->getAttribute('date_decided')
+        ];
 
-        $reviewFormResponseDAO = DAORegistry::getDAO('ReviewFormResponseDAO');
-        $reviewFormResponse = $reviewFormResponseDAO->newDataObject();
-        $reviewFormResponse->setReviewId($reviewAssignment->getId());
-        $reviewFormResponse->setReviewFormElementId($newReviewFormElementId);
-        $reviewFormResponse->setResponseType($node->getAttribute('type'));
-
-        if ($node->getAttribute('type') === 'object') {
-            $reviewFormResponse->setValue(preg_split('/:/', $node->textContent));
-        } else {
-            $reviewFormResponse->setValue($node->textContent);
-        }
-
-        $reviewFormResponseDAO->insertObject($reviewFormResponse);
+        $editDecisionDao = DAORegistry::getDAO('EditDecisionDAO');
+        $editDecisionDao->updateEditorDecision(
+            $reviewRound->getSubmissionId(),
+            $editorDecision,
+            $reviewRound->getStageId(),
+            $reviewRound
+        );
     }
 
     public function parseReviewAssignment($node, $reviewRound)
     {
-        $deployment = $this->getDeployment();
-
         $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
         $reviewAssignment = $reviewAssignmentDAO->newDataObject();
 
@@ -67,5 +65,26 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
         $reviewAssignmentDAO->insertObject($reviewAssignment);
         return $reviewAssignment;
+    }
+
+    public function parseResponse($node, $reviewAssignment)
+    {
+        $deployment = $this->getDeployment();
+
+        $newReviewFormElementId = $deployment->getReviewFormElementDBId($node->getAttribute('form_element_id'));
+
+        $reviewFormResponseDAO = DAORegistry::getDAO('ReviewFormResponseDAO');
+        $reviewFormResponse = $reviewFormResponseDAO->newDataObject();
+        $reviewFormResponse->setReviewId($reviewAssignment->getId());
+        $reviewFormResponse->setReviewFormElementId($newReviewFormElementId);
+        $reviewFormResponse->setResponseType($node->getAttribute('type'));
+
+        if ($node->getAttribute('type') === 'object') {
+            $reviewFormResponse->setValue(preg_split('/:/', $node->textContent));
+        } else {
+            $reviewFormResponse->setValue($node->textContent);
+        }
+
+        $reviewFormResponseDAO->insertObject($reviewFormResponse);
     }
 }

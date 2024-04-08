@@ -134,4 +134,58 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
         $this->assertEquals($expectedReviewAssignment->_data, $reviewAssignment->_data);
     }
+
+    public function testParseDecision()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $reviewRound = new ReviewRound();
+        $reviewRound->setSubmissionId(78);
+        $reviewRound->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $reviewRound->setRound(1);
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById', 'getByUsername'])
+            ->getMock();
+
+        $editor = $mockUserDAO->newDataObject();
+        $editor->setId(89);
+        $editor->setUsername('editor');
+
+        $mockUserDAO->expects($this->any())
+            ->method('getByUsername')
+            ->will($this->returnValue($editor));
+
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'round');
+        $decisionNodeList = $roundNodeList->item(0)->getElementsByTagNameNS($deployment->getNamespace(), 'decision');
+        $articleImportFilter->parseDecision(
+            $decisionNodeList->item(0),
+            $reviewRound
+        );
+
+        $editDecisionDAO = DAORegistry::getDAO('EditDecisionDAO');
+        $decisions = $editDecisionDAO->getEditorDecisions(
+            $reviewRound->getSubmissionId(),
+            $reviewRound->getStageId(),
+            $reviewRound->getRound()
+        );
+
+        $decision = array_shift($decisions);
+        unset($decision['editDecisionId']);
+
+        $expectedDecision = [
+            'reviewRoundId' => 0,
+            'stageId' => 3,
+            'round' => 1,
+            'editorId' => 89,
+            'decision' => 1,
+            'dateDecided' => '2015-03-10 12:00:00'
+        ];
+
+        $this->assertEquals($expectedDecision, $decision);
+    }
 }
