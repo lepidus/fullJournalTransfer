@@ -9,6 +9,29 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter';
     }
 
+    public function parseStageAssignment($node, $submission, $stageId)
+    {
+        $user = DAORegistry::getDAO('UserDAO')
+            ->getByUsername($node->getAttribute('user'));
+
+        $userGroups = DAORegistry::getDAO('UserGroupDAO')
+            ->getByContextId($submission->getContextId())
+            ->toArray();
+
+        $userGroupRef = $node->getAttribute('user_group_ref');
+        foreach ($userGroups as $userGroup) {
+            if (in_array($userGroupRef, $userGroup->getName(null))) {
+                return DAORegistry::getDAO('StageAssignmentDAO')->build(
+                    $submission->getId(),
+                    $userGroup->getId(),
+                    $user->getId(),
+                    $node->getAttribute('recommend_only'),
+                    $node->getAttribute('can_change_metadata')
+                );
+            }
+        }
+    }
+
     public function parseReviewRound($node, $submission, $stageId)
     {
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');

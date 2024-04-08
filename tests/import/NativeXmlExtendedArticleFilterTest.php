@@ -17,12 +17,15 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
     protected function getAffectedTables()
     {
-        return ['review_form_responses', 'review_assignments', 'edit_decisions', 'review_rounds'];
+        return ['review_form_responses', 'review_assignments',
+            'edit_decisions', 'review_rounds',
+            'stage_assignments', 'user_group_stage'
+        ];
     }
 
     protected function getMockedDAOs()
     {
-        return ['UserDAO', 'ReviewAssignmentDAO'];
+        return ['UserDAO', 'UserGroupDAO', 'ReviewAssignmentDAO'];
     }
 
     public function testParseResponses()
@@ -214,5 +217,66 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $expectedReviewRound->setStatus(REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
 
         $this->assertEquals($expectedReviewRound, $reviewRound);
+    }
+
+    public function testParseStageAssignment()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $contextId = 38;
+        $submission = new Submission();
+        $submission->setId(32);
+        $submission->setContextId($contextId);
+        $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
+
+        $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
+            ->setMethods(['getByContextId'])
+            ->getMock();
+        $userGroup = $mockUserGroupDAO->newDataObject();
+        $userGroup->setId(46);
+        $userGroup->setName('Editor', 'en_US');
+        $mockUserGroupDAO->assignGroupToStage($submission->getContextId(), $userGroup->getId(), $stageId);
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$userGroup]));
+        $mockUserGroupDAO->expects($this->any())
+            ->method('getByContextId')
+            ->will($this->returnValue($mockResult));
+        DAORegistry::registerDAO('UserGroupDAO', $mockUserGroupDAO);
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getByUsername'])
+            ->getMock();
+        $user = $mockUserDAO->newDataObject();
+        $user->setId(67);
+        $mockUserDAO->expects($this->any())
+            ->method('getByUsername')
+            ->will($this->returnValue($user));
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $participantNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'participant');
+        $articleImportFilter->parseStageAssignment($participantNodeList->item(0), $submission, $stageId);
+
+        $stageAssignmentDAO = DAORegistry::getDAO('StageAssignmentDAO');
+        $stageAssignments = $stageAssignmentDAO->getBySubmissionAndStageId($submission->getId(), $stageId);
+        $stageAssignment = $stageAssignments->next();
+        unset($stageAssignment->_data['id']);
+        unset($stageAssignment->_data['dateAssigned']);
+
+        $expectedStageAssignment = new StageAssignment();
+        $expectedStageAssignment->setSubmissionId($submission->getId());
+        $expectedStageAssignment->setStageId($stageId);
+        $expectedStageAssignment->setUserGroupId(46);
+        $expectedStageAssignment->setUserId(67);
+        $expectedStageAssignment->setRecommendOnly(false);
+        $expectedStageAssignment->setCanChangeMetadata(0);
+
+        $this->assertEquals($expectedStageAssignment, $stageAssignment);
     }
 }
