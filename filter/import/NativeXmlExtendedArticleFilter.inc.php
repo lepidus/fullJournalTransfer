@@ -66,6 +66,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
     public function parseReviewRound($node, $submission, $stageId)
     {
+        $deployment = $this->getDeployment();
+
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
         $reviewRound = $reviewRoundDAO->newDataObject();
 
@@ -76,11 +78,16 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             $node->getAttribute('status')
         );
 
+        $deployment->setReviewRound($reviewRound);
+
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
                 switch ($childNode->tagName) {
                     case 'review_assignment':
                         $this->parseReviewAssignment($childNode, $reviewRound);
+                        break;
+                    case 'review_file':
+                        $this->parseReviewFile($childNode, $reviewRound);
                         break;
                     case 'decision':
                         $this->parseDecision($childNode, $submission, $stageId, $reviewRound);
@@ -171,17 +178,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
         if ($node->getAttribute('review_form_id')) {
             for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
-                if (is_a($childNode, 'DOMElement')) {
-                    switch ($childNode->tagName) {
-                        case 'response':
-                            $this->parseResponse($childNode, $reviewAssignment);
-                            break;
-                        case 'review_file':
-                            $this->parseReviewFile($childNode, $reviewAssignment);
-                            break;
-                        default:
-                            break;
-                    }
+                if (is_a($childNode, 'DOMElement') && $childNode->tagName === 'response') {
+                    $this->parseResponse($childNode, $reviewAssignment);
                 }
             }
         }
@@ -210,7 +208,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
     }
 
-    public function parseReviewFile($node, $reviewAssignment)
+    public function parseReviewFile($node, $reviewRound)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
         $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-file');
