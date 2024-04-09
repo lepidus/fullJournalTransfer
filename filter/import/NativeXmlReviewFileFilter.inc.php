@@ -204,9 +204,7 @@ class NativeXmlReviewFileFilter extends NativeXmlArticleFileFilter
 
         $reviewRound = $deployment->getReviewRound();
         $submissionFileDao->assignRevisionToReviewRound($submissionFile->getId(), $reviewRound);
-
         $deployment->setSubmissionFileDBId($node->getAttribute('id'), $submissionFile->getId());
-
 
         return $submissionFile;
     }

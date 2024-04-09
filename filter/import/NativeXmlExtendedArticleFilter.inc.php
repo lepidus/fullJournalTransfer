@@ -171,8 +171,17 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
         if ($node->getAttribute('review_form_id')) {
             for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
-                if (is_a($childNode, 'DOMElement') && $childNode->tagName === 'response') {
-                    $this->parseResponse($childNode, $reviewAssignment);
+                if (is_a($childNode, 'DOMElement')) {
+                    switch ($childNode->tagName) {
+                        case 'response':
+                            $this->parseResponse($childNode, $reviewAssignment);
+                            break;
+                        case 'review_file':
+                            $this->parseReviewFile($childNode, $reviewAssignment);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -199,5 +208,18 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         }
 
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
+    }
+
+    public function parseReviewFile($node, $reviewAssignment)
+    {
+        $filterDAO = DAORegistry::getDAO('FilterDAO');
+        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-file');
+        $importFilter = array_shift($importFilters);
+        assert(isset($importFilter));
+
+        $importFilter->setDeployment($this->getDeployment());
+        $reviewFileDoc = new DOMDocument('1.0', 'utf-8');
+        $reviewFileDoc->appendChild($reviewFileDoc->importNode($node, true));
+        return $importFilter->execute($reviewFileDoc);
     }
 }
