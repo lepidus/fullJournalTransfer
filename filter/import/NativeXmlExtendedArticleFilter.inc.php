@@ -178,8 +178,21 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
         if ($node->getAttribute('review_form_id')) {
             for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
-                if (is_a($childNode, 'DOMElement') && $childNode->tagName === 'response') {
-                    $this->parseResponse($childNode, $reviewAssignment);
+                if (is_a($childNode, 'DOMElement')) {
+                    switch ($childNode->tagName) {
+                        case 'review_files':
+                            $reviewFileIds = preg_split('/:/', $n->textContent);
+                            $reviewFilesDAO = DAORegistry::getDAO('ReviewFilesDAO');
+                            foreach ($reviewFileIds as $reviewFileId) {
+                                $reviewFilesDAO->grant($reviewAssignment->getId(), $reviewFileId);
+                            }
+                            break;
+                        case 'response':
+                            $this->parseResponse($childNode, $reviewAssignment);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -211,7 +224,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseReviewRoundFile($node, $reviewRound)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-file');
+        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-round-file');
         $importFilter = array_shift($importFilters);
         assert(isset($importFilter));
 
