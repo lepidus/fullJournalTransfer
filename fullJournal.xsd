@@ -319,24 +319,24 @@
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="reviewer" type="string" />
-        <attribute name="recommendation" type="string" />
-        <attribute name="quality" type="string" />
         <attribute name="method" type="string" />
-        <attribute name="unconsidered" type="string" />
-        <attribute name="competing_interests" type="string" />
         <attribute name="declined" type="string" />
         <attribute name="cancelled" type="string" />
-        <attribute name="was_automatic" type="string" />
-        <attribute name="date_rated" type="string" />
-        <attribute name="date_reminded" type="string" />
         <attribute name="date_assigned" type="string" />
         <attribute name="date_notified" type="string" />
-        <attribute name="date_confirmed" type="string" />
-        <attribute name="date_completed" type="string" />
-        <attribute name="date_acknowledged" type="string" />
         <attribute name="date_due" type="string" />
         <attribute name="date_response_due" type="string" />
         <attribute name="last_modified" type="string" />
+        <attribute name="unconsidered" type="string" />
+        <attribute name="was_automatic" type="string" />
+        <attribute name="recommendation" type="string" use="optional"/>
+        <attribute name="quality" type="string" use="optional" />
+        <attribute name="competing_interests" type="string" use="optional" />
+        <attribute name="date_rated" type="string" use="optional" />
+        <attribute name="date_reminded" type="string" use="optional" />
+        <attribute name="date_confirmed" type="string" use="optional"/>
+        <attribute name="date_completed" type="string" use="optional"/>
+        <attribute name="date_acknowledged" type="string" use="optional"/>
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
 

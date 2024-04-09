@@ -9,6 +9,15 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter';
     }
 
+    public function handleChildElement($node, $submission)
+    {
+        if ($node->tagName === 'stage') {
+            $this->parseStage($node, $submission);
+        } else {
+            parent::handleChildElement($node, $submission);
+        }
+    }
+
     public function parseStage($node, $submission)
     {
         $stageId = WorkflowStageDAO::getIdFromPath($node->getAttribute('path'));
@@ -116,28 +125,48 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
         $reviewAssignment->setSubmissionId($reviewRound->getSubmissionId());
         $reviewAssignment->setReviewerId($reviewer->getId());
-        $reviewAssignment->setReviewFormId($node->getAttribute('review_form_id'));
         $reviewAssignment->setReviewRoundId($reviewRound->getId());
-        $reviewAssignment->setCompetingInterests($node->getAttribute('competing_interests'));
-        $reviewAssignment->setRecommendation($node->getAttribute('recommendation'));
         $reviewAssignment->setDateAssigned($node->getAttribute('date_assigned'));
         $reviewAssignment->setDateNotified($node->getAttribute('date_notified'));
-        $reviewAssignment->setDateConfirmed($node->getAttribute('date_confirmed'));
-        $reviewAssignment->setDateCompleted($node->getAttribute('date_completed'));
-        $reviewAssignment->setDateAcknowledged($node->getAttribute('date_acknowledged'));
         $reviewAssignment->setDateDue($node->getAttribute('date_due'));
         $reviewAssignment->setDateResponseDue($node->getAttribute('date_response_due'));
         $reviewAssignment->setLastModified($node->getAttribute('last_modified'));
         $reviewAssignment->setDeclined((int) $node->getAttribute('declined'));
         $reviewAssignment->setCancelled((int) $node->getAttribute('cancelled'));
-        $reviewAssignment->setQuality($node->getAttribute('quality'));
-        $reviewAssignment->setDateRated($node->getAttribute('date_rated'));
-        $reviewAssignment->setDateReminded($node->getAttribute('date_reminded'));
         $reviewAssignment->setReminderWasAutomatic((int) $node->getAttribute('reminder_was_automatic'));
         $reviewAssignment->setRound($reviewRound->getRound());
         $reviewAssignment->setReviewMethod((int) $node->getAttribute('method'));
         $reviewAssignment->setStageId($reviewRound->getStageId());
         $reviewAssignment->setUnconsidered((int) $node->getAttribute('unconsidered'));
+
+        if ($reviewFormId = $node->getAttribute('review_form_id')) {
+            $reviewAssignment->setReviewFormId($reviewFormId);
+        }
+        if ($quality = $node->getAttribute('quality')) {
+            $reviewAssignment->setQuality($quality);
+        }
+        if ($recommendation = $node->getAttribute('recommendation')) {
+            $reviewAssignment->setRecommendation($recommendation);
+        }
+        if ($competingInterests = $node->getAttribute('competing_interests')) {
+            $reviewAssignment->setCompetingInterests($competingInterests);
+        }
+        if ($dateRated = $node->getAttribute('date_rated')) {
+            $reviewAssignment->setDateRated($dateRated);
+        }
+        if ($dateReminded = $node->getAttribute('date_reminded')) {
+            $reviewAssignment->setDateReminded($dateReminded);
+        }
+        if ($dateConfirmed = $node->getAttribute('date_confirmed')) {
+            $reviewAssignment->setDateConfirmed($dateConfirmed);
+        }
+        if ($dateCompleted = $node->getAttribute('date_completed')) {
+            $reviewAssignment->setDateCompleted($dateCompleted);
+        }
+        if ($dateAcknowledged = $node->getAttribute('date_acknowledged')) {
+            $reviewAssignment->setDateAcknowledged($dateAcknowledged);
+        }
+
         $reviewAssignmentDAO->insertObject($reviewAssignment);
 
         if ($node->getAttribute('review_form_id')) {

@@ -130,25 +130,42 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         foreach ($reviewAssignments as $reviewAssignment) {
             $reviewer = $userDAO->getById($reviewAssignment->getReviewerId());
             $reviewAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'review_assignment');
-            $reviewAssignmentNode->setAttribute('reviewer', $reviewer->getUsername());
-            $reviewAssignmentNode->setAttribute('recommendation', $reviewAssignment->getRecommendation());
-            $reviewAssignmentNode->setAttribute('quality', $reviewAssignment->getQuality());
-            $reviewAssignmentNode->setAttribute('method', $reviewAssignment->getReviewMethod());
-            $reviewAssignmentNode->setAttribute('unconsidered', $reviewAssignment->getUnconsidered());
-            $reviewAssignmentNode->setAttribute('competing_interests', $reviewAssignment->getCompetingInterests());
-            $reviewAssignmentNode->setAttribute('declined', (int) $reviewAssignment->getDeclined());
             $reviewAssignmentNode->setAttribute('cancelled', (int) $reviewAssignment->getCancelled());
-            $reviewAssignmentNode->setAttribute('was_automatic', $reviewAssignment->getReminderWasAutomatic());
-            $reviewAssignmentNode->setAttribute('date_rated', $reviewAssignment->getDateRated());
-            $reviewAssignmentNode->setAttribute('date_reminded', $reviewAssignment->getDateReminded());
             $reviewAssignmentNode->setAttribute('date_assigned', $reviewAssignment->getDateAssigned());
-            $reviewAssignmentNode->setAttribute('date_notified', $reviewAssignment->getDateNotified());
-            $reviewAssignmentNode->setAttribute('date_confirmed', $reviewAssignment->getDateConfirmed());
-            $reviewAssignmentNode->setAttribute('date_completed', $reviewAssignment->getDateCompleted());
-            $reviewAssignmentNode->setAttribute('date_acknowledged', $reviewAssignment->getDateAcknowledged());
             $reviewAssignmentNode->setAttribute('date_due', $reviewAssignment->getDateDue());
+            $reviewAssignmentNode->setAttribute('date_notified', $reviewAssignment->getDateNotified());
             $reviewAssignmentNode->setAttribute('date_response_due', $reviewAssignment->getDateResponseDue());
+            $reviewAssignmentNode->setAttribute('declined', (int) $reviewAssignment->getDeclined());
             $reviewAssignmentNode->setAttribute('last_modified', $reviewAssignment->getLastModified());
+            $reviewAssignmentNode->setAttribute('method', $reviewAssignment->getReviewMethod());
+            $reviewAssignmentNode->setAttribute('reviewer', $reviewer->getUsername());
+            $reviewAssignmentNode->setAttribute('unconsidered', $reviewAssignment->getUnconsidered());
+            $reviewAssignmentNode->setAttribute('was_automatic', $reviewAssignment->getReminderWasAutomatic());
+
+            if ($quality = $reviewAssignment->getQuality()) {
+                $reviewAssignmentNode->setAttribute('quality', $quality);
+            }
+            if ($recommendation = $reviewAssignment->getRecommendation()) {
+                $reviewAssignmentNode->setAttribute('recommendation', $recommendation);
+            }
+            if ($competingInterests = $reviewAssignment->getCompetingInterests()) {
+                $reviewAssignmentNode->setAttribute('competing_interests', $competingInterests);
+            }
+            if ($dateRated = $reviewAssignment->getDateRated()) {
+                $reviewAssignmentNode->setAttribute('date_rated', $dateRated);
+            }
+            if ($dateReminded = $reviewAssignment->getDateReminded()) {
+                $reviewAssignmentNode->setAttribute('date_reminded', $dateReminded);
+            }
+            if ($dateConfirmed = $reviewAssignment->getDateConfirmed()) {
+                $reviewAssignmentNode->setAttribute('date_confirmed', $dateConfirmed);
+            }
+            if ($dateCompleted = $reviewAssignment->getDateCompleted()) {
+                $reviewAssignmentNode->setAttribute('date_completed', $dateCompleted);
+            }
+            if ($dateAcknowledged = $reviewAssignment->getDateAcknowledged()) {
+                $reviewAssignmentNode->setAttribute('date_acknowledged', $dateAcknowledged);
+            }
 
             if ($reviewAssignment->getReviewFormId()) {
                 $reviewAssignmentNode->setAttribute('review_form_id', $reviewAssignment->getReviewFormId());
