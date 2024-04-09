@@ -291,7 +291,7 @@
     <complexType name="stage">
 		<sequence>
 			<element ref="pkp:participant" minOccurs="0" maxOccurs="unbounded" />
-			<element ref="pkp:round" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:review_round" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="path" type="string" />
@@ -304,10 +304,10 @@
         <attribute name="can_change_metadata" type="int" />
 	</complexType>
 
-    <complexType name="round">
+    <complexType name="review_round">
         <sequence>
 			<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
-            <element ref="pkp:review_file" minOccurs="0" maxOccurs="unbounded" />
+            <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="round" type="int" />
@@ -340,7 +340,7 @@
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
 
-    <element name="review_file" substitutionGroup="pkp:submission_file" />
+    <element name="review_round_file" substitutionGroup="pkp:submission_file" />
 
     <complexType name="response" mixed="true">
         <attribute name="form_element_id" type="int" />
@@ -348,7 +348,7 @@
 	</complexType>
 
     <complexType name="decision">
-        <attribute name="round" type="int" />
+		<attribute name="round" type="int" />
         <attribute name="review_round_id" type="int" />
         <attribute name="decision" type="int" />
         <attribute name="editor" type="string" />
@@ -364,7 +364,7 @@
     <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
 
     <element name="navigation_menu" type="pkp:navigation_menu" />
-    
+
     <element name="genre" type="pkp:genre" />
 
     <element name="announcement" type="pkp:announcement" />
@@ -373,12 +373,12 @@
 
     <element name="participant" type="pkp:participant" />
 
-    <element name="round" type="pkp:round" />
-    
+    <element name="review_round" type="pkp:review_round" />
+
     <element name="review_assignment" type="pkp:review_assignment" />
 
     <element name="response" type="pkp:response" />
-    
+
     <element name="decision" type="pkp:decision" />
 
 	<element name="review_form" type="pkp:review_form" />

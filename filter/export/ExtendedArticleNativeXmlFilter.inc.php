@@ -111,12 +111,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
         $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId(), $stageId);
         while ($reviewRound = $reviewRounds->next()) {
-            $stageNode->appendChild($roundNode = $doc->createElementNS($deployment->getNamespace(), 'round'));
-            $roundNode->setAttribute('round', $reviewRound->getRound());
-            $roundNode->setAttribute('status', $reviewRound->getStatus());
-            $this->addReviewAssignments($doc, $roundNode, $reviewRound);
-            $this->addReviewFiles($doc, $roundNode, $submission, $stageId, $reviewRound);
-            $this->addEditorDecisions($doc, $roundNode, $submission, $stageId, $reviewRound);
+            $reviewRoundNode = $doc->createElementNS($deployment->getNamespace(), 'review_round');
+            $reviewRoundNode->setAttribute('round', $reviewRound->getRound());
+            $reviewRoundNode->setAttribute('status', $reviewRound->getStatus());
+            $this->addReviewAssignments($doc, $reviewRoundNode, $reviewRound);
+            $this->addReviewRoundFiles($doc, $reviewRoundNode, $submission, $stageId, $reviewRound);
+            $this->addEditorDecisions($doc, $reviewRoundNode, $submission, $stageId, $reviewRound);
+            $stageNode->appendChild($reviewRoundNode);
         }
     }
 
@@ -203,7 +204,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
-    public function addReviewFiles($doc, $roundNode, $submission, $stageId, $reviewRound)
+    public function addReviewRoundFiles($doc, $roundNode, $submission, $stageId, $reviewRound)
     {
         $fileStages = [SUBMISSION_FILE_REVIEW_REVISION, SUBMISSION_FILE_REVIEW_FILE];
         $filterDao = DAORegistry::getDAO('FilterDAO');

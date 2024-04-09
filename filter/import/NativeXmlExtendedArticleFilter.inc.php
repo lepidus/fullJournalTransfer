@@ -31,7 +31,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                     case 'decision':
                         $this->parseDecision($childNode, $submission, $stageId);
                         break;
-                    case 'round':
+                    case 'review_round':
                         $this->parseReviewRound($childNode, $submission, $stageId);
                         break;
                     default:
@@ -83,11 +83,11 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
                 switch ($childNode->tagName) {
+                    case 'review_round_file':
+                        $this->parseReviewRoundFile($childNode, $reviewRound);
+                        break;
                     case 'review_assignment':
                         $this->parseReviewAssignment($childNode, $reviewRound);
-                        break;
-                    case 'review_file':
-                        $this->parseReviewFile($childNode, $reviewRound);
                         break;
                     case 'decision':
                         $this->parseDecision($childNode, $submission, $stageId, $reviewRound);
@@ -208,7 +208,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
     }
 
-    public function parseReviewFile($node, $reviewRound)
+    public function parseReviewRoundFile($node, $reviewRound)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
         $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-file');
@@ -216,8 +216,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         assert(isset($importFilter));
 
         $importFilter->setDeployment($this->getDeployment());
-        $reviewFileDoc = new DOMDocument('1.0', 'utf-8');
-        $reviewFileDoc->appendChild($reviewFileDoc->importNode($node, true));
-        return $importFilter->execute($reviewFileDoc);
+        $reviewRoundFileDoc = new DOMDocument('1.0', 'utf-8');
+        $reviewRoundFileDoc->appendChild($reviewRoundFileDoc->importNode($node, true));
+        return $importFilter->execute($reviewRoundFileDoc);
     }
 }

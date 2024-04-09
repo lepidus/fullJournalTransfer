@@ -173,7 +173,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
-        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'round');
+        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'review_round');
         $decisionNodeList = $roundNodeList->item(0)->getElementsByTagNameNS($deployment->getNamespace(), 'decision');
         $articleImportFilter->parseDecision(
             $decisionNodeList->item(0),
@@ -241,7 +241,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
             ->will($this->returnValue(new ReviewAssignment()));
         DAORegistry::registerDAO('ReviewAssignmentDAO', $mockReviewAssignmentDAO);
 
-        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'round');
+        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'review_round');
         $articleImportFilter->parseReviewRound($roundNodeList->item(0), $submission, $stageId);
 
         $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');

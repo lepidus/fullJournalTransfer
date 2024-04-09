@@ -1,14 +1,14 @@
 <?php
 
 /**
-* @file plugins/importexport/fullJournalTransfer/filter/import/NativeXmlReviewFileFilter.inc.php
+* @file plugins/importexport/fullJournalTransfer/filter/import/NativeXmlReviewRoundFileFilter.inc.php
 *
 * Copyright (c) 2014-2021 Simon Fraser University
 * Copyright (c) 2000-2021 John Willinsky
 * Copyright (c) 2014-2024 Lepidus Tecnologia
 * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
 *
-* @class NativeXmlReviewFileFilter
+* @class NativeXmlReviewRoundFileFilter
 * @ingroup plugins_importexport_fullJournalTransfer
 *
 * @brief Class that converts a Native XML document to an review file.
@@ -16,7 +16,7 @@
 
 import('plugins.importexport.native.filter.NativeXmlArticleFileFilter');
 
-class NativeXmlReviewFileFilter extends NativeXmlArticleFileFilter
+class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
 {
     public function __construct($filterGroup)
     {
@@ -26,17 +26,17 @@ class NativeXmlReviewFileFilter extends NativeXmlArticleFileFilter
 
     public function getPluralElementName()
     {
-        return 'review_files';
+        return 'review_round_files';
     }
 
     public function getSingularElementName()
     {
-        return 'review_file';
+        return 'review_round_file';
     }
 
     public function getClassName()
     {
-        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewFileFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewRoundFileFilter';
     }
 
     public function handleElement($node)

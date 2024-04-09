@@ -350,10 +350,10 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $this->registerMockReviewRoundDAO();
 
         $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
-        $roundNode = $this->doc->createElementNS($deployment->getNamespace(), 'round');
-        $roundNode->setAttribute('round', 1);
-        $roundNode->setAttribute('status', REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
-        $expectedStageNode->appendChild($roundNode);
+        $reviewRoundNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_round');
+        $reviewRoundNode->setAttribute('round', 1);
+        $reviewRoundNode->setAttribute('status', REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
+        $expectedStageNode->appendChild($reviewRoundNode);
 
         $submission = new Submission();
         $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
@@ -374,7 +374,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $this->registerMockUserDAO('reviewer');
         $this->registerMockReviewAssignmentDAO();
 
-        $expectedRoundNode = $this->doc->createElementNS($deployment->getNamespace(), 'round');
+        $expectedRoundNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_round');
         $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
         $assignmentNode->setAttribute('reviewer', 'reviewer');
         $assignmentNode->setAttribute('recommendation', SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
@@ -398,7 +398,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $expectedRoundNode->appendChild($assignmentNode);
 
         $reviewRound = new ReviewRound();
-        $roundNode = $this->doc->createElementNS($deployment->getNamespace(), 'round');
+        $roundNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_round');
         $articleExportFilter->addReviewAssignments($this->doc, $roundNode, $reviewRound);
 
         $this->assertXmlStringEqualsXmlString(

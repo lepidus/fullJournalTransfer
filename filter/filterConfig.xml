@@ -110,14 +110,14 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
             outputType="class::lib.pkp.classes.reviewForm.ReviewForm" />
-		<!-- ReviewFile native XML output -->
+		<!-- ReviewRoundFile native XML output -->
         <filterGroup
             symbolic="review-file=>native-xml"
             displayName="plugins.importexport.fullJournalTransfer.displayName"
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="class::lib.pkp.classes.submission.SubmissionFile"
             outputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)" />
-		<!-- ReviewFile native XML input -->
+		<!-- ReviewRoundFile native XML input -->
         <filterGroup
             symbolic="native-xml=>review-file"
             displayName="plugins.importexport.fullJournalTransfer.displayName"
@@ -234,11 +234,11 @@
             isTemplate="0" />
 		<filter
             inGroup="review-file=>native-xml"
-            class="plugins.importexport.fullJournalTransfer.filter.export.ReviewFileNativeXmlFilter"
+            class="plugins.importexport.fullJournalTransfer.filter.export.ReviewRoundFileNativeXmlFilter"
             isTemplate="0" />
 		<filter
             inGroup="native-xml=>review-file"
-            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewFileFilter"
+            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewRoundFileFilter"
             isTemplate="0" />
         <filter
             inGroup="extended-article=>native-xml"
