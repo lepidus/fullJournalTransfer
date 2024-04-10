@@ -157,7 +157,6 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         foreach ($reviewAssignments as $reviewAssignment) {
             $reviewer = $userDAO->getById($reviewAssignment->getReviewerId());
             $reviewAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'review_assignment');
-            $reviewAssignmentNode->setAttribute('id', (int) $reviewAssignment->getId());
             $reviewAssignmentNode->setAttribute('cancelled', (int) $reviewAssignment->getCancelled());
             $reviewAssignmentNode->setAttribute('date_assigned', $reviewAssignment->getDateAssigned());
             $reviewAssignmentNode->setAttribute('date_due', $reviewAssignment->getDateDue());

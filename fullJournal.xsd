@@ -320,7 +320,6 @@
             <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
-		<attribute name="id" type="int" />
         <attribute name="reviewer" type="string" />
         <attribute name="method" type="string" />
         <attribute name="declined" type="string" />
