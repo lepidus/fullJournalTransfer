@@ -317,8 +317,10 @@
     <complexType name="review_assignment">
         <sequence>
 			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
+            <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
+		<attribute name="id" type="int" />
         <attribute name="reviewer" type="string" />
         <attribute name="method" type="string" />
         <attribute name="declined" type="string" />
@@ -341,7 +343,21 @@
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
 
-    <element name="review_round_file" substitutionGroup="pkp:submission_file" />
+    <element name="review_round_file" substitutionGroup="pkp:submission_file" >
+		<complexType>
+			<complexContent>
+				<extension base="pkp:submission_file">
+                    <sequence>
+						<element name="review_ref" minOccurs="0" maxOccurs="1">
+							<complexType>
+								<attribute name="id" type="int" />
+							</complexType>
+						</element>
+					</sequence>
+				</extension>
+			</complexContent>
+		</complexType>
+	</element>
 
     <complexType name="response" mixed="true">
         <attribute name="form_element_id" type="int" />

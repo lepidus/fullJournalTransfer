@@ -114,16 +114,16 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $reviewRoundNode = $doc->createElementNS($deployment->getNamespace(), 'review_round');
             $reviewRoundNode->setAttribute('round', $reviewRound->getRound());
             $reviewRoundNode->setAttribute('status', $reviewRound->getStatus());
-            $this->addReviewRoundFiles($doc, $reviewRoundNode, $submission, $stageId, $reviewRound);
+            $this->addReviewRoundFiles($doc, $reviewRoundNode, $submission, $reviewRound);
             $this->addReviewAssignments($doc, $reviewRoundNode, $reviewRound);
             $this->addEditorDecisions($doc, $reviewRoundNode, $submission, $stageId, $reviewRound);
             $stageNode->appendChild($reviewRoundNode);
         }
     }
 
-    public function addReviewRoundFiles($doc, $roundNode, $submission, $stageId, $reviewRound)
+    public function addReviewRoundFiles($doc, $roundNode, $submission, $reviewRound)
     {
-        $fileStages = [SUBMISSION_FILE_REVIEW_REVISION, SUBMISSION_FILE_REVIEW_FILE];
+        $fileStages = [SUBMISSION_FILE_REVIEW_FILE, SUBMISSION_FILE_REVIEW_REVISION];
         $filterDao = DAORegistry::getDAO('FilterDAO');
         $submissionFilesIterator = Services::get('submissionFile')->getMany([
             'submissionIds' => [$submission->getId()],
@@ -157,6 +157,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         foreach ($reviewAssignments as $reviewAssignment) {
             $reviewer = $userDAO->getById($reviewAssignment->getReviewerId());
             $reviewAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+            $reviewAssignmentNode->setAttribute('id', (int) $reviewAssignment->getId());
             $reviewAssignmentNode->setAttribute('cancelled', (int) $reviewAssignment->getCancelled());
             $reviewAssignmentNode->setAttribute('date_assigned', $reviewAssignment->getDateAssigned());
             $reviewAssignmentNode->setAttribute('date_due', $reviewAssignment->getDateDue());
@@ -210,12 +211,39 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
                 ));
             }
 
+            $this->addReviewerFiles($doc, $reviewAssignmentNode, $reviewAssignment);
+
             if ($reviewAssignment->getReviewFormId()) {
                 $reviewAssignmentNode->setAttribute('review_form_id', $reviewAssignment->getReviewFormId());
                 $this->addReviewFormResponses($doc, $reviewAssignmentNode, $reviewAssignment);
             }
 
             $roundNode->appendChild($reviewAssignmentNode);
+        }
+    }
+
+    public function addReviewerFiles($doc, $reviewAssignmentNode, $reviewAssignment)
+    {
+        $deployment = $this->getDeployment();
+        $submissionFilesIterator = Services::get('submissionFile')->getMany([
+            'submissionIds' => [$reviewAssignment->getSubmissionId()],
+            'assocTypes' => [ASSOC_TYPE_REVIEW_ASSIGNMENT],
+            'assocIds' => [$reviewAssignment->getId()]
+        ]);
+
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        foreach ($submissionFilesIterator as $submissionFile) {
+            $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
+            assert(count($nativeExportFilters) == 1);
+            $exportFilter = array_shift($nativeExportFilters);
+            $exportFilter->setDeployment($this->getDeployment());
+
+            $exportFilter->setOpts($this->opts);
+            $submissionFileDoc = $exportFilter->execute($submissionFile, true);
+            if ($submissionFileDoc) {
+                $clone = $doc->importNode($submissionFileDoc->documentElement, true);
+                $reviewAssignmentNode->appendChild($clone);
+            }
         }
     }
 

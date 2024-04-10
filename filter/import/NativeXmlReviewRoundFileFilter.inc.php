@@ -44,12 +44,15 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
         $deployment = $this->getDeployment();
         $submission = $deployment->getSubmission();
         $context = $deployment->getContext();
+        $reviewRound = $deployment->getReviewRound();
         $stageName = $node->getAttribute('stage');
         $submissionFileId = $node->getAttribute('id');
         $stageNameIdMapping = $deployment->getStageNameStageIdMapping();
         assert(isset($stageNameIdMapping[$stageName]));
         $stageId = $stageNameIdMapping[$stageName];
         $request = Application::get()->getRequest();
+        $router = $request->getRouter();
+        $router->_contextPaths[0] = $context->getPath();
         $errorOcurred = false;
 
         $genreId = null;
@@ -159,6 +162,20 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
                             }
                         }
                         break;
+                    case 'review_ref':
+                        if (
+                            $submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_FILE
+                            || $submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_REVISION
+                        ) {
+                            $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ROUND);
+                            $submissionFile->setData('assocId', $reviewRound->getId());
+                        }
+                        if ($submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_ATTACHMENT) {
+                            $reviewAssignment = $deployment->getReviewAssignment();
+                            $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ASSIGNMENT);
+                            $submissionFile->setData('assocId', $reviewAssignment->getId());
+                        }
+                        break;
                     case 'file':
                         if ($deployment->getFileDBId($childNode->getAttribute('id'))) {
                             $newFileId = $deployment->getFileDBId($childNode->getAttribute('id'));
@@ -202,7 +219,7 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
             $submissionFile = Services::get('submissionFile')->edit($submissionFile, ['fileId' => $currentFileId], $request);
         }
 
-        $reviewRound = $deployment->getReviewRound();
+
         $submissionFileDao->assignRevisionToReviewRound($submissionFile->getId(), $reviewRound);
         $deployment->setSubmissionFileDBId($node->getAttribute('id'), $submissionFile->getId());
 

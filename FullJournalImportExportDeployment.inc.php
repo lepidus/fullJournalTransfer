@@ -12,6 +12,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public $isTestEnv;
     private $reviewForm;
     private $reviewRound;
+    private $reviewAssignment;
     private $navigationMenuItemDBIds;
     private $reviewFormDBIds;
     private $reviewFormElementDBIds;
@@ -97,6 +98,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getReviewForm()
     {
         return $this->reviewForm;
+    }
+
+    public function setReviewAssignment($reviewAssignment)
+    {
+        $this->reviewAssignment = $reviewAssignment;
+    }
+
+    public function getReviewAssignment()
+    {
+        return $this->reviewAssignment;
     }
 
     public function getNavigationMenuItemDBIds()

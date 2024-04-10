@@ -84,7 +84,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             if (is_a($childNode, 'DOMElement')) {
                 switch ($childNode->tagName) {
                     case 'review_round_file':
-                        $this->parseReviewRoundFile($childNode, $reviewRound);
+                        $this->parseReviewRoundFile($childNode);
                         break;
                     case 'review_assignment':
                         $this->parseReviewAssignment($childNode, $reviewRound);
@@ -124,6 +124,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
     public function parseReviewAssignment($node, $reviewRound)
     {
+        $deployment = $this->getDeployment();
+
         $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
         $reviewAssignment = $reviewAssignmentDAO->newDataObject();
 
@@ -175,24 +177,27 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         }
 
         $reviewAssignmentDAO->insertObject($reviewAssignment);
+        $deployment->setReviewAssignment($reviewAssignment);
 
-        if ($node->getAttribute('review_form_id')) {
-            for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
-                if (is_a($childNode, 'DOMElement')) {
-                    switch ($childNode->tagName) {
-                        case 'review_files':
-                            $reviewFileIds = preg_split('/:/', $n->textContent);
-                            $reviewFilesDAO = DAORegistry::getDAO('ReviewFilesDAO');
-                            foreach ($reviewFileIds as $reviewFileId) {
-                                $reviewFilesDAO->grant($reviewAssignment->getId(), $reviewFileId);
-                            }
-                            break;
-                        case 'response':
-                            $this->parseResponse($childNode, $reviewAssignment);
-                            break;
-                        default:
-                            break;
-                    }
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                switch ($childNode->tagName) {
+                    case 'review_files':
+                        $reviewFileIds = preg_split('/:/', $childNode->textContent);
+                        $reviewFilesDAO = DAORegistry::getDAO('ReviewFilesDAO');
+                        foreach ($reviewFileIds as $reviewFileId) {
+                            $newSubmissionFileId = $deployment->getSubmissionFileDBId($reviewFileId);
+                            $reviewFilesDAO->grant($reviewAssignment->getId(), $newSubmissionFileId);
+                        }
+                        break;
+                    case 'review_round_file':
+                        $this->parseReviewRoundFile($childNode);
+                        break;
+                    case 'response':
+                        $this->parseResponse($childNode, $reviewAssignment);
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -221,7 +226,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
     }
 
-    public function parseReviewRoundFile($node, $reviewRound)
+    public function parseReviewRoundFile($node)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
         $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-round-file');
