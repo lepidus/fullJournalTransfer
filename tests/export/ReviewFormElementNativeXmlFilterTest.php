@@ -76,6 +76,7 @@ class ReviewFormElementNativeXmlFilterTest extends NativeImportExportFilterTestC
         $doc->formatOutput = true;
 
         $expectedReviewFormElementNode = $doc->createElementNS($deployment->getNamespace(), 'review_form_element');
+        $expectedReviewFormElementNode->setAttribute('id', 68);
         $expectedReviewFormElementNode->setAttribute('seq', 1);
         $expectedReviewFormElementNode->setAttribute('element_type', 1);
         $expectedReviewFormElementNode->setAttribute('required', 1);
@@ -94,6 +95,7 @@ class ReviewFormElementNativeXmlFilterTest extends NativeImportExportFilterTestC
         );
 
         $reviewFormElement = DAORegistry::getDAO('ReviewFormElementDAO')->newDataObject();
+        $reviewFormElement->setId(68);
         $reviewFormElement->setSequence(1);
         $reviewFormElement->setElementType(REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD);
         $reviewFormElement->setRequired(1);
@@ -118,6 +120,7 @@ class ReviewFormElementNativeXmlFilterTest extends NativeImportExportFilterTestC
         $reviewFormElementExportFilter = $this->getNativeImportExportFilter();
 
         $reviewFormElement = DAORegistry::getDAO('ReviewFormElementDAO')->newDataObject();
+        $reviewFormElement->setId(68);
         $reviewFormElement->setSequence(1);
         $reviewFormElement->setElementType(REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS);
         $reviewFormElement->setRequired(1);

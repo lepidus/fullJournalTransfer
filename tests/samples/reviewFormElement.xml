@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <review_form_elements xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-    <review_form_element seq="1" element_type="5" required="1" included="1">
+    <review_form_element id="68" seq="1" element_type="5" required="1" included="1">
         <question locale="en_US">&lt;p&gt;How are you?&lt;/p&gt;</question>
         <description locale="en_US">&lt;p&gt;A review form element for test purpose&lt;/p&gt;</description>
         <possible_responses locale="en_US">

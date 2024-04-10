@@ -17,32 +17,7 @@
 
     <include schemaLocation="../../../lib/pkp/plugins/importexport/users/pkp-users.xsd" />
 
-    <element name="extended_article" substitutionGroup="pkp:submission">
-		<complexType>
-			<complexContent>
-				<extension base="pkp:submission">
-                    <sequence>
-						<element ref="pkp:stage_assignment" minOccurs="0" maxOccurs="unbounded" />
-						<element ref="pkp:review_rounds" minOccurs="0" maxOccurs="unbounded" />
-						<element ref="pkp:editor_decisions" minOccurs="0" maxOccurs="unbounded" />
-					</sequence>
-					<attribute name="stage" use="required">
-						<simpleType>
-							<restriction base="string">
-								<enumeration value="submission" />
-								<enumeration value="externalReview" />
-								<enumeration value="editorial" />
-								<enumeration value="production" />
-							</restriction>
-						</simpleType>
-					</attribute>
-				</extension>
-			</complexContent>
-		</complexType>
-	</element>
-	<element name="extended_articles" substitutionGroup="pkp:submissions" />
-
-	<complexType name="journal">
+    <complexType name="journal">
 		<sequence>
 			<element name="email_signature" type="string" minOccurs="1" maxOccurs="1" />
 			<element name="supported_locales" type="string" minOccurs="1" maxOccurs="1" />
@@ -110,6 +85,29 @@
 		<attribute name="theme_plugin_path" type="string" />
 	</complexType>
 
+    <element name="extended_article" substitutionGroup="pkp:submission">
+		<complexType>
+			<complexContent>
+				<extension base="pkp:submission">
+                    <sequence>
+						<element ref="pkp:stage" minOccurs="0" maxOccurs="unbounded" />
+					</sequence>
+					<attribute name="stage" use="required">
+						<simpleType>
+							<restriction base="string">
+								<enumeration value="submission" />
+								<enumeration value="externalReview" />
+								<enumeration value="editorial" />
+								<enumeration value="production" />
+							</restriction>
+						</simpleType>
+					</attribute>
+				</extension>
+			</complexContent>
+		</complexType>
+	</element>
+	<element name="extended_articles" substitutionGroup="pkp:articles" />
+
     <complexType name="extended_issue">
 		<sequence>
 			<element ref="pkp:id" minOccurs="0" maxOccurs="unbounded" />
@@ -132,7 +130,7 @@
 		<attribute name="access_status" type="int" use="optional" />
 		<attribute name="url_path" type="string" use="optional" />
 	</complexType>
-    
+
     <element name="extended_issues">
 		<complexType>
 			<sequence>
@@ -202,14 +200,6 @@
 		<attribute name="seq" type="int" />
 	</complexType>
 
-    <complexType name="stage_assignment">
-		<attribute name="user" type="string" />
-		<attribute name="user_group_ref" type="string" />
-		<attribute name="stage" type="string" />
-		<attribute name="recommend_only" type="int" />
-		<attribute name="can_change_metadata" type="int" />
-	</complexType>
-
     <element name="genres">
 		<complexType>
 			<sequence>
@@ -229,63 +219,6 @@
 		<attribute name="supplementary" type="int" />
 		<attribute name="seq" type="int" />
 		<attribute name="enabled" type="int" />
-	</complexType>
-
-	<element name="review_rounds">
-		<complexType>
-			<sequence>
-				<element ref="pkp:review_round" minOccurs="0" maxOccurs="unbounded" />
-			</sequence>
-		</complexType>
-	</element>
-
-    <complexType name="review_round">
-		<sequence>
-			<element ref="pkp:id" minOccurs="1" maxOccurs="1" />
-			<element name="submission_id" type="int" minOccurs="1" maxOccurs="1" />
-			<element name="stage" type="string" minOccurs="1" maxOccurs="1" />
-			<element name="round" type="int" minOccurs="1" maxOccurs="1" />
-			<element name="status" type="int" minOccurs="1" maxOccurs="1" />
-			<element ref="pkp:review_assignments" minOccurs="0" maxOccurs="unbounded" />
-		</sequence>
-	</complexType>
-
-	<element name="review_assignments">
-		<complexType>
-			<sequence>
-				<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
-			</sequence>
-		</complexType>
-	</element>
-
-    <complexType name="review_assignment">
-		<sequence>
-			<element name="date_rated" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_reminded" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_assigned" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_notified" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_confirmed" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_completed" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_acknowledged" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_due" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="date_response_due" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="last_modified" type="string" minOccurs="0" maxOccurs="1" />
-			<element name="declined" type="boolean" minOccurs="1" maxOccurs="1" />
-			<element name="cancelled" type="boolean" minOccurs="1" maxOccurs="1" />
-			<element name="reminder_was_automatic" type="boolean" minOccurs="1" maxOccurs="1" />
-			<element name="unconsidered" type="boolean" minOccurs="1" maxOccurs="1" />
-		</sequence>
-		<attribute name="id" type="int" />
-		<attribute name="submission_id" type="int" />
-		<attribute name="review_form_id" type="int" />
-		<attribute name="review_round_id" type="int" />
-		<attribute name="stage_id" type="int" />
-		<attribute name="quality" type="int" />
-		<attribute name="recommendation" type="int" />
-		<attribute name="round" type="int" />
-		<attribute name="review_method" type="int" />
-		<attribute name="competing_interests" type="string" />
-		<attribute name="reviewer" type="string" />
 	</complexType>
 
     <element name="review_forms">
@@ -328,30 +261,11 @@
 				</complexType>
 			</element>
 		</sequence>
+		<attribute name="id" type="int" />
 		<attribute name="seq" type="int" />
 		<attribute name="element_type" type="int" />
 		<attribute name="required" type="int" />
 		<attribute name="included" type="int" />
-	</complexType>
-
-    <element name="editor_decisions">
-		<complexType>
-			<sequence>
-				<element ref="pkp:editor_decision" minOccurs="0" maxOccurs="unbounded" />
-			</sequence>
-		</complexType>
-	</element>
-
-    <complexType name="editor_decision">
-		<sequence>
-            <element name="editor" type="string" minOccurs="1" maxOccurs="1" />
-			<element name="date_decided" type="string" minOccurs="1" maxOccurs="1" />
-		</sequence>
-		<attribute name="submission_id" type="int" />
-		<attribute name="review_round_id" type="int" />
-		<attribute name="round" type="int" />
-		<attribute name="stage_id" type="int" />
-		<attribute name="decision" type="int" />
 	</complexType>
 
 	<element name="announcements">
@@ -374,17 +288,116 @@
 		</sequence>
 	</complexType>
 
+    <complexType name="stage">
+		<sequence>
+			<element ref="pkp:participant" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:review_round" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+        <attribute name="path" type="string" />
+	</complexType>
+
+    <complexType name="participant">
+        <attribute name="user" type="string" />
+        <attribute name="user_group_ref" type="string" />
+        <attribute name="recommend_only" type="int" />
+        <attribute name="can_change_metadata" type="int" />
+	</complexType>
+
+    <complexType name="review_round">
+        <sequence>
+            <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+        <attribute name="round" type="int" />
+        <attribute name="status" type="int" />
+	</complexType>
+
+    <complexType name="review_assignment">
+        <sequence>
+			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
+            <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+        <attribute name="reviewer" type="string" />
+        <attribute name="method" type="string" />
+        <attribute name="declined" type="string" />
+        <attribute name="cancelled" type="string" />
+        <attribute name="date_assigned" type="string" />
+        <attribute name="date_notified" type="string" />
+        <attribute name="date_due" type="string" />
+        <attribute name="date_response_due" type="string" />
+        <attribute name="last_modified" type="string" />
+        <attribute name="unconsidered" type="string" />
+        <attribute name="was_automatic" type="string" />
+        <attribute name="recommendation" type="string" use="optional"/>
+        <attribute name="quality" type="string" use="optional" />
+        <attribute name="competing_interests" type="string" use="optional" />
+        <attribute name="date_rated" type="string" use="optional" />
+        <attribute name="date_reminded" type="string" use="optional" />
+        <attribute name="date_confirmed" type="string" use="optional"/>
+        <attribute name="date_completed" type="string" use="optional"/>
+        <attribute name="date_acknowledged" type="string" use="optional"/>
+        <attribute name="review_form_id" type="int" use="optional"/>
+	</complexType>
+
+    <element name="review_round_file" substitutionGroup="pkp:submission_file" >
+		<complexType>
+			<complexContent>
+				<extension base="pkp:submission_file">
+                    <sequence>
+						<element name="review_ref" minOccurs="0" maxOccurs="1">
+							<complexType>
+								<attribute name="id" type="int" />
+							</complexType>
+						</element>
+					</sequence>
+				</extension>
+			</complexContent>
+		</complexType>
+	</element>
+
+    <complexType name="response" mixed="true">
+        <attribute name="form_element_id" type="int" />
+        <attribute name="type" type="string" />
+	</complexType>
+
+    <complexType name="decision">
+		<attribute name="round" type="int" />
+        <attribute name="review_round_id" type="int" />
+        <attribute name="decision" type="int" />
+        <attribute name="editor" type="string" />
+        <attribute name="date_decided" type="string" />
+	</complexType>
+
     <element name="journal" type="pkp:journal" />
+
     <element name="extended_issue" type="pkp:extended_issue" />
+
     <element name="plugin" type="pkp:plugin" />
+
     <element name="navigation_menu_item" type="pkp:navigation_menu_item" />
+
     <element name="navigation_menu" type="pkp:navigation_menu" />
-    <element name="announcement" type="pkp:announcement" />
+
     <element name="genre" type="pkp:genre" />
-	<element name="review_round" type="pkp:review_round" />
+
+    <element name="announcement" type="pkp:announcement" />
+
+    <element name="stage" type="pkp:stage" />
+
+    <element name="participant" type="pkp:participant" />
+
+    <element name="review_round" type="pkp:review_round" />
+
+    <element name="review_assignment" type="pkp:review_assignment" />
+
+    <element name="response" type="pkp:response" />
+
+    <element name="decision" type="pkp:decision" />
+
 	<element name="review_form" type="pkp:review_form" />
+
 	<element name="review_form_element" type="pkp:review_form_element" />
-	<element name="stage_assignment" type="pkp:stage_assignment" />
-	<element name="review_assignment" type="pkp:review_assignment" />
-	<element name="editor_decision" type="pkp:editor_decision" />
 </schema>

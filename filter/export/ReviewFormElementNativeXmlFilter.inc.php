@@ -43,6 +43,7 @@ class ReviewFormElementNativeXmlFilter extends NativeExportFilter
         $deployment = $this->getDeployment();
 
         $reviewFormElementNode = $doc->createElementNS($deployment->getNamespace(), 'review_form_element');
+        $reviewFormElementNode->setAttribute('id', $reviewFormElement->getId());
         $reviewFormElementNode->setAttribute('seq', $reviewFormElement->getSequence());
         $reviewFormElementNode->setAttribute('element_type', $reviewFormElement->getElementType());
         $reviewFormElementNode->setAttribute('required', $reviewFormElement->getRequired());

@@ -15,163 +15,307 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         return NativeXmlExtendedArticleFilter::class;
     }
 
-    protected function getMockedDAOs()
-    {
-        return ['UserDAO', 'UserGroupDAO'];
-    }
-
     protected function getAffectedTables()
     {
-        return ['review_rounds', 'review_assignments', 'edit_decisions', 'stage_assignments', 'user_group_stage'];
+        return [
+            'review_form_responses', 'review_assignments',
+            'edit_decisions', 'review_rounds',
+            'stage_assignments', 'user_group_stage'
+        ];
     }
 
-    private function registerMockUserDAO()
+    protected function getMockedDAOs()
     {
-        $mockDAO = $this->getMockBuilder(UserDAO::class)
-            ->setMethods(['getByUsername'])
+        return ['UserDAO', 'UserGroupDAO', 'ReviewAssignmentDAO'];
+    }
+
+    public function testParseResponses()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $deployment->setReviewFormElementDBId(14, 41);
+        $deployment->setReviewFormElementDBId(15, 42);
+        $deployment->setReviewFormElementDBId(16, 43);
+
+        $doc = $this->getSampleXml('article.xml');
+        $responseNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'response');
+
+        $reviewAssignment = new ReviewAssignment();
+        $reviewAssignment->setId(81);
+
+        for ($i = 0; $i < $responseNodeList->length; $i++) {
+            $responseNode = $responseNodeList->item($i);
+            $articleImportFilter->parseResponse($responseNode, $reviewAssignment);
+        }
+
+        $reviewFormResponseDAO = DAORegistry::getDAO('ReviewFormResponseDAO');
+        $reviewFormResponses = $reviewFormResponseDAO->getReviewReviewFormResponseValues($reviewAssignment->getId());
+
+        $expectedResponses = [
+            41 => 'Reviewer response',
+            42 => 2,
+            43 => [1, 3, 6]
+        ];
+
+        $this->assertEquals($expectedResponses, $reviewFormResponses);
+    }
+
+    public function testParseReviewAssignment()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $deployment->setReviewFormElementDBId(14, 41);
+        $deployment->setReviewFormElementDBId(15, 42);
+        $deployment->setReviewFormElementDBId(16, 43);
+
+        $reviewRound = new ReviewRound();
+        $reviewRound->setId(23);
+        $reviewRound->setRound(1);
+        $reviewRound->setSubmissionId(75);
+        $reviewRound->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById', 'getByUsername'])
             ->getMock();
 
-        $user = $mockDAO->newDataObject();
-        $user->setId('489');
+        $reviewer = $mockUserDAO->newDataObject();
+        $reviewer->setId(52);
+        $reviewer->setUsername('reviewer');
+        $reviewer->setGivenName('reviewer', 'en_US');
 
-        $mockDAO->expects($this->any())
+        $mockUserDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->returnValue($reviewer));
+
+        $mockUserDAO->expects($this->any())
             ->method('getByUsername')
-            ->will($this->returnValue($user));
+            ->will($this->returnValue($reviewer));
 
-        DAORegistry::registerDAO('UserDAO', $mockDAO);
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $mockReviewAssignmentDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
+            ->setMethods(['newDataObject'])
+            ->getMock();
+
+        $mockReviewAssignmentDAO->expects($this->any())
+            ->method('newDataObject')
+            ->will($this->returnValue(new ReviewAssignment()));
+
+        DAORegistry::registerDAO('ReviewAssignmentDAO', $mockReviewAssignmentDAO);
+
+        $reviewAssignmentList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'review_assignment');
+        $articleImportFilter->parseReviewAssignment($reviewAssignmentList->item(0), $reviewRound);
+
+        $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
+        $reviewAssignments = $reviewAssignmentDAO->getByReviewRoundId($reviewRound->getId());
+        $reviewAssignment = array_shift($reviewAssignments);
+        unset($reviewAssignment->_data['id']);
+
+        $expectedReviewAssignment = new ReviewAssignment();
+        $expectedReviewAssignment->setReviewerId($reviewer->getId());
+        $expectedReviewAssignment->setSubmissionId($reviewRound->getSubmissionId());
+        $expectedReviewAssignment->setReviewFormId(35);
+        $expectedReviewAssignment->setReviewRoundId($reviewRound->getId());
+        $expectedReviewAssignment->setReviewerFullName($reviewer->getFullName());
+        $expectedReviewAssignment->setRound($reviewRound->getRound());
+        $expectedReviewAssignment->setStageId($reviewRound->getStageId());
+        $expectedReviewAssignment->setRecommendation(SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
+        $expectedReviewAssignment->setQuality(SUBMISSION_REVIEWER_RATING_VERY_GOOD);
+        $expectedReviewAssignment->setReviewMethod(SUBMISSION_REVIEW_METHOD_OPEN);
+        $expectedReviewAssignment->setCompetingInterests('There is no competing interest');
+        $expectedReviewAssignment->setDeclined(0);
+        $expectedReviewAssignment->setCancelled(0);
+        $expectedReviewAssignment->setReminderWasAutomatic(0);
+        $expectedReviewAssignment->setUnconsidered(REVIEW_ASSIGNMENT_NOT_UNCONSIDERED);
+        $expectedReviewAssignment->setDateRated('2023-10-31 21:52:08');
+        $expectedReviewAssignment->setDateReminded('2023-10-30 21:52:08');
+        $expectedReviewAssignment->setDateAssigned('2023-10-29 21:52:08');
+        $expectedReviewAssignment->setDateNotified('2023-10-28 21:52:08');
+        $expectedReviewAssignment->setDateConfirmed('2023-10-27 21:52:08');
+        $expectedReviewAssignment->setDateCompleted('2023-10-26 21:52:08');
+        $expectedReviewAssignment->setDateAcknowledged('2023-10-25 21:52:08');
+        $expectedReviewAssignment->setDateDue('2023-10-24 21:52:08');
+        $expectedReviewAssignment->setDateResponseDue('2023-10-23 21:52:08');
+        $expectedReviewAssignment->setLastModified('2023-10-22 21:52:08');
+
+        $this->assertEquals($expectedReviewAssignment->_data, $reviewAssignment->_data);
     }
 
-    private function registerMockUserGroupDAO()
+    public function testParseDecision()
     {
-        $mockDAO = $this->getMockBuilder(UserGroupDAO::class)
-            ->setMethods(['getByContextId'])
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $submission = new Submission();
+        $submission->setId(78);
+
+        $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
+
+        $reviewRound = new ReviewRound();
+        $reviewRound->setSubmissionId($submission->getId());
+        $reviewRound->setStageId($stageId);
+        $reviewRound->setRound(1);
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById', 'getByUsername'])
             ->getMock();
 
-        $userGroup = $mockDAO->newDataObject();
-        $userGroup->setId(734);
-        $userGroup->setName('External Reviewer', 'en_US');
+        $editor = $mockUserDAO->newDataObject();
+        $editor->setId(89);
+        $editor->setUsername('editor');
 
-        $contextId = 562;
-        $userId = 489;
-        $mockDAO->assignGroupToStage($contextId, $userGroup->getId(), WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
+        $mockUserDAO->expects($this->any())
+            ->method('getByUsername')
+            ->will($this->returnValue($editor));
 
-        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
-            ->setMethods(['toArray'])
-            ->disableOriginalConstructor()
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'review_round');
+        $decisionNodeList = $roundNodeList->item(0)->getElementsByTagNameNS($deployment->getNamespace(), 'decision');
+        $articleImportFilter->parseDecision(
+            $decisionNodeList->item(0),
+            $submission,
+            $stageId,
+            $reviewRound
+        );
+
+        $editDecisionDAO = DAORegistry::getDAO('EditDecisionDAO');
+        $decisions = $editDecisionDAO->getEditorDecisions(
+            $reviewRound->getSubmissionId(),
+            $reviewRound->getStageId(),
+            $reviewRound->getRound()
+        );
+
+        $decision = array_shift($decisions);
+        unset($decision['editDecisionId']);
+
+        $expectedDecision = [
+            'reviewRoundId' => 0,
+            'stageId' => 3,
+            'round' => 1,
+            'editorId' => 89,
+            'decision' => 1,
+            'dateDecided' => '2015-03-10 12:00:00'
+        ];
+
+        $this->assertEquals($expectedDecision, $decision);
+    }
+
+    public function testParseReviewRound()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $deployment->setReviewFormElementDBId(14, 41);
+        $deployment->setReviewFormElementDBId(15, 42);
+        $deployment->setReviewFormElementDBId(16, 43);
+
+        $submission = new Submission();
+        $submission->setId(32);
+        $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById', 'getByUsername'])
             ->getMock();
+        $reviewer = $mockUserDAO->newDataObject();
+        $reviewer->setId(52);
+        $reviewer->setUsername('reviewer');
+        $reviewer->setGivenName('reviewer', 'en_US');
+        $mockUserDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->returnValue($reviewer));
+        $mockUserDAO->expects($this->any())
+            ->method('getByUsername')
+            ->will($this->returnValue($reviewer));
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
-        $mockResult->expects($this->any())
-            ->method('toArray')
-            ->will($this->returnValue([$userGroup]));
+        $mockReviewAssignmentDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
+            ->setMethods(['newDataObject'])
+            ->getMock();
+        $mockReviewAssignmentDAO->expects($this->any())
+            ->method('newDataObject')
+            ->will($this->returnValue(new ReviewAssignment()));
+        DAORegistry::registerDAO('ReviewAssignmentDAO', $mockReviewAssignmentDAO);
 
-        $mockDAO->expects($this->any())
-            ->method('getByContextId')
-            ->will($this->returnValue($mockResult));
+        $roundNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'review_round');
+        $articleImportFilter->parseReviewRound($roundNodeList->item(0), $submission, $stageId);
 
-        DAORegistry::registerDAO('UserGroupDAO', $mockDAO);
+        $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
+        $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId(), $stageId)->toArray();
+        $reviewRound = array_shift($reviewRounds);
+        unset($reviewRound->_data['id']);
+
+        $expectedReviewRound = new ReviewRound();
+        $expectedReviewRound->setSubmissionId($submission->getId());
+        $expectedReviewRound->setStageId($stageId);
+        $expectedReviewRound->setRound(1);
+        $expectedReviewRound->setStatus(REVIEW_ROUND_STATUS_REVIEWS_COMPLETED);
+
+        $this->assertEquals($expectedReviewRound, $reviewRound);
     }
 
     public function testParseStageAssignment()
     {
         $articleImportFilter = $this->getNativeImportExportFilter();
         $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
 
-        $this->registerMockUserDAO();
-        $this->registerMockUserGroupDAO();
-
+        $contextId = 38;
         $submission = new Submission();
-        $submission->setId(129);
-        $submission->setContextId(562);
-        $deployment->setSubmission($submission);
+        $submission->setId(32);
+        $submission->setContextId($contextId);
+        $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
 
-        $expectedStageAssignmentData = [
-            'submissionId' => $submission->getId(),
-            'userId' => 489,
-            'userGroupId' => 734,
-            'recommendOnly' => 0,
-            'canChangeMetadata' => 0,
-        ];
+        $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
+            ->setMethods(['getByContextId'])
+            ->getMock();
+        $userGroup = $mockUserGroupDAO->newDataObject();
+        $userGroup->setId(46);
+        $userGroup->setName('Editor', 'en_US');
+        $mockUserGroupDAO->assignGroupToStage($submission->getContextId(), $userGroup->getId(), $stageId);
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['toArray'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockResult->expects($this->any())
+            ->method('toArray')
+            ->will($this->returnValue([$userGroup]));
+        $mockUserGroupDAO->expects($this->any())
+            ->method('getByContextId')
+            ->will($this->returnValue($mockResult));
+        DAORegistry::registerDAO('UserGroupDAO', $mockUserGroupDAO);
 
-        $doc = $this->getSampleXml('articles.xml');
-        $stageAssignmentNodeList = $doc->getElementsByTagNameNS(
-            $deployment->getNamespace(),
-            'stage_assignment'
-        );
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getByUsername'])
+            ->getMock();
+        $user = $mockUserDAO->newDataObject();
+        $user->setId(67);
+        $mockUserDAO->expects($this->any())
+            ->method('getByUsername')
+            ->will($this->returnValue($user));
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
-        $stageAssignment = $articleImportFilter->parseStageAssignment($stageAssignmentNodeList->item(0), $submission);
-        $expectedStageAssignmentData['id'] = $stageAssignment->getId();
-        $this->assertEquals($expectedStageAssignmentData, $stageAssignment->_data);
+        $participantNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'participant');
+        $articleImportFilter->parseStageAssignment($participantNodeList->item(0), $submission, $stageId);
 
-        $insertedStageAssignment = DAORegistry::getDAO('StageAssignmentDAO')
-            ->getById($stageAssignment->getId());
-        $expectedStageAssignmentData['dateAssigned'] = $insertedStageAssignment->getDateAssigned();
-        $expectedStageAssignmentData['stageId'] = $insertedStageAssignment->getStageId();
-        $this->assertEquals($expectedStageAssignmentData, $insertedStageAssignment->_data);
-    }
+        $stageAssignmentDAO = DAORegistry::getDAO('StageAssignmentDAO');
+        $stageAssignments = $stageAssignmentDAO->getBySubmissionAndStageId($submission->getId(), $stageId);
+        $stageAssignment = $stageAssignments->next();
+        unset($stageAssignment->_data['id']);
+        unset($stageAssignment->_data['dateAssigned']);
 
-    public function testParseReviewRounds()
-    {
-        $articleImportFilter = $this->getNativeImportExportFilter();
-        $deployment = $articleImportFilter->getDeployment();
+        $expectedStageAssignment = new StageAssignment();
+        $expectedStageAssignment->setSubmissionId($submission->getId());
+        $expectedStageAssignment->setStageId($stageId);
+        $expectedStageAssignment->setUserGroupId(46);
+        $expectedStageAssignment->setUserId(67);
+        $expectedStageAssignment->setRecommendOnly(false);
+        $expectedStageAssignment->setCanChangeMetadata(0);
 
-        $submission = new Submission();
-        $submission->setId(129);
-        $deployment->setSubmission($submission);
-
-        $expectedReviewRoundData = [
-            'submissionId' => $submission->getId(),
-            'stageId' => 3,
-            'round' => 1,
-            'status' => 1
-        ];
-
-        $doc = $this->getSampleXml('articles.xml');
-        $reviewRoundsNodeList = $doc->getElementsByTagNameNS(
-            $deployment->getNamespace(),
-            'review_rounds'
-        );
-
-        $articleImportFilter->parseReviewRounds($reviewRoundsNodeList->item(0), $submission);
-        $reviewRoundDAO = DAORegistry::getDAO('ReviewRoundDAO');
-        $reviewRounds = $reviewRoundDAO->getBySubmissionId($submission->getId())->toArray();
-        $reviewRound = array_shift($reviewRounds);
-        $expectedReviewRoundData['id'] = $reviewRound->getId();
-
-        $this->assertEquals($expectedReviewRoundData, $reviewRound->_data);
-    }
-
-    public function testParseEditorDecisions()
-    {
-        $articleImportFilter = $this->getNativeImportExportFilter();
-        $deployment = $articleImportFilter->getDeployment();
-
-        $submission = new Submission();
-        $submission->setId(129);
-        $deployment->setSubmission($submission);
-
-        $expectedEditorDecisionData = [
-            'reviewRoundId' => 0,
-            'stageId' => 1,
-            'round' => 0,
-            'editorId' => 489,
-            'decision' => 8,
-            'dateDecided' => '2015-03-04 13:39:11'
-        ];
-
-        $this->registerMockUserDAO();
-
-        $doc = $this->getSampleXml('articles.xml');
-        $editorDecisionsNodeList = $doc->getElementsByTagNameNS(
-            $deployment->getNamespace(),
-            'editor_decisions'
-        );
-
-        $articleImportFilter->parseEditorDecisions($editorDecisionsNodeList->item(0), $submission);
-        $editorDecisionDAO = DAORegistry::getDAO('EditDecisionDAO');
-        $editorDecisions = $editorDecisionDAO->getEditorDecisions($submission->getId());
-        $editorDecision = array_shift($editorDecisions);
-        $expectedEditorDecisionData['editDecisionId'] = $editorDecision['editDecisionId'];
-
-        $this->assertEquals($expectedEditorDecisionData, $editorDecision);
+        $this->assertEquals($expectedStageAssignment, $stageAssignment);
     }
 }

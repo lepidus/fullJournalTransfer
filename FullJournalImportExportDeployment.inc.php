@@ -12,14 +12,17 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public $isTestEnv;
     private $reviewForm;
     private $reviewRound;
+    private $reviewAssignment;
     private $navigationMenuItemDBIds;
     private $reviewFormDBIds;
+    private $reviewFormElementDBIds;
 
     public function __construct($context, $user = null)
     {
         parent::__construct($context, $user);
         $this->setNavigationMenuItemDBIds([]);
         $this->setReviewFormDBIds([]);
+        $this->setReviewFormElementDBIds([]);
     }
 
     public function getSchemaFilename()
@@ -97,6 +100,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return $this->reviewForm;
     }
 
+    public function setReviewAssignment($reviewAssignment)
+    {
+        $this->reviewAssignment = $reviewAssignment;
+    }
+
+    public function getReviewAssignment()
+    {
+        return $this->reviewAssignment;
+    }
+
     public function getNavigationMenuItemDBIds()
     {
         return $this->navigationMenuItemDBIds;
@@ -130,16 +143,39 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return $this->reviewFormDBIds = $reviewFormDBIds;
     }
 
-    public function getReviewFormDBId($reviewFormDBIds)
+    public function getReviewFormDBId($reviewFormDBId)
     {
-        if (array_key_exists($reviewFormDBIds, $this->reviewFormDBIds)) {
-            return $this->reviewFormDBIds[$reviewFormDBIds];
+        if (array_key_exists($reviewFormDBId, $this->reviewFormDBIds)) {
+            return $this->reviewFormDBIds[$reviewFormDBId];
         }
         return null;
     }
 
-    public function setReviewFormDBId($reviewFormDBIds, $DBId)
+    public function setReviewFormDBId($reviewFormDBId, $DBId)
     {
-        return $this->reviewFormDBIds[$reviewFormDBIds] = $DBId;
+        return $this->reviewFormDBIds[$reviewFormDBId] = $DBId;
+    }
+
+    public function getReviewFormElementDBIds()
+    {
+        return $this->reviewFormElementDBIds;
+    }
+
+    public function setReviewFormElementDBIds($reviewFormElementDBIds)
+    {
+        return $this->reviewFormElementDBIds = $reviewFormElementDBIds;
+    }
+
+    public function getReviewFormElementDBId($reviewFormElementDBId)
+    {
+        if (array_key_exists($reviewFormElementDBId, $this->reviewFormElementDBIds)) {
+            return $this->reviewFormElementDBIds[$reviewFormElementDBId];
+        }
+        return null;
+    }
+
+    public function setReviewFormElementDBId($reviewFormElementDBId, $DBId)
+    {
+        return $this->reviewFormElementDBIds[$reviewFormElementDBId] = $DBId;
     }
 }

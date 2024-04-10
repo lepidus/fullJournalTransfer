@@ -31,6 +31,7 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
     private function setUpReviewFormElementMockDAO()
     {
         $reviewFormElement = DAORegistry::getDAO('ReviewFormElementDAO')->newDataObject();
+        $reviewFormElement->setId(68);
         $reviewFormElement->setSequence(1);
         $reviewFormElement->setElementType(REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD);
         $reviewFormElement->setRequired(1);
@@ -66,6 +67,7 @@ class ReviewFormNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $reviewFormElementsNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
         $reviewFormElementsNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
         $reviewFormElementNode = $doc->createElementNS($deployment->getNamespace(), 'review_form_element');
+        $reviewFormElementNode->setAttribute('id', 68);
         $reviewFormElementNode->setAttribute('seq', 1);
         $reviewFormElementNode->setAttribute('element_type', 1);
         $reviewFormElementNode->setAttribute('required', 1);

@@ -73,6 +73,7 @@ class NativeXmlReviewFormElementFilter extends NativeImportFilter
         }
 
         $reviewFormElementDAO->insertObject($reviewFormElement);
+        $deployment->setReviewFormElementDBId($node->getAttribute('id'), $reviewFormElement->getId());
         return $reviewFormElement;
     }
 }

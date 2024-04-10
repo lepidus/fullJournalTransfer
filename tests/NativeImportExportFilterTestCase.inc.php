@@ -6,10 +6,15 @@ import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployme
 abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
 {
     protected $context;
+    protected $doc;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->doc = new DOMDocument('1.0');
+        $this->doc->preserveWhiteSpace = false;
+        $this->doc->formatOutput = true;
 
         $this->context = Application::getContextDAO()->newDataObject();
         $this->context->_data = $this->getContextData();
