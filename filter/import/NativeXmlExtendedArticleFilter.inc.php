@@ -187,7 +187,9 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                         $reviewFilesDAO = DAORegistry::getDAO('ReviewFilesDAO');
                         foreach ($reviewFileIds as $reviewFileId) {
                             $newSubmissionFileId = $deployment->getSubmissionFileDBId($reviewFileId);
-                            $reviewFilesDAO->grant($reviewAssignment->getId(), $newSubmissionFileId);
+                            if (!is_null($newSubmissionFileId)) {
+                                $reviewFilesDAO->grant($reviewAssignment->getId(), $newSubmissionFileId);
+                            }
                         }
                         break;
                     case 'review_round_file':

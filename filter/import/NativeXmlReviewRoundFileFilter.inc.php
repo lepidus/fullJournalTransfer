@@ -53,6 +53,8 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
         $request = Application::get()->getRequest();
         $router = $request->getRouter();
         $router->_contextPaths[0] = $context->getPath();
+        $dispatcher = Application::get()->getDispatcher();
+        $request->setDispatcher($dispatcher);
         $errorOcurred = false;
 
         $genreId = null;

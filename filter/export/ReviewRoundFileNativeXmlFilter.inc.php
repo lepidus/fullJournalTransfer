@@ -39,7 +39,7 @@ class ReviewRoundFileNativeXmlFilter extends SubmissionFileNativeXmlFilter
         $deployment =  $this->getDeployment();
         $submissionFileNode = parent::createSubmissionFileNode($doc, $submissionFile);
 
-        if ($submissionFile->getData('assocType')) {
+        if ($submissionFileNode && $submissionFile->getData('assocType')) {
             $reviewRefNode = $doc->createElementNS($deployment->getNamespace(), 'review_ref');
             $reviewRefNode->setAttribute('id', $submissionFile->getData('assocId'));
             $submissionFileNode->appendChild($reviewRefNode);

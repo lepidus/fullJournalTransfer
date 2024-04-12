@@ -316,8 +316,8 @@
 
     <complexType name="review_assignment">
         <sequence>
-			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
             <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
+			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="reviewer" type="string" />

@@ -63,7 +63,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $userDAO = DAORegistry::getDAO('UserDAO');
         $userGroupDAO = DAORegistry::getDAO('UserGroupDAO');
         while ($stageAssignment = $stageAssignments->next()) {
-            $user = $userDAO->getById($stageAssignment->getUserId());
+            $contextId = $context->getId();
+            $userId = $stageAssignment->getUserId();
+            if (!$userGroupDAO->userAssignmentExists($contextId, $userId, $stageId)) {
+                continue;
+            }
+
+            $user = $userDAO->getById($userId);
             $userGroup = $userGroupDAO->getById($stageAssignment->getUserGroupId(), $context->getId());
 
             $participantNode = $doc->createElementNS($deployment->getNamespace(), 'participant');
@@ -150,12 +156,20 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
     public function addReviewAssignments($doc, $roundNode, $reviewRound)
     {
         $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
         $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
         $reviewAssignments = $reviewAssignmentDAO->getByReviewRoundId($reviewRound->getId());
 
         $userDAO = DAORegistry::getDAO('UserDAO');
         foreach ($reviewAssignments as $reviewAssignment) {
-            $reviewer = $userDAO->getById($reviewAssignment->getReviewerId());
+            $contextId = $context->getId();
+            $reviewerId = $reviewAssignment->getReviewerId();
+            $stageId = $reviewAssignment->getStageId();
+            if (!$userGroupDAO->userAssignmentExists($contextId, $reviewerId, $stageId)) {
+                continue;
+            }
+
+            $reviewer = $userDAO->getById($reviewerId);
             $reviewAssignmentNode = $doc->createElementNS($deployment->getNamespace(), 'review_assignment');
             $reviewAssignmentNode->setAttribute('cancelled', (int) $reviewAssignment->getCancelled());
             $reviewAssignmentNode->setAttribute('date_assigned', $reviewAssignment->getDateAssigned());
@@ -194,9 +208,12 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
                 $reviewAssignmentNode->setAttribute('date_acknowledged', $dateAcknowledged);
             }
 
+            $this->addReviewerFiles($doc, $reviewAssignmentNode, $reviewAssignment);
+
             $reviewFilesIterator = Services::get('submissionFile')->getMany([
                 'submissionIds' => [$reviewAssignment->getSubmissionId()],
                 'reviewIds' => [$reviewAssignment->getId()],
+                'reviewRoundIds' => [$reviewRound->getId()]
             ]);
             $reviewFileIds = array_map(function ($reviewFile) {
                 return (int) $reviewFile->getId();
@@ -209,8 +226,6 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
                     htmlspecialchars(join(':', $reviewFileIds), ENT_COMPAT, 'UTF-8')
                 ));
             }
-
-            $this->addReviewerFiles($doc, $reviewAssignmentNode, $reviewAssignment);
 
             if ($reviewAssignment->getReviewFormId()) {
                 $reviewAssignmentNode->setAttribute('review_form_id', $reviewAssignment->getReviewFormId());
@@ -250,8 +265,9 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
     {
         $deployment = $this->getDeployment();
         $reviewFormResponseDAO = DAORegistry::getDAO('ReviewFormResponseDAO');
-        $reviewFormResponses = $reviewFormResponseDAO->getReviewReviewFormResponseValues($reviewAssignment->getId());
-        foreach ($reviewFormResponses as $response) {
+        $responseValues = $reviewFormResponseDAO->getReviewReviewFormResponseValues($reviewAssignment->getId());
+        foreach ($responseValues as $reviewFormElementId => $value) {
+            $response = $reviewFormResponseDAO->getReviewFormResponse($reviewAssignment->getId(), $reviewFormElementId);
             $responseValue = null;
             switch ($response->getResponseType()) {
                 case 'int':
