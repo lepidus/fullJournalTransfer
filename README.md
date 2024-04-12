@@ -54,12 +54,14 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 - Review Forms
 - Review Assignments
 - Review Rounds
+- Review Files
+- Reviewer Files
+- Revision Files
 - Stage Assignments
 - Editor Decisions
 
 **To Do**:
 
-- Review Files
 - Discussions
 - Metrics
 
