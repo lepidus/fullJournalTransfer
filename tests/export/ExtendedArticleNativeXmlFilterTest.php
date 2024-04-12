@@ -197,32 +197,37 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     private function registerMockReviewFormResponseDAO()
     {
         $mockDAO = $this->getMockBuilder(ReviewFormResponseDAO::class)
-            ->setMethods(['getReviewReviewFormResponseValues'])
+            ->setMethods(['getReviewReviewFormResponseValues', 'getReviewFormResponse'])
             ->getMock();
 
-        $responses = [];
+        $responses = [
+            14 => 'Reviewer response',
+            15 => 2,
+            16 => [1, 3, 6]
+        ];
 
-        $response = $mockDAO->newDataObject();
-        $response->setReviewFormElementId(14);
-        $response->setResponseType('string');
-        $response->setValue('Reviewer response');
-        $responses[] = $response;
+        $responseString = $mockDAO->newDataObject();
+        $responseString->setReviewFormElementId(14);
+        $responseString->setResponseType('string');
+        $responseString->setValue('Reviewer response');
 
-        $response = $mockDAO->newDataObject();
-        $response->setReviewFormElementId(15);
-        $response->setResponseType('int');
-        $response->setValue(2);
-        $responses[] = $response;
+        $responseInt = $mockDAO->newDataObject();
+        $responseInt->setReviewFormElementId(15);
+        $responseInt->setResponseType('int');
+        $responseInt->setValue(2);
 
-        $response = $mockDAO->newDataObject();
-        $response->setReviewFormElementId(16);
-        $response->setResponseType('object');
-        $response->setValue([1, 3, 6]);
-        $responses[] = $response;
+        $responseObject = $mockDAO->newDataObject();
+        $responseObject->setReviewFormElementId(16);
+        $responseObject->setResponseType('object');
+        $responseObject->setValue([1, 3, 6]);
 
         $mockDAO->expects($this->any())
             ->method('getReviewReviewFormResponseValues')
             ->will($this->returnValue($responses));
+
+        $mockDAO->expects($this->any())
+            ->method('getReviewFormResponse')
+            ->will($this->onConsecutiveCalls($responseString, $responseInt, $responseObject));
 
         DAORegistry::registerDAO('ReviewFormResponseDAO', $mockDAO);
     }
@@ -371,6 +376,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $articleExportFilter = $this->getNativeImportExportFilter();
         $deployment = $articleExportFilter->getDeployment();
 
+        $this->registerMockUserGroupDAO('External Reviewer');
         $this->registerMockUserDAO('reviewer');
         $this->registerMockReviewAssignmentDAO();
 

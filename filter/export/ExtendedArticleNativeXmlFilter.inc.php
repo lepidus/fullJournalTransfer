@@ -161,6 +161,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $reviewAssignments = $reviewAssignmentDAO->getByReviewRoundId($reviewRound->getId());
 
         $userDAO = DAORegistry::getDAO('UserDAO');
+        $userGroupDAO = DAORegistry::getDAO('UserGroupDAO');
         foreach ($reviewAssignments as $reviewAssignment) {
             $contextId = $context->getId();
             $reviewerId = $reviewAssignment->getReviewerId();
