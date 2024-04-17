@@ -73,7 +73,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $userGroup = $userGroupDAO->getById($stageAssignment->getUserGroupId(), $context->getId());
 
             $participantNode = $doc->createElementNS($deployment->getNamespace(), 'participant');
-            $participantNode->setAttribute('user', $user->getUsername());
+            $participantNode->setAttribute('user_email', $user->getEmail());
             $participantNode->setAttribute('user_group_ref', $userGroup->getName($context->getPrimaryLocale()));
             $participantNode->setAttribute('recommend_only', (int) $stageAssignment->getRecommendOnly());
             $participantNode->setAttribute('can_change_metadata', (int) $stageAssignment->getCanChangeMetadata());
@@ -104,7 +104,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $decisionNode->setAttribute('round', $editorDecision['round']);
             $decisionNode->setAttribute('review_round_id', $editorDecision['reviewRoundId'] ?: 0);
             $decisionNode->setAttribute('decision', $editorDecision['decision']);
-            $decisionNode->setAttribute('editor', $editor->getUsername());
+            $decisionNode->setAttribute('editor_email', $editor->getEmail());
             $decisionNode->setAttribute('date_decided', $editorDecision['dateDecided']);
             $parentNode->appendChild($decisionNode);
         }
@@ -180,7 +180,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $reviewAssignmentNode->setAttribute('declined', (int) $reviewAssignment->getDeclined());
             $reviewAssignmentNode->setAttribute('last_modified', $reviewAssignment->getLastModified());
             $reviewAssignmentNode->setAttribute('method', $reviewAssignment->getReviewMethod());
-            $reviewAssignmentNode->setAttribute('reviewer', $reviewer->getUsername());
+            $reviewAssignmentNode->setAttribute('reviewer_email', $reviewer->getEmail());
             $reviewAssignmentNode->setAttribute('unconsidered', $reviewAssignment->getUnconsidered());
             $reviewAssignmentNode->setAttribute('was_automatic', $reviewAssignment->getReminderWasAutomatic());
 

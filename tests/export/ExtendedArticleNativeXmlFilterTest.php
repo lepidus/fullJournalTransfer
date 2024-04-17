@@ -48,14 +48,14 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         Registry::set('application', $mockApplication);
     }
 
-    private function registerMockUserDAO($username)
+    private function registerMockUserDAO($email)
     {
         $mockDAO = $this->getMockBuilder(UserDAO::class)
             ->setMethods(['getById'])
             ->getMock();
 
         $user = $mockDAO->newDataObject();
-        $user->setUsername($username);
+        $user->setEmail($email);
 
         $mockDAO->expects($this->any())
             ->method('getById')
@@ -293,7 +293,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $stageAssignment->getRecommendOnly(0);
         $stageAssignment->getCanChangeMetadata(0);
 
-        $this->registerMockUserDAO('editor');
+        $this->registerMockUserDAO('editor@email.com');
         $this->registerMockUserGroupDAO('External Reviewer');
         $this->registerMockStageAssignmentDAO($stageAssignment);
 
@@ -302,7 +302,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             $deployment->getNamespace(),
             'participant'
         ));
-        $participantNode->setAttribute('user', 'editor');
+        $participantNode->setAttribute('user_email', 'editor@email.com');
         $participantNode->setAttribute('user_group_ref', 'External Reviewer');
         $participantNode->setAttribute('recommend_only', 0);
         $participantNode->setAttribute('can_change_metadata', 0);
@@ -323,7 +323,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $articleExportFilter = $this->getNativeImportExportFilter();
         $deployment = $articleExportFilter->getDeployment();
 
-        $this->registerMockUserDAO('editor');
+        $this->registerMockUserDAO('editor@email.com');
         $this->registerMockUserGroupDAO('External Reviewer');
         $this->registerMockEditorDecisionDAO();
 
@@ -331,7 +331,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $decisionNode = $this->doc->createElementNS($deployment->getNamespace(), 'decision');
         $decisionNode->setAttribute('round', 0);
         $decisionNode->setAttribute('review_round_id', 0);
-        $decisionNode->setAttribute('editor', 'editor');
+        $decisionNode->setAttribute('editor_email', 'editor@email.com');
         $decisionNode->setAttribute('decision', SUBMISSION_EDITOR_DECISION_EXTERNAL_REVIEW);
         $decisionNode->setAttribute('date_decided', '2015-03-04 13:39:11');
         $expectedStageNode->appendChild($decisionNode);
@@ -377,12 +377,12 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $deployment = $articleExportFilter->getDeployment();
 
         $this->registerMockUserGroupDAO('External Reviewer');
-        $this->registerMockUserDAO('reviewer');
+        $this->registerMockUserDAO('reviewer@email.com');
         $this->registerMockReviewAssignmentDAO();
 
         $expectedRoundNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_round');
         $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
-        $assignmentNode->setAttribute('reviewer', 'reviewer');
+        $assignmentNode->setAttribute('reviewer_email', 'reviewer@email.com');
         $assignmentNode->setAttribute('recommendation', SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
         $assignmentNode->setAttribute('quality', SUBMISSION_REVIEWER_RATING_VERY_GOOD);
         $assignmentNode->setAttribute('method', SUBMISSION_REVIEW_METHOD_OPEN);
@@ -498,9 +498,9 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->setMethods(['getById'])
             ->getMock();
         $editorUser = $mockUserDAO->newDataObject();
-        $editorUser->setUsername('editor');
+        $editorUser->setEmail('editor@email.com');
         $reviewerUser = $mockUserDAO->newDataObject();
-        $reviewerUser->setUsername('reviewer');
+        $reviewerUser->setEmail('reviewer@email.com');
         $mockUserDAO->expects($this->any())
             ->method('getById')
             ->will($this->onConsecutiveCalls($editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));

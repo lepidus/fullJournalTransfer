@@ -298,7 +298,7 @@
 	</complexType>
 
     <complexType name="participant">
-        <attribute name="user" type="string" />
+        <attribute name="user_email" type="string" />
         <attribute name="user_group_ref" type="string" />
         <attribute name="recommend_only" type="int" />
         <attribute name="can_change_metadata" type="int" />
@@ -320,7 +320,7 @@
 			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
-        <attribute name="reviewer" type="string" />
+        <attribute name="reviewer_email" type="string" />
         <attribute name="method" type="string" />
         <attribute name="declined" type="string" />
         <attribute name="cancelled" type="string" />
@@ -367,7 +367,7 @@
 		<attribute name="round" type="int" />
         <attribute name="review_round_id" type="int" />
         <attribute name="decision" type="int" />
-        <attribute name="editor" type="string" />
+        <attribute name="editor_email" type="string" />
         <attribute name="date_decided" type="string" />
 	</complexType>
 

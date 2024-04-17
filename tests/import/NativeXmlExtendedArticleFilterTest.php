@@ -77,7 +77,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $reviewRound->setStageId(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
 
         $mockUserDAO = $this->getMockBuilder(UserDAO::class)
-            ->setMethods(['getById', 'getByUsername'])
+            ->setMethods(['getById', 'getUserByEmail'])
             ->getMock();
 
         $reviewer = $mockUserDAO->newDataObject();
@@ -90,7 +90,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
             ->will($this->returnValue($reviewer));
 
         $mockUserDAO->expects($this->any())
-            ->method('getByUsername')
+            ->method('getUserByEmail')
             ->will($this->returnValue($reviewer));
 
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
@@ -160,7 +160,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $reviewRound->setRound(1);
 
         $mockUserDAO = $this->getMockBuilder(UserDAO::class)
-            ->setMethods(['getById', 'getByUsername'])
+            ->setMethods(['getById', 'getUserByEmail'])
             ->getMock();
 
         $editor = $mockUserDAO->newDataObject();
@@ -168,7 +168,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $editor->setUsername('editor');
 
         $mockUserDAO->expects($this->any())
-            ->method('getByUsername')
+            ->method('getUserByEmail')
             ->will($this->returnValue($editor));
 
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
@@ -219,7 +219,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $stageId = WORKFLOW_STAGE_ID_EXTERNAL_REVIEW;
 
         $mockUserDAO = $this->getMockBuilder(UserDAO::class)
-            ->setMethods(['getById', 'getByUsername'])
+            ->setMethods(['getById', 'getUserByEmail'])
             ->getMock();
         $reviewer = $mockUserDAO->newDataObject();
         $reviewer->setId(52);
@@ -229,7 +229,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
             ->method('getById')
             ->will($this->returnValue($reviewer));
         $mockUserDAO->expects($this->any())
-            ->method('getByUsername')
+            ->method('getUserByEmail')
             ->will($this->returnValue($reviewer));
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
@@ -290,12 +290,12 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('UserGroupDAO', $mockUserGroupDAO);
 
         $mockUserDAO = $this->getMockBuilder(UserDAO::class)
-            ->setMethods(['getByUsername'])
+            ->setMethods(['getUserByEmail'])
             ->getMock();
         $user = $mockUserDAO->newDataObject();
         $user->setId(67);
         $mockUserDAO->expects($this->any())
-            ->method('getByUsername')
+            ->method('getUserByEmail')
             ->will($this->returnValue($user));
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 

@@ -44,7 +44,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseStageAssignment($node, $submission, $stageId)
     {
         $user = DAORegistry::getDAO('UserDAO')
-            ->getByUsername($node->getAttribute('user'));
+            ->getUserByEmail($node->getAttribute('user_email'));
 
         $userGroups = DAORegistry::getDAO('UserGroupDAO')
             ->getByContextId($submission->getContextId())
@@ -104,7 +104,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseDecision($node, $submission, $stageId, $reviewRound = null)
     {
         $userDAO = DAORegistry::getDAO('UserDAO');
-        $editor = $userDAO->getByUsername($node->getAttribute('editor'));
+        $editor = $userDAO->getUserByEmail($node->getAttribute('editor_email'));
 
         $editorDecision = [
             'editDecisionId' => null,
@@ -130,7 +130,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewAssignment = $reviewAssignmentDAO->newDataObject();
 
         $userDAO = DAORegistry::getDAO('UserDAO');
-        $reviewer = $userDAO->getByUsername($node->getAttribute('reviewer'));
+        $reviewer = $userDAO->getUserByEmail($node->getAttribute('reviewer_email'));
 
         $reviewAssignment->setSubmissionId($reviewRound->getSubmissionId());
         $reviewAssignment->setReviewerId($reviewer->getId());
