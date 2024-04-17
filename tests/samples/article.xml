@@ -14,15 +14,6 @@
     <stage path="submission">
         <participant can_change_metadata="0" recommend_only="0" user_email="editor@email.com" user_group_ref="Editor"/>
         <decision date_decided="2015-03-04 13:39:11" decision="8" editor_email="editor@email.com" review_round_id="0" round="0"/>
-        <queries>
-            <query seq="1" closed="0">
-                <query_participant>user_email</query_participant>
-                <note user_email="" date_created="2015-03-03 20:33:43" date_modified="2015-03-03 20:37:37">
-                    <title>Recommendation</title>
-                    <contents>&lt;p&gt;The recommendation regarding this submission is: Accept Submission&lt;/p&gt;</contents>
-                </note>
-            </query>
-        </queries>
     </stage>
     <stage path="internalReview" />
     <stage path="externalReview">

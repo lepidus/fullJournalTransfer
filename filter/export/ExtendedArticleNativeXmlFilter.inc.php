@@ -50,6 +50,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
 
         $this->addEditorDecisions($doc, $stageNode, $submission, $stageId);
+        $this->addQueries($doc, $stageNode, $submission, $stageId);
     }
 
     public function addParticipants($doc, $stageNode, $submission, $stageId)
@@ -108,6 +109,25 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $decisionNode->setAttribute('date_decided', $editorDecision['dateDecided']);
             $parentNode->appendChild($decisionNode);
         }
+    }
+
+    public function addQueries($doc, $parentNode, $submission, $stageId)
+    {
+        $deployment = $this->getDeployment();
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+
+        $queries = $queryDAO->getByAssoc(ASSOC_TYPE_SUBMISSION, $submission->getId(), $stageId);
+
+        $queriesNode = $doc->createElementNS($deployment->getNamespace(), 'queries');
+        while($query = $queries->next()) {
+            $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
+            $queryNode->setAttribute('seq', $query->getData('sequence'));
+            $queryNode->setAttribute('closed', (int) $query->getData('closed'));
+            $queriesNode->appendChild($queryNode);
+        }
+
+        $parentNode->appendChild($queriesNode);
     }
 
     public function addReviewRounds($doc, $stageNode, $submission, $stageId)

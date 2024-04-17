@@ -3,6 +3,7 @@
 import('classes.article.Author');
 import('classes.submission.Submission');
 import('classes.publication.Publication');
+import('lib.pkp.classes.query.Query');
 import('classes.workflow.EditorDecisionActionsManager');
 import('lib.pkp.classes.submission.reviewRound.ReviewRound');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
@@ -24,7 +25,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     {
         return [
             'UserDAO', 'UserGroupDAO',
-            'StageAssignmentDAO', 'EditDecisionDAO',
+            'StageAssignmentDAO', 'QueryDAO', 'EditDecisionDAO',
             'ReviewRoundDAO', 'ReviewAssignmentDAO',
             'ReviewFormResponseDAO', 'SectionDAO'
         ];
@@ -128,6 +129,28 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->will($this->returnValue([$editorDecision]));
 
         DAORegistry::registerDAO('EditDecisionDAO', $mockDAO);
+    }
+
+    private function registerMockQueryDAO($query)
+    {
+        $mockDAO = $this->getMockBuilder(QueryDAO::class)
+            ->setMethods(['getByAssoc'])
+            ->getMock();
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($query, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getByAssoc')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('QueryDAO', $mockDAO);
     }
 
     private function registerMockReviewRoundDAO()
@@ -339,6 +362,37 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submission = new Submission();
         $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
         $articleExportFilter->addEditorDecisions($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedStageNode),
+            $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testAddingQueries()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $query = new Query();
+        $query->setSequence(1);
+        $query->setIsClosed(false);
+
+        $this->registerMockUserDAO('editor@email.com');
+        $this->registerMockQueryDAO($query);
+
+        $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $queriesNode = $this->doc->createElementNS($deployment->getNamespace(), 'queries');
+        $queryNode = $this->doc->createElementNS($deployment->getNamespace(), 'query');
+        $queryNode->setAttribute('seq', 1);
+        $queryNode->setAttribute('closed', 0);
+        $queriesNode->appendChild($queryNode);
+        $expectedStageNode->appendChild($queriesNode);
+
+        $submission = new Submission();
+        $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $articleExportFilter->addQueries($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
 
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedStageNode),
