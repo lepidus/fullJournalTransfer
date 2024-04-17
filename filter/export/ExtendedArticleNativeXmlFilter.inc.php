@@ -127,7 +127,9 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $queriesNode->appendChild($queryNode);
         }
 
-        $parentNode->appendChild($queriesNode);
+        if ($queriesNode->hasChildNodes()) {
+            $parentNode->appendChild($queriesNode);
+        }
     }
 
     public function addReviewRounds($doc, $stageNode, $submission, $stageId)
