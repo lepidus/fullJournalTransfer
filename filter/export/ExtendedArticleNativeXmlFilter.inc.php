@@ -124,6 +124,18 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
             $queryNode->setAttribute('seq', $query->getData('sequence'));
             $queryNode->setAttribute('closed', (int) $query->getData('closed'));
+            
+            $participantIds = $queryDAO->getParticipantIds($query->getId());
+            foreach ($participantIds as $participantId) {
+                $participant = $userDAO->getById($participantId);
+                $participantNode = $doc->createElementNS(
+                    $deployment->getNamespace(),
+                    'query_participant',
+                    htmlspecialchars($participant->getEmail(), ENT_COMPAT, 'UTF-8')
+                );
+                $queryNode->appendChild($participantNode);
+            }
+
             $queriesNode->appendChild($queryNode);
         }
 

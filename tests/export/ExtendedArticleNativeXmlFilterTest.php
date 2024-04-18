@@ -134,7 +134,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     private function registerMockQueryDAO($query)
     {
         $mockDAO = $this->getMockBuilder(QueryDAO::class)
-            ->setMethods(['getByAssoc'])
+            ->setMethods(['getByAssoc', 'getParticipantIds'])
             ->getMock();
 
         $mockResult = $this->getMockBuilder(DAOResultFactory::class)
@@ -149,6 +149,10 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $mockDAO->expects($this->any())
             ->method('getByAssoc')
             ->will($this->returnValue($mockResult));
+
+        $mockDAO->expects($this->any())
+            ->method('getParticipantIds')
+            ->will($this->returnValue([123]));
 
         DAORegistry::registerDAO('QueryDAO', $mockDAO);
     }
@@ -387,6 +391,12 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $queryNode = $this->doc->createElementNS($deployment->getNamespace(), 'query');
         $queryNode->setAttribute('seq', 1);
         $queryNode->setAttribute('closed', 0);
+        $queryParticipantNode = $this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'query_participant',
+            htmlspecialchars('editor@email.com', ENT_COMPAT, 'UTF-8')
+        );
+        $queryNode->appendChild($queryParticipantNode);
         $queriesNode->appendChild($queryNode);
         $expectedStageNode->appendChild($queriesNode);
 
