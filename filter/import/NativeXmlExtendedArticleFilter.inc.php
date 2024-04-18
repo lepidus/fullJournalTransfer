@@ -43,8 +43,23 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
     public function parseStageAssignment($node, $submission, $stageId)
     {
+        $deployment = $this->getDeployment();
+
         $user = DAORegistry::getDAO('UserDAO')
             ->getUserByEmail($node->getAttribute('user_email'));
+
+        if (is_null($user)) {
+            $deployment->addWarning(
+                ASSOC_TYPE_SUBMISSION,
+                $submission->getId(),
+                __(
+                    'plugins.importexport.fullJournal.error.userNotFound',
+                    ['email' => $node->getAttribute('user_email')]
+                )
+            );
+
+            return null;
+        }
 
         $userGroups = DAORegistry::getDAO('UserGroupDAO')
             ->getByContextId($submission->getContextId())
@@ -125,12 +140,26 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseReviewAssignment($node, $reviewRound)
     {
         $deployment = $this->getDeployment();
+        $submission = $deployment->getSubmission();
 
         $reviewAssignmentDAO = DAORegistry::getDAO('ReviewAssignmentDAO');
         $reviewAssignment = $reviewAssignmentDAO->newDataObject();
 
         $userDAO = DAORegistry::getDAO('UserDAO');
         $reviewer = $userDAO->getUserByEmail($node->getAttribute('reviewer_email'));
+
+        if (is_null($reviewer)) {
+            $deployment->addWarning(
+                ASSOC_TYPE_SUBMISSION,
+                $submission->getId(),
+                __(
+                    'plugins.importexport.fullJournal.error.userNotFound',
+                    ['email' => $node->getAttribute('reviewer_email')]
+                )
+            );
+
+            return null;
+        }
 
         $reviewAssignment->setSubmissionId($reviewRound->getSubmissionId());
         $reviewAssignment->setReviewerId($reviewer->getId());
