@@ -389,14 +389,9 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
         $queriesNode = $this->doc->createElementNS($deployment->getNamespace(), 'queries');
         $queryNode = $this->doc->createElementNS($deployment->getNamespace(), 'query');
-        $queryNode->setAttribute('seq', 1);
-        $queryNode->setAttribute('closed', 0);
-        $queryParticipantNode = $this->doc->createElementNS(
-            $deployment->getNamespace(),
-            'query_participant',
-            htmlspecialchars('editor@email.com', ENT_COMPAT, 'UTF-8')
-        );
-        $queryNode->appendChild($queryParticipantNode);
+        $queryNode->setAttribute('seq', $query->getSequence());
+        $queryNode->setAttribute('closed', (int) $query->getIsClosed());
+        $queryNode->appendChild($this->createQueryParticipantsNode($deployment, ['editor@email.com']));
         $queriesNode->appendChild($queryNode);
         $expectedStageNode->appendChild($queriesNode);
 
@@ -409,6 +404,21 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             $this->doc->saveXML($stageNode),
             "actual xml is equal to expected xml"
         );
+    }
+
+    private function createQueryParticipantsNode($deployment, $participantEmails)
+    {
+        $participantsNode = $this->doc->createElementNS($deployment->getNamespace(), 'participants');
+
+        foreach ($participantEmails as $email) {
+            $participantNode = $this->doc->createElementNS(
+                $deployment->getNamespace(),
+                'participant',
+                htmlspecialchars($email, ENT_COMPAT, 'UTF-8')
+            );
+            $participantsNode->appendChild($participantNode);
+        }
+        return $participantsNode;
     }
 
     public function testAddingReviewRounds()

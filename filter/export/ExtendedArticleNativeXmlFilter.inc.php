@@ -114,7 +114,6 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
     public function addQueries($doc, $parentNode, $submission, $stageId)
     {
         $deployment = $this->getDeployment();
-        $userDAO = DAORegistry::getDAO('UserDAO');
         $queryDAO = DAORegistry::getDAO('QueryDAO');
 
         $queries = $queryDAO->getByAssoc(ASSOC_TYPE_SUBMISSION, $submission->getId(), $stageId);
@@ -124,17 +123,8 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
             $queryNode->setAttribute('seq', $query->getData('sequence'));
             $queryNode->setAttribute('closed', (int) $query->getData('closed'));
-            
-            $participantIds = $queryDAO->getParticipantIds($query->getId());
-            foreach ($participantIds as $participantId) {
-                $participant = $userDAO->getById($participantId);
-                $participantNode = $doc->createElementNS(
-                    $deployment->getNamespace(),
-                    'query_participant',
-                    htmlspecialchars($participant->getEmail(), ENT_COMPAT, 'UTF-8')
-                );
-                $queryNode->appendChild($participantNode);
-            }
+
+            $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $query));
 
             $queriesNode->appendChild($queryNode);
         }
@@ -142,6 +132,26 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         if ($queriesNode->hasChildNodes()) {
             $parentNode->appendChild($queriesNode);
         }
+    }
+
+    private function createQueryParticipantsNode($doc, $deployment, $query)
+    {
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $participantsNode = $doc->createElementNS($deployment->getNamespace(), 'participants');
+        $participantIds = $queryDAO->getParticipantIds($query->getId());
+
+        foreach ($participantIds as $participantId) {
+            $participant = $userDAO->getById($participantId);
+            $participantNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'participant',
+                htmlspecialchars($participant->getEmail(), ENT_COMPAT, 'UTF-8')
+            );
+            $participantsNode->appendChild($participantNode);
+        }
+
+        return $participantsNode;
     }
 
     public function addReviewRounds($doc, $stageNode, $submission, $stageId)
