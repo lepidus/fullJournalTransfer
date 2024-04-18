@@ -125,6 +125,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             $queryNode->setAttribute('closed', (int) $query->getData('closed'));
 
             $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $query));
+            $queryNode->appendChild($this->createQueryRepliesNode($doc, $deployment, $query));
 
             $queriesNode->appendChild($queryNode);
         }
@@ -152,6 +153,37 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
 
         return $participantsNode;
+    }
+
+    private function createQueryRepliesNode($doc, $deployment, $query)
+    {
+        $repliesNode = $doc->createElementNS($deployment->getNamespace(), 'replies');
+        $replies = $query->getReplies();
+
+        while ($note = $replies->next()) {
+            $user = $note->getUser();
+            $noteNode = $doc->createElementNS($deployment->getNamespace(), 'note');
+            $noteNode->setAttribute('user_email', htmlspecialchars($user->getEmail(), ENT_COMPAT, 'UTF-8'));
+            $noteNode->setAttribute('date_modified', $note->getDateModified());
+            $noteNode->setAttribute('date_created', $note->getDateCreated());
+
+            $titleNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'title',
+                htmlspecialchars($note->getTitle(), ENT_COMPAT, 'UTF-8')
+            );
+            $contentsNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'contents',
+                htmlspecialchars($note->getContents(), ENT_COMPAT, 'UTF-8')
+            );
+
+            $noteNode->appendChild($titleNode);
+            $noteNode->appendChild($contentsNode);
+            $repliesNode->appendChild($noteNode);
+        }
+
+        return $repliesNode;
     }
 
     public function addReviewRounds($doc, $stageNode, $submission, $stageId)
