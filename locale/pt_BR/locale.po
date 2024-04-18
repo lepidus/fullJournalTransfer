@@ -46,3 +46,6 @@ msgstr "Importando artigos..."
 
 msgid "plugins.importexport.fullJournal.importCompleted"
 msgstr "Importação concluída com sucesso"
+
+msgid "plugins.importexport.fullJournal.error.userNotFound"
+msgstr "Usuário com email {$email} não está presente no site."
