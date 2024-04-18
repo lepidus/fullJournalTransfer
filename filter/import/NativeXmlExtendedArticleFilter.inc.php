@@ -118,6 +118,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
     public function parseDecision($node, $submission, $stageId, $reviewRound = null)
     {
+        $deployment = $this->getDeployment();
+
         $userDAO = DAORegistry::getDAO('UserDAO');
         $editor = $userDAO->getUserByEmail($node->getAttribute('editor_email'));
 
