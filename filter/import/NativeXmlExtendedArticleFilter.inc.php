@@ -121,6 +121,19 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $userDAO = DAORegistry::getDAO('UserDAO');
         $editor = $userDAO->getUserByEmail($node->getAttribute('editor_email'));
 
+        if (is_null($editor)) {
+            $deployment->addWarning(
+                ASSOC_TYPE_SUBMISSION,
+                $submission->getId(),
+                __(
+                    'plugins.importexport.fullJournal.error.userNotFound',
+                    ['email' => $node->getAttribute('editor_email')]
+                )
+            );
+
+            return null;
+        }
+
         $editorDecision = [
             'editDecisionId' => null,
             'editorId' => $editor->getId(),
