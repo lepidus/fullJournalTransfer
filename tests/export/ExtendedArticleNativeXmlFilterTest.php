@@ -637,7 +637,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewerUser->setEmail('reviewer@email.com');
         $mockUserDAO->expects($this->any())
             ->method('getById')
-            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));
+            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser, $editorUser, $editorUser));
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
         $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
@@ -703,6 +703,19 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->method('getEditorDecisions')
             ->will($this->onConsecutiveCalls([$submissionStageEditorDecision], [], [$reviewStageEditorDecision]));
         DAORegistry::registerDAO('EditDecisionDAO', $mockEditorDecisionDAO);
+
+        $query = new Query();
+        $query->setSequence(1);
+        $query->setIsClosed(false);
+        $this->registerMockQueryDAO($query);
+
+        $note = new Note();
+        $note->setUserId(123);
+        $note->setDateCreated('2015-03-03 20:33:43');
+        $note->setDateModified('2015-03-03 20:37:37');
+        $note->setTitle('Recommendation');
+        $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
+        $this->registerMockNoteDAO($note);
 
         $doc = $articleExportFilter->execute($submissions);
 

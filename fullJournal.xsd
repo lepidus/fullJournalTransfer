@@ -293,6 +293,7 @@
 			<element ref="pkp:participant" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_round" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:queries" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="path" type="string" />
 	</complexType>
@@ -369,6 +370,21 @@
         <attribute name="decision" type="int" />
         <attribute name="editor_email" type="string" />
         <attribute name="date_decided" type="string" />
+	</complexType>
+
+	<complexType name="queries">
+		<sequence>
+			<element name="query" type="pkp:query" minOccurs="1" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+	
+	<complexType name="query">
+		<sequence>
+			<element name="participants" type="pkp:query_participants" minOccurs="1" maxOccurs="1" />
+			<element name="replies" type="pkp:query_replies" minOccurs="1" maxOccurs="1" />
+		</sequence>
+		<attribute name="seq" type="int" />
+		<attribute name="closed" type="int" />
 	</complexType>
 
     <element name="journal" type="pkp:journal" />
