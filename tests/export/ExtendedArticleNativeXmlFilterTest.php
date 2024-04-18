@@ -4,6 +4,7 @@ import('classes.article.Author');
 import('classes.submission.Submission');
 import('classes.publication.Publication');
 import('lib.pkp.classes.query.Query');
+import('lib.pkp.classes.note.Note');
 import('classes.workflow.EditorDecisionActionsManager');
 import('lib.pkp.classes.submission.reviewRound.ReviewRound');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
@@ -25,8 +26,8 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     {
         return [
             'UserDAO', 'UserGroupDAO',
-            'StageAssignmentDAO', 'QueryDAO', 'EditDecisionDAO',
-            'ReviewRoundDAO', 'ReviewAssignmentDAO',
+            'StageAssignmentDAO', 'QueryDAO', 'NoteDAO',
+            'EditDecisionDAO', 'ReviewRoundDAO', 'ReviewAssignmentDAO',
             'ReviewFormResponseDAO', 'SectionDAO'
         ];
     }
@@ -155,6 +156,28 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->will($this->returnValue([123]));
 
         DAORegistry::registerDAO('QueryDAO', $mockDAO);
+    }
+
+    private function registerMockNoteDAO($note)
+    {
+        $mockDAO = $this->getMockBuilder(NoteDAO::class)
+            ->setMethods(['getByAssoc'])
+            ->getMock();
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($note, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getByAssoc')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('NoteDAO', $mockDAO);
     }
 
     private function registerMockReviewRoundDAO()
@@ -383,8 +406,16 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $query->setSequence(1);
         $query->setIsClosed(false);
 
+        $note = new Note();
+        $note->setUserId(123);
+        $note->setDateCreated('2015-03-03 20:33:43');
+        $note->setDateModified('2015-03-03 20:37:37');
+        $note->setTitle('Recommendation');
+        $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
+
         $this->registerMockUserDAO('editor@email.com');
         $this->registerMockQueryDAO($query);
+        $this->registerMockNoteDAO($note);
 
         $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
         $queriesNode = $this->doc->createElementNS($deployment->getNamespace(), 'queries');
@@ -392,6 +423,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $queryNode->setAttribute('seq', $query->getSequence());
         $queryNode->setAttribute('closed', (int) $query->getIsClosed());
         $queryNode->appendChild($this->createQueryParticipantsNode($deployment, ['editor@email.com']));
+        $queryNode->appendChild($this->createQueryRepliesNode($deployment, [$note]));
         $queriesNode->appendChild($queryNode);
         $expectedStageNode->appendChild($queriesNode);
 
@@ -419,6 +451,34 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             $participantsNode->appendChild($participantNode);
         }
         return $participantsNode;
+    }
+
+    private function createQueryRepliesNode($deployment, $notes)
+    {
+        $repliesNode = $this->doc->createElementNS($deployment->getNamespace(), 'replies');
+
+        foreach ($notes as $note) {
+            $noteNode = $this->doc->createElementNS($deployment->getNamespace(), 'note');
+            $noteNode->setAttribute('user_email', 'editor@email.com');
+            $noteNode->setAttribute('date_modified', $note->getDateModified());
+            $noteNode->setAttribute('date_created', $note->getDateCreated());
+
+            $titleNode = $this->doc->createElementNS(
+                $deployment->getNamespace(),
+                'title',
+                htmlspecialchars($note->getTitle(), ENT_COMPAT, 'UTF-8')
+            );
+            $contentsNode = $this->doc->createElementNS(
+                $deployment->getNamespace(),
+                'contents',
+                htmlspecialchars($note->getContents(), ENT_COMPAT, 'UTF-8')
+            );
+
+            $noteNode->appendChild($titleNode);
+            $noteNode->appendChild($contentsNode);
+            $repliesNode->appendChild($noteNode);
+        }
+        return $repliesNode;
     }
 
     public function testAddingReviewRounds()
