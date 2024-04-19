@@ -249,11 +249,25 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $expectedQuery->setSequence(1.0);
         $expectedQuery->setIsClosed(0);
 
+        $expectedNote = new Note();
+        $expectedNote->setUserId($editor->getId());
+        $expectedNote->setDateCreated('2015-03-03 20:33:43');
+        $expectedNote->setDateModified(Core::getCurrentDate());
+        $expectedNote->setTitle('Recommendation');
+        $expectedNote->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
+        $expectedNote->setAssocType(ASSOC_TYPE_QUERY);
+        $expectedNote->setAssocId($parsedQueryId);
+
         $retrievedQuery = $resultQueries->toArray()[0];
         $this->assertEquals($expectedQuery, $retrievedQuery);
-        
+
         $participantIds = $queryDAO->getParticipantIds($retrievedQuery->getId());
         $this->assertEquals([$editor->getId()], $participantIds);
+
+        $replies = $retrievedQuery->getReplies();
+        $retrievedNote = $replies->toArray()[0];
+        $retrievedNote->unsetData('id');
+        $this->assertEquals($expectedNote, $retrievedNote);
     }
 
     public function testParseReviewRound()

@@ -125,15 +125,16 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseQuery($node, $submission, $stageId)
     {
         $queryDAO = DAORegistry::getDAO('QueryDAO');
+        $noteDAO = DAORegistry::getDAO('NoteDAO');
         $userDAO = DAORegistry::getDAO('UserDAO');
         $deployment = $this->getDeployment();
 
         $query = $queryDAO->newDataObject();
-		$query->setAssocType(ASSOC_TYPE_SUBMISSION);
-		$query->setAssocId($submission->getId());
-		$query->setStageId($stageId);
-		$query->setIsClosed((bool) $node->getAttribute('closed'));
-		$query->setSequence((float) $node->getAttribute('seq'));
+        $query->setAssocType(ASSOC_TYPE_SUBMISSION);
+        $query->setAssocId($submission->getId());
+        $query->setStageId($stageId);
+        $query->setIsClosed((bool) $node->getAttribute('closed'));
+        $query->setSequence((float) $node->getAttribute('seq'));
 
         $queryId = $queryDAO->insertObject($query);
 
@@ -146,6 +147,27 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             if ($participant) {
                 $queryDAO->insertParticipant($queryId, $participant->getId());
             }
+        }
+
+        $noteNodes = $node->getElementsByTagNameNS($deployment->getNamespace(), 'note');
+        for ($i = 0; $i < $noteNodes->count(); $i++) {
+            $noteNode = $noteNodes->item($i);
+            $titleNode = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'title')->item(0);
+            $contentsNode = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'contents')->item(0);
+            $email = $noteNode->getAttribute('user_email');
+            $noteUser = $userDAO->getUserByEmail($email);
+
+            $note = $noteDAO->newDataObject();
+            if ($noteUser) {
+                $note->setUserId($noteUser->getId());
+            }
+            $note->setDateCreated($noteNode->getAttribute('date_created'));
+            $note->setTitle($titleNode->textContent);
+            $note->setContents($contentsNode->textContent);
+            $note->setAssocType(ASSOC_TYPE_QUERY);
+            $note->setAssocId($queryId);
+
+            $noteDAO->insertObject($note);
         }
 
         return $queryId;
