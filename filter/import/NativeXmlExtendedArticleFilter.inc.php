@@ -125,6 +125,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseQuery($node, $submission, $stageId)
     {
         $queryDAO = DAORegistry::getDAO('QueryDAO');
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $deployment = $this->getDeployment();
 
         $query = $queryDAO->newDataObject();
 		$query->setAssocType(ASSOC_TYPE_SUBMISSION);
@@ -134,6 +136,17 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 		$query->setSequence((float) $node->getAttribute('seq'));
 
         $queryId = $queryDAO->insertObject($query);
+
+        $participantNodes = $node->getElementsByTagNameNS($deployment->getNamespace(), 'participant');
+        for ($i = 0; $i < $participantNodes->count(); $i++) {
+            $participantNode = $participantNodes->item($i);
+            $email = $participantNode->textContent;
+            $participant = $userDAO->getUserByEmail($email);
+
+            if ($participant) {
+                $queryDAO->insertParticipant($queryId, $participant->getId());
+            }
+        }
 
         return $queryId;
     }

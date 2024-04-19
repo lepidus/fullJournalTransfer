@@ -251,6 +251,9 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
         $retrievedQuery = $resultQueries->toArray()[0];
         $this->assertEquals($expectedQuery, $retrievedQuery);
+        
+        $participantIds = $queryDAO->getParticipantIds($retrievedQuery->getId());
+        $this->assertEquals([$editor->getId()], $participantIds);
     }
 
     public function testParseReviewRound()
