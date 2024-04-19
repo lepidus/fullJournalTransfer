@@ -637,7 +637,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewerUser->setEmail('reviewer@email.com');
         $mockUserDAO->expects($this->any())
             ->method('getById')
-            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser, $editorUser, $editorUser));
+            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
         $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
