@@ -21,6 +21,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseStage($node, $submission)
     {
         $stageId = WorkflowStageDAO::getIdFromPath($node->getAttribute('path'));
+        $deployment = $this->getDeployment();
 
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
@@ -33,6 +34,13 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                         break;
                     case 'review_round':
                         $this->parseReviewRound($childNode, $submission, $stageId);
+                        break;
+                    case 'queries':
+                        $queryNodes = $childNode->getElementsByTagNameNS($deployment->getNamespace(), 'query');
+                        for ($i = 0; $i < $queryNodes->count(); $i++) {
+                            $queryNode = $queryNodes->item($i);
+                            $this->parseQuery($queryNode, $submission, $stageId);
+                        }
                         break;
                     default:
                         break;
