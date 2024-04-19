@@ -1,5 +1,9 @@
 <?php
 
+import('classes.submission.Submission');
+import('lib.pkp.classes.query.Query');
+import('lib.pkp.classes.submission.reviewRound.ReviewRound');
+import('lib.pkp.classes.submission.reviewAssignment.ReviewAssignment');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter');
 
@@ -20,6 +24,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         return [
             'review_form_responses', 'review_assignments',
             'edit_decisions', 'review_rounds',
+            'queries', 'query_participants', 'notes',
             'stage_assignments', 'user_group_stage'
         ];
     }
@@ -202,6 +207,50 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         ];
 
         $this->assertEquals($expectedDecision, $decision);
+    }
+
+    public function testParseQueries()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+        $doc = $this->getSampleXml('article.xml');
+
+        $submission = new Submission();
+        $submission->setId(128);
+
+        $stageId = WORKFLOW_STAGE_ID_SUBMISSION;
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById', 'getUserByEmail'])
+            ->getMock();
+
+        $editor = $mockUserDAO->newDataObject();
+        $editor->setId(89);
+        $editor->setUsername('editor');
+
+        $mockUserDAO->expects($this->any())
+            ->method('getUserByEmail')
+            ->will($this->returnValue($editor));
+
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $stageNode = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'stage')->item(0);
+        $queryNode = $stageNode->getElementsByTagNameNS($deployment->getNamespace(), 'query')->item(0);
+        $parsedQueryId = $articleImportFilter->parseQuery($queryNode, $submission, $stageId);
+
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+        $resultQueries = $queryDAO->getByAssoc(ASSOC_TYPE_SUBMISSION, $submission->getId(), $stageId);
+
+        $expectedQuery = new Query();
+        $expectedQuery->setId($parsedQueryId);
+        $expectedQuery->setAssocType(ASSOC_TYPE_SUBMISSION);
+        $expectedQuery->setAssocId($submission->getId());
+        $expectedQuery->setStageId($stageId);
+        $expectedQuery->setSequence(1.0);
+        $expectedQuery->setIsClosed(0);
+
+        $retrievedQuery = $resultQueries->toArray()[0];
+        $this->assertEquals($expectedQuery, $retrievedQuery);
     }
 
     public function testParseReviewRound()

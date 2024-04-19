@@ -122,6 +122,22 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         );
     }
 
+    public function parseQuery($node, $submission, $stageId)
+    {
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+
+        $query = $queryDAO->newDataObject();
+		$query->setAssocType(ASSOC_TYPE_SUBMISSION);
+		$query->setAssocId($submission->getId());
+		$query->setStageId($stageId);
+		$query->setIsClosed((bool) $node->getAttribute('closed'));
+		$query->setSequence((float) $node->getAttribute('seq'));
+
+        $queryId = $queryDAO->insertObject($query);
+
+        return $queryId;
+    }
+
     public function parseReviewAssignment($node, $reviewRound)
     {
         $deployment = $this->getDeployment();
