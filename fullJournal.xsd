@@ -372,19 +372,47 @@
         <attribute name="date_decided" type="string" />
 	</complexType>
 
-	<complexType name="queries">
-		<sequence>
-			<element name="query" type="pkp:query" minOccurs="1" maxOccurs="unbounded" />
-		</sequence>
-	</complexType>
+	<element name="queries">
+		<complexType>
+			<sequence>
+				<element ref="pkp:query" minOccurs="1" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
 	
 	<complexType name="query">
 		<sequence>
-			<element name="participants" type="pkp:query_participants" minOccurs="1" maxOccurs="1" />
-			<element name="replies" type="pkp:query_replies" minOccurs="1" maxOccurs="1" />
+			<element ref="pkp:participants" minOccurs="1" maxOccurs="unbounded" />
+			<element ref="pkp:replies" minOccurs="1" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="closed" type="int" />
+	</complexType>
+
+	<element name="participants">
+		<complexType>
+			<sequence>
+				<element name="participant" type="string" minOccurs="1" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<element name="replies">
+		<complexType>
+			<sequence>
+				<element ref="pkp:note" minOccurs="1" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="note">
+		<sequence>
+			<element name="title" type="string" minOccurs="1" maxOccurs="1" />
+			<element name="contents" type="string" minOccurs="1" maxOccurs="1" />
+		</sequence>
+		<attribute name="date_created" type="string" />
+		<attribute name="date_modified" type="string" />
+		<attribute name="user_email" type="string" />
 	</complexType>
 
     <element name="journal" type="pkp:journal" />
@@ -412,6 +440,10 @@
     <element name="response" type="pkp:response" />
 
     <element name="decision" type="pkp:decision" />
+	
+	<element name="query" type="pkp:query" />
+
+	<element name="note" type="pkp:note" />
 
 	<element name="review_form" type="pkp:review_form" />
 
