@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <extended_article xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" current_publication_id="1023" date_submitted="2020-01-01" locale="en_US" stage="externalReview" status="3" submission_progress="0" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-    <id advice="ignore" type="internal">901</id>
+    <id advice="ignore" type="internal">27</id>
     <publication access_status="0" locale="" section_ref="" seq="0" status="1" url_path="" version="1" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
         <id advice="ignore" type="internal">1023</id>
         <title locale="en_US">Test article</title>
@@ -23,9 +23,9 @@
                     <note date_created="2015-03-03 20:33:43" date_modified="2015-03-03 20:37:37" user_email="editor@email.com">
                         <title>Recommendation</title>
                         <contents>&lt;p&gt;The recommendation regarding this submission is: Accept Submission&lt;/p&gt;</contents>
-                        <submission_file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="79" created_at="2023-11-18" date_created="" file_id="2" stage="proof" updated_at="2023-11-18" viewable="false" genre="Article Text" uploader="editor" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
-                            <name locale="en_US">query_file.pdf</name>
-                            <file id="78" filesize="14572" extension="pdf">
+                        <submission_file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="68" created_at="2023-11-18" date_created="" file_id="1" stage="query" updated_at="2023-11-26" viewable="true" genre="Article Text" uploader="editor" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+                            <name locale="en_US">dummy.pdf</name>
+                            <file id="79" filesize="14572" extension="pdf">
                                 <href src="journals/1/articles/1/655858c94c124.pdf" mime_type="application/pdf"/>
                             </file>
                         </submission_file>

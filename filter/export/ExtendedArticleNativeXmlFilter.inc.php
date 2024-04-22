@@ -119,13 +119,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $queries = $queryDAO->getByAssoc(ASSOC_TYPE_SUBMISSION, $submission->getId(), $stageId);
 
         $queriesNode = $doc->createElementNS($deployment->getNamespace(), 'queries');
-        while($query = $queries->next()) {
+        while ($query = $queries->next()) {
             $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
             $queryNode->setAttribute('seq', $query->getData('sequence'));
             $queryNode->setAttribute('closed', (int) $query->getData('closed'));
 
             $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $query));
-            $queryNode->appendChild($this->createQueryRepliesNode($doc, $deployment, $query));
+            $queryNode->appendChild($this->createQueryRepliesNode($doc, $deployment, $submission, $query));
 
             $queriesNode->appendChild($queryNode);
         }
@@ -155,7 +155,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         return $participantsNode;
     }
 
-    private function createQueryRepliesNode($doc, $deployment, $query)
+    private function createQueryRepliesNode($doc, $deployment, $submission, $query)
     {
         $repliesNode = $doc->createElementNS($deployment->getNamespace(), 'replies');
         $replies = $query->getReplies();
@@ -180,10 +180,38 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
             $noteNode->appendChild($titleNode);
             $noteNode->appendChild($contentsNode);
+            $this->addNoteFiles($doc, $noteNode, $submission, $note);
+
             $repliesNode->appendChild($noteNode);
         }
 
         return $repliesNode;
+    }
+
+    private function addNoteFiles($doc, $noteNode, $submission, $note)
+    {
+        $deployment = $this->getDeployment();
+        $noteFiles = Services::get('submissionFile')->getMany([
+            'assocTypes' => [ASSOC_TYPE_NOTE],
+            'assocIds' => [$note->getId()],
+            'submissionIds' => [$submission->getId()],
+            'fileStages' => [SUBMISSION_FILE_QUERY]
+        ]);
+
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('SubmissionFile=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setOpts($this->opts);
+
+        foreach ($noteFiles as $submissionFile) {
+            $submissionFileDoc = $exportFilter->execute($submissionFile, true);
+            if ($submissionFileDoc) {
+                $clone = $doc->importNode($submissionFileDoc->documentElement, true);
+                $noteNode->appendChild($clone);
+            }
+        }
     }
 
     public function addReviewRounds($doc, $stageNode, $submission, $stageId)
@@ -214,13 +242,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $deployment = $this->getDeployment();
-        foreach ($submissionFilesIterator as $submissionFile) {
-            $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
-            assert(count($nativeExportFilters) == 1);
-            $exportFilter = array_shift($nativeExportFilters);
-            $exportFilter->setDeployment($this->getDeployment());
+        $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setOpts($this->opts);
 
-            $exportFilter->setOpts($this->opts);
+        foreach ($submissionFilesIterator as $submissionFile) {
             $submissionFileDoc = $exportFilter->execute($submissionFile, true);
             if ($submissionFileDoc) {
                 $clone = $doc->importNode($submissionFileDoc->documentElement, true);
@@ -323,13 +351,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        foreach ($submissionFilesIterator as $submissionFile) {
-            $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
-            assert(count($nativeExportFilters) == 1);
-            $exportFilter = array_shift($nativeExportFilters);
-            $exportFilter->setDeployment($this->getDeployment());
+        $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setOpts($this->opts);
 
-            $exportFilter->setOpts($this->opts);
+        foreach ($submissionFilesIterator as $submissionFile) {
             $submissionFileDoc = $exportFilter->execute($submissionFile, true);
             if ($submissionFileDoc) {
                 $clone = $doc->importNode($submissionFileDoc->documentElement, true);

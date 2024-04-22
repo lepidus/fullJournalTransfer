@@ -409,6 +409,7 @@
 		<sequence>
 			<element name="title" type="string" minOccurs="1" maxOccurs="1" />
 			<element name="contents" type="string" minOccurs="1" maxOccurs="1" />
+			<element ref="pkp:submission_file" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="date_created" type="string" />
 		<attribute name="date_modified" type="string" />
