@@ -343,17 +343,11 @@
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
 
-    <element name="review_round_file" substitutionGroup="pkp:submission_file" >
+    <element substitutionGroup="pkp:submission_file" >
 		<complexType>
 			<complexContent>
 				<extension base="pkp:submission_file">
-                    <sequence>
-						<element name="review_ref" minOccurs="0" maxOccurs="1">
-							<complexType>
-								<attribute name="id" type="int" />
-							</complexType>
-						</element>
-					</sequence>
+                    <attribute name="assoc_type" type="int" />
 				</extension>
 			</complexContent>
 		</complexType>

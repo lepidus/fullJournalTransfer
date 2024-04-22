@@ -199,7 +199,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('SubmissionFile=>native-xml');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('article-file=>native-xml');
         assert(count($nativeExportFilters) == 1);
         $exportFilter = array_shift($nativeExportFilters);
         $exportFilter->setDeployment($this->getDeployment());
@@ -242,7 +242,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $deployment = $this->getDeployment();
-        $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('article-file=>native-xml');
         assert(count($nativeExportFilters) == 1);
         $exportFilter = array_shift($nativeExportFilters);
         $exportFilter->setDeployment($this->getDeployment());
@@ -351,7 +351,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('article-file=>native-xml');
         assert(count($nativeExportFilters) == 1);
         $exportFilter = array_shift($nativeExportFilters);
         $exportFilter->setDeployment($this->getDeployment());

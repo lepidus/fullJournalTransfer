@@ -91,8 +91,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
                 switch ($childNode->tagName) {
-                    case 'review_round_file':
-                        $this->parseReviewRoundFile($childNode);
+                    case 'submission_file':
+                        $this->parseArticleFile($childNode);
                         break;
                     case 'review_assignment':
                         $this->parseReviewAssignment($childNode, $reviewRound);
@@ -176,6 +176,13 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             $note->setAssocId($queryId);
 
             $noteDAO->insertObject($note);
+
+            $deployment->setNote($note);
+            $noteFilesNodes = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'submission_file');
+            for ($i = 0; $i < $noteFilesNodes->count(); $i++) {
+                $noteNode = $noteFilesNodes->item($i);
+                $this->parseArticleFile($node);
+            }
         }
 
         return $queryId;
@@ -251,8 +258,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                             }
                         }
                         break;
-                    case 'review_round_file':
-                        $this->parseReviewRoundFile($childNode);
+                    case 'submission_file':
+                        $this->parseArticleFile($childNode);
                         break;
                     case 'response':
                         $this->parseResponse($childNode, $reviewAssignment);
@@ -287,10 +294,10 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
     }
 
-    public function parseReviewRoundFile($node)
+    public function parseArticleFile($node)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-round-file');
+        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>article-file');
         $importFilter = array_shift($importFilters);
         assert(isset($importFilter));
 
