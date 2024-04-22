@@ -416,6 +416,9 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submissionFile = new SubmissionFile();
         $submissionFile->setId(79);
+        $submissionFile->setData('assocId', $note->getId());
+        $submissionFile->setData('assocType', ASSOC_TYPE_NOTE);
+        $submissionFile->setData('fileStage', SUBMISSION_FILE_QUERY);
         $submissionFile->setData('createdAt', '2023-11-18 15:47:38');
         $submissionFile->setData('updatedAt', '2023-11-26 15:47:49');
         $submissionFile->setData('fileId', 79);
@@ -424,10 +427,22 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submissionFile->setData('uploaderUserId', 123);
         $submissionFile->setData('name', 'dummy.pdf', 'en_US');
 
+        $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
+        $submissionFileId = $submissionFileDAO->insertObject($submissionFile);
+
         $file = new stdClass();
         $file->fileId = 79;
         $file->path = 'journals/1/articles/1/655858c94c124.pdf';
         $file->mimetype = 'application/pdf';
+
+        $mockSubmissionFileDAO = $this->getMockBuilder(SubmissionFileDAO::class)
+            ->setMethods(['getRevisions'])
+            ->getMock();
+        $mockSubmissionFileDAO->expects($this->any())
+            ->method('getRevisions')
+            ->will($this->returnValue([$file]));
+
+        DAORegistry::registerDAO('SubmissionFileDAO', $mockSubmissionFileDAO);
 
         $this->registerMockUserDAO('editor@email.com', 'editor');
         $this->registerMockQueryDAO($query);
@@ -453,6 +468,9 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             $this->doc->saveXML($stageNode),
             "actual xml is equal to expected xml"
         );
+
+        $submissionFileDAO->deleteById($submissionFileId);
+        DAORegistry::registerDAO('SubmissionFileDAO', $submissionFileDAO);
     }
 
     private function createQueryParticipantsNode($deployment, $participantEmails)
@@ -500,10 +518,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
     private function createNoteFileNode($deployment, $filter, $submissionFile, $file)
     {
-        //assocType => ASSOC_TYPE_NOTE
-        //assocId => ID do Note
-        //fileStage => SUBMISSION_FILE_QUERY
-
         $submissionFileNode = $this->doc->createElementNS($deployment->getNamespace(), 'submission_file');
         $submissionFileNode->setAttribute('id', $submissionFile->getId());
         $submissionFileNode->setAttribute('created_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('createdAt'))));
