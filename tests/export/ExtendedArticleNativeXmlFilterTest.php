@@ -447,6 +447,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $file->fileId = 79;
         $file->path = 'journals/1/articles/1/655858c94c124.pdf';
         $file->mimetype = 'application/pdf';
+        $file->revision_id = 81;
 
         $mockSubmissionFileDAO = $this->getMockBuilder(SubmissionFileDAO::class)
             ->setMethods(['getRevisions'])
@@ -826,6 +827,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $file->fileId = 79;
         $file->path = 'journals/1/articles/1/655858c94c124.pdf';
         $file->mimetype = 'application/pdf';
+        $file->revision_id = 81;
 
         $mockSubmissionFileDAO = $this->getMockBuilder(SubmissionFileDAO::class)
             ->setMethods(['getRevisions'])
