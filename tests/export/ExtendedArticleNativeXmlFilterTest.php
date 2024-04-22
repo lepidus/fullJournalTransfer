@@ -50,7 +50,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         Registry::set('application', $mockApplication);
     }
 
-    private function registerMockUserDAO($email)
+    private function registerMockUserDAO($email, $username = null)
     {
         $mockDAO = $this->getMockBuilder(UserDAO::class)
             ->setMethods(['getById'])
@@ -58,6 +58,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $user = $mockDAO->newDataObject();
         $user->setEmail($email);
+        $user->setUsername($username);
 
         $mockDAO->expects($this->any())
             ->method('getById')
@@ -413,7 +414,22 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $note->setTitle('Recommendation');
         $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
 
-        $this->registerMockUserDAO('editor@email.com');
+        $submissionFile = new SubmissionFile();
+        $submissionFile->setId(79);
+        $submissionFile->setData('createdAt', '2023-11-18 15:47:38');
+        $submissionFile->setData('updatedAt', '2023-11-26 15:47:49');
+        $submissionFile->setData('fileId', 79);
+        $submissionFile->setData('genreId', 1);
+        $submissionFile->setData('viewable', true);
+        $submissionFile->setData('uploaderUserId', 123);
+        $submissionFile->setData('name', 'dummy.pdf', 'en_US');
+
+        $file = new stdClass();
+        $file->fileId = 79;
+        $file->path = 'journals/1/articles/1/655858c94c124.pdf';
+        $file->mimetype = 'application/pdf';
+
+        $this->registerMockUserDAO('editor@email.com', 'editor');
         $this->registerMockQueryDAO($query);
         $this->registerMockNoteDAO($note);
 
@@ -424,6 +440,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $queryNode->setAttribute('closed', (int) $query->getIsClosed());
         $queryNode->appendChild($this->createQueryParticipantsNode($deployment, ['editor@email.com']));
         $queryNode->appendChild($this->createQueryRepliesNode($deployment, [$note]));
+        $queryNode->appendChild($this->createNoteFileNode($deployment, $articleExportFilter, $submissionFile, $file));
         $queriesNode->appendChild($queryNode);
         $expectedStageNode->appendChild($queriesNode);
 
@@ -479,6 +496,38 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             $repliesNode->appendChild($noteNode);
         }
         return $repliesNode;
+    }
+
+    private function createNoteFileNode($deployment, $filter, $submissionFile, $file)
+    {
+        //assocType => ASSOC_TYPE_NOTE
+        //assocId => ID do Note
+        //fileStage => SUBMISSION_FILE_QUERY
+
+        $submissionFileNode = $this->doc->createElementNS($deployment->getNamespace(), 'submission_file');
+        $submissionFileNode->setAttribute('id', $submissionFile->getId());
+        $submissionFileNode->setAttribute('created_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('createdAt'))));
+        $submissionFileNode->setAttribute('date_created', $submissionFile->getData('dateCreated'));
+        $submissionFileNode->setAttribute('file_id', $submissionFile->getData('fileId'));
+        $submissionFileNode->setAttribute('stage', 'query');
+        $submissionFileNode->setAttribute('updated_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('updatedAt'))));
+        $submissionFileNode->setAttribute('viewable', $submissionFile->getViewable() ? 'true' : 'false');
+        $submissionFileNode->setAttribute('genre', 'Article Text');
+        $submissionFileNode->setAttribute('uploader', 'editor');
+
+        $filter->createLocalizedNodes($this->doc, $submissionFileNode, 'name', $submissionFile->getData('name'));
+
+        $fileNode = $this->doc->createElementNS($deployment->getNamespace(), 'file');
+        $fileNode->setAttribute('id', $file->fileId);
+        $fileNode->setAttribute('filesize', '14572');
+        $fileNode->setAttribute('extension', pathinfo($file->path, PATHINFO_EXTENSION));
+        $fileNode->appendChild($hrefNode = $this->doc->createElementNS($deployment->getNamespace(), 'href'));
+        $hrefNode->setAttribute('src', $file->path);
+        $hrefNode->setAttribute('mime_type', $file->mimetype);
+
+        $submissionFileNode->appendChild($fileNode);
+
+        return $submissionFileNode;
     }
 
     public function testAddingReviewRounds()
