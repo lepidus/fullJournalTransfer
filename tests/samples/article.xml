@@ -26,7 +26,7 @@
                         <workflow_file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="68" created_at="2023-11-18" date_created="" file_id="1" stage="query" assoc_type="520" updated_at="2023-11-26" viewable="true" genre="Article Text" uploader="editor" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
                             <name locale="en_US">dummy.pdf</name>
                             <file id="79" filesize="14572" extension="pdf">
-                                <href src="journals/1/articles/1/660370d3bd63f.pdf" mime_type="application/pdf"/>
+                                <href src="journals/1/articles/1/66214ad2d6bb6.pdf" mime_type="application/pdf"/>
                             </file>
                         </workflow_file>
                     </note>

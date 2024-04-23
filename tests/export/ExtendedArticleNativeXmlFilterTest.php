@@ -445,7 +445,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $file = new stdClass();
         $file->fileId = 79;
-        $file->path = 'journals/1/articles/1/660370d3bd63f.pdf';
+        $file->path = 'journals/1/articles/1/66214ad2d6bb6.pdf';
         $file->mimetype = 'application/pdf';
         $file->revision_id = 81;
 
@@ -825,7 +825,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $file = new stdClass();
         $file->fileId = 79;
-        $file->path = 'journals/1/articles/1/660370d3bd63f.pdf';
+        $file->path = 'journals/1/articles/1/66214ad2d6bb6.pdf';
         $file->mimetype = 'application/pdf';
         $file->revision_id = 81;
 
