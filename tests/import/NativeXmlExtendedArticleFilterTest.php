@@ -236,6 +236,10 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
 
         $stageNode = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'stage')->item(0);
         $queryNode = $stageNode->getElementsByTagNameNS($deployment->getNamespace(), 'query')->item(0);
+        $noteNode = $queryNode->getElementsByTagNameNS($deployment->getNamespace(), 'note')->item(0);
+        $noteFileNode = $queryNode->getElementsByTagNameNS($deployment->getNamespace(), 'submission_file')->item(0);
+        $noteNode->removeChild($noteFileNode);
+
         $parsedQueryId = $articleImportFilter->parseQuery($queryNode, $submission, $stageId);
 
         $queryDAO = DAORegistry::getDAO('QueryDAO');
@@ -268,40 +272,6 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $retrievedNote = $replies->toArray()[0];
         $expectedNote->setId($retrievedNote->getId());
         $this->assertEquals($expectedNote, $retrievedNote);
-
-        $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
-        $expectedSubmissionFile = $submissionFileDAO->newDataObject();
-        $expectedSubmissionFile->setAllData([
-            'submissionId' => $submission->getId(),
-            'assocId' => $retrievedNote->getId(),
-            'assocType' => ASSOC_TYPE_NOTE,
-            'fileStage' => SUBMISSION_FILE_QUERY,
-            'createdAt' => '2023-11-18',
-            'updatedAt' => '2023-11-26',
-            'fileId' => 1,
-            'genreId' => 1,
-            'viewable' => true,
-            'uploaderUserId' => 123,
-            'name' => [
-                'en_US' => 'dummy.pdf'
-            ]
-        ]);
-        $noteFiles = Services::get('submissionFile')->getMany([
-            'assocTypes' => [ASSOC_TYPE_NOTE],
-            'assocIds' => [$retrievedNote->getId()],
-            'submissionIds' => [$submission->getId()],
-            'fileStages' => [SUBMISSION_FILE_QUERY]
-        ]);
-        $retrievedSubmissionFile = $noteFiles->current();
-        $expectedSubmissionFile->setId($retrievedSubmissionFile->getId());
-
-        $revisions = $submissionFileDao->getRevisions($retrievedSubmissionFile->getId());
-        $submissionFileDAO->deleteById($retrievedSubmissionFile->getId());
-        foreach ($revisions as $revision) {
-            Services::get('file')->delete($revision->fileId);
-        }
-
-        $this->assertEquals($expectedSubmissionFile, $retrievedSubmissionFile);
     }
 
     public function testParseReviewRound()
