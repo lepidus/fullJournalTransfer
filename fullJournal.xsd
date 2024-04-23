@@ -343,7 +343,7 @@
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
 
-    <element substitutionGroup="pkp:submission_file" >
+    <element name="review_round_file" substitutionGroup="pkp:submission_file" >
 		<complexType>
 			<complexContent>
 				<extension base="pkp:submission_file">

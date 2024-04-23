@@ -525,7 +525,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
                 htmlspecialchars($note->getContents(), ENT_COMPAT, 'UTF-8')
             );
 
-            
             $noteNode->appendChild($titleNode);
             $noteNode->appendChild($contentsNode);
             $noteNode->appendChild($this->createNoteFileNode($deployment, $articleExportFilter, $submissionFile, $file));

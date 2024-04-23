@@ -181,7 +181,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             $noteFilesNodes = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'submission_file');
             for ($i = 0; $i < $noteFilesNodes->count(); $i++) {
                 $noteNode = $noteFilesNodes->item($i);
-                $this->parseArticleFile($node);
+                $this->parseArticleFile($noteNode);
             }
         }
 
@@ -297,7 +297,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseArticleFile($node)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>article-file');
+        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>workflow-file');
         $importFilter = array_shift($importFilters);
         assert(isset($importFilter));
 

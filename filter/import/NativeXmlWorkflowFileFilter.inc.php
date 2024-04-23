@@ -1,26 +1,26 @@
 <?php
 
 /**
-* @file plugins/importexport/fullJournalTransfer/filter/import/NativeXmlArticleFileFilter.inc.php
+* @file plugins/importexport/fullJournalTransfer/filter/import/NativeXmlWorkflowFileFilter.inc.php
 *
 * Copyright (c) 2014-2021 Simon Fraser University
 * Copyright (c) 2000-2021 John Willinsky
 * Copyright (c) 2014-2024 Lepidus Tecnologia
 * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
 *
-* @class NativeXmlArticleFileFilter
+* @class NativeXmlWorkflowFileFilter
 * @ingroup plugins_importexport_fullJournalTransfer
 *
 * @brief Class that converts a Native XML document to an review file.
 */
 
-import('lib.pkp.plugins.importexport.native.filter.NativeXmlSubmissionFileFilter');
+import('plugins.importexport.native.filter.NativeXmlArticleFileFilter');
 
-class NativeXmlArticleFileFilter extends NativeXmlSubmissionFileFilter
+class NativeXmlWorkflowFileFilter extends NativeXmlArticleFileFilter
 {
     public function getClassName()
     {
-        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlArticleFileFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlWorkflowFileFilter';
     }
 
     public function handleElement($node)
