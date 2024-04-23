@@ -443,21 +443,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
         $submissionFileId = $submissionFileDAO->insertObject($submissionFile);
 
-        $file = new stdClass();
-        $file->fileId = 79;
-        $file->path = 'journals/1/articles/1/66214ad2d6bb6.pdf';
-        $file->mimetype = 'application/pdf';
-        $file->revision_id = 81;
-
-        $mockSubmissionFileDAO = $this->getMockBuilder(SubmissionFileDAO::class)
-            ->setMethods(['getRevisions'])
-            ->getMock();
-        $mockSubmissionFileDAO->expects($this->any())
-            ->method('getRevisions')
-            ->will($this->returnValue([$file]));
-
-        DAORegistry::registerDAO('SubmissionFileDAO', $mockSubmissionFileDAO);
-
         $this->registerApplicationMock();
         $this->registerMockUserDAO('editor@email.com', 'editor');
         $this->registerMockQueryDAO($query);
@@ -470,7 +455,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $queryNode->setAttribute('seq', $query->getSequence());
         $queryNode->setAttribute('closed', (int) $query->getIsClosed());
         $queryNode->appendChild($this->createQueryParticipantsNode($deployment, ['editor@email.com']));
-        $queryNode->appendChild($this->createQueryRepliesNode($deployment, [$note], $submissionFile, $file));
+        $queryNode->appendChild($this->createQueryRepliesNode($deployment, [$note], $submissionFile));
         $queriesNode->appendChild($queryNode);
         $expectedStageNode->appendChild($queriesNode);
 
@@ -479,7 +464,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submissionFileDAO->deleteById($submissionFileId);
         $submissionDAO->deleteById($submissionId);
-        DAORegistry::registerDAO('SubmissionFileDAO', $submissionFileDAO);
 
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedStageNode),
@@ -503,7 +487,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         return $participantsNode;
     }
 
-    private function createQueryRepliesNode($deployment, $notes, $submissionFile, $file)
+    private function createQueryRepliesNode($deployment, $notes, $submissionFile)
     {
         $repliesNode = $this->doc->createElementNS($deployment->getNamespace(), 'replies');
         $articleExportFilter = $this->getNativeImportExportFilter();
@@ -527,13 +511,13 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
             $noteNode->appendChild($titleNode);
             $noteNode->appendChild($contentsNode);
-            $noteNode->appendChild($this->createNoteFileNode($deployment, $articleExportFilter, $submissionFile, $file));
+            $noteNode->appendChild($this->createNoteFileNode($deployment, $articleExportFilter, $submissionFile));
             $repliesNode->appendChild($noteNode);
         }
         return $repliesNode;
     }
 
-    private function createNoteFileNode($deployment, $filter, $submissionFile, $file)
+    private function createNoteFileNode($deployment, $filter, $submissionFile)
     {
         $submissionFileNode = $this->doc->createElementNS($deployment->getNamespace(), 'workflow_file');
         $submissionFileNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
@@ -550,15 +534,19 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $filter->createLocalizedNodes($this->doc, $submissionFileNode, 'name', $submissionFile->getData('name'));
 
-        $fileNode = $this->doc->createElementNS($deployment->getNamespace(), 'file');
-        $fileNode->setAttribute('id', $file->fileId);
-        $fileNode->setAttribute('filesize', '14572');
-        $fileNode->setAttribute('extension', pathinfo($file->path, PATHINFO_EXTENSION));
-        $fileNode->appendChild($hrefNode = $this->doc->createElementNS($deployment->getNamespace(), 'href'));
-        $hrefNode->setAttribute('src', $file->path);
-        $hrefNode->setAttribute('mime_type', $file->mimetype);
+        $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
+        $revisions = $submissionFileDAO->getRevisions($submissionFile->getId());
+        foreach ($revisions as $file) {
+            $fileNode = $this->doc->createElementNS($deployment->getNamespace(), 'file');
+            $fileNode->setAttribute('id', $file->fileId);
+            $fileNode->setAttribute('filesize', '14572');
+            $fileNode->setAttribute('extension', pathinfo($file->path, PATHINFO_EXTENSION));
+            $fileNode->appendChild($hrefNode = $this->doc->createElementNS($deployment->getNamespace(), 'href'));
+            $hrefNode->setAttribute('src', $file->path);
+            $hrefNode->setAttribute('mime_type', $file->mimetype);
 
-        $submissionFileNode->appendChild($fileNode);
+            $submissionFileNode->appendChild($fileNode);
+        }
 
         return $submissionFileNode;
     }
@@ -823,26 +811,10 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
         $submissionFileId = $submissionFileDAO->insertObject($submissionFile);
 
-        $file = new stdClass();
-        $file->fileId = 79;
-        $file->path = 'journals/1/articles/1/66214ad2d6bb6.pdf';
-        $file->mimetype = 'application/pdf';
-        $file->revision_id = 81;
-
-        $mockSubmissionFileDAO = $this->getMockBuilder(SubmissionFileDAO::class)
-            ->setMethods(['getRevisions'])
-            ->getMock();
-        $mockSubmissionFileDAO->expects($this->any())
-            ->method('getRevisions')
-            ->will($this->returnValue([$file]));
-
-        DAORegistry::registerDAO('SubmissionFileDAO', $mockSubmissionFileDAO);
-
         $doc = $articleExportFilter->execute($submissions);
 
         $submissionFileDAO->deleteById($submissionFileId);
         $submissionDAO->deleteById($submissionId);
-        DAORegistry::registerDAO('SubmissionFileDAO', $submissionFileDAO);
 
         $expectedDoc = $this->getSampleXml('article.xml');
         $submissionIdNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'id')->item(0);
