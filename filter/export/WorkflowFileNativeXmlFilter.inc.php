@@ -28,6 +28,11 @@ class WorkflowFileNativeXmlFilter extends SubmissionFileNativeXmlFilter
         return 'plugins.importexport.fullJournalTransfer.filter.export.WorkflowFileNativeXmlFilter';
     }
 
+    public function getSubmissionFileElementName()
+    {
+        return 'workflow_file';
+    }
+
     public function createSubmissionFileNode($doc, $submissionFile)
     {
         $deployment =  $this->getDeployment();

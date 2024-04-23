@@ -206,7 +206,7 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $exportFilter->setOpts($this->opts);
 
         foreach ($noteFiles as $submissionFile) {
-            $submissionFileDoc = $exportFilter->execute($submissionFile, true);
+            $submissionFileDoc = $exportFilter->execute($submissionFile);
             if ($submissionFileDoc) {
                 $clone = $doc->importNode($submissionFileDoc->documentElement, true);
                 $noteNode->appendChild($clone);

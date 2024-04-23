@@ -410,6 +410,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submission = new Submission();
         $submission->setData('contextId', 1);
+        $submission->setData('locale', 'en_US');
 
         $submissionDAO = DAORegistry::getDAO('SubmissionDAO');
         $submissionId = $submissionDAO->insertObject($submission);
@@ -427,7 +428,6 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
 
         $submissionFile = new SubmissionFile();
-        $submissionFile->setId(79);
         $submissionFile->setData('submissionId', $submissionId);
         $submissionFile->setData('assocId', $note->getId());
         $submissionFile->setData('assocType', ASSOC_TYPE_NOTE);
@@ -445,7 +445,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $file = new stdClass();
         $file->fileId = 79;
-        $file->path = 'journals/1/articles/1/655858c94c124.pdf';
+        $file->path = 'journals/1/articles/1/660370d3bd63f.pdf';
         $file->mimetype = 'application/pdf';
         $file->revision_id = 81;
 
@@ -535,13 +535,14 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
     private function createNoteFileNode($deployment, $filter, $submissionFile, $file)
     {
-        $submissionFileNode = $this->doc->createElementNS($deployment->getNamespace(), 'submission_file');
+        $submissionFileNode = $this->doc->createElementNS($deployment->getNamespace(), 'workflow_file');
         $submissionFileNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
         $submissionFileNode->setAttribute('id', $submissionFile->getId());
         $submissionFileNode->setAttribute('created_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('createdAt'))));
         $submissionFileNode->setAttribute('date_created', $submissionFile->getData('dateCreated'));
         $submissionFileNode->setAttribute('file_id', $submissionFile->getData('fileId'));
         $submissionFileNode->setAttribute('stage', 'query');
+        $submissionFileNode->setAttribute('assoc_type', ASSOC_TYPE_NOTE);
         $submissionFileNode->setAttribute('updated_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('updatedAt'))));
         $submissionFileNode->setAttribute('viewable', $submissionFile->getViewable() ? 'true' : 'false');
         $submissionFileNode->setAttribute('genre', 'Article Text');
@@ -824,7 +825,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $file = new stdClass();
         $file->fileId = 79;
-        $file->path = 'journals/1/articles/1/655858c94c124.pdf';
+        $file->path = 'journals/1/articles/1/660370d3bd63f.pdf';
         $file->mimetype = 'application/pdf';
         $file->revision_id = 81;
 
@@ -846,7 +847,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $expectedDoc = $this->getSampleXml('article.xml');
         $submissionIdNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'id')->item(0);
         $submissionIdNode->textContent = $submissionId;
-        $submissionFileNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'submission_file')->item(0);
+        $submissionFileNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'workflow_file')->item(0);
         $submissionFileNode->setAttribute('id', $submissionFileId);
 
         $this->assertXmlStringEqualsXmlString(

@@ -307,7 +307,7 @@
 
     <complexType name="review_round">
         <sequence>
-            <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
+            <element ref="pkp:workflow_file" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:review_assignment" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:decision" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
@@ -317,7 +317,7 @@
 
     <complexType name="review_assignment">
         <sequence>
-            <element ref="pkp:review_round_file" minOccurs="0" maxOccurs="unbounded" />
+            <element ref="pkp:workflow_file" minOccurs="0" maxOccurs="unbounded" />
 			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
@@ -343,7 +343,7 @@
         <attribute name="review_form_id" type="int" use="optional"/>
 	</complexType>
 
-    <element name="review_round_file" substitutionGroup="pkp:submission_file" >
+    <element name="workflow_file" substitutionGroup="pkp:submission_file" >
 		<complexType>
 			<complexContent>
 				<extension base="pkp:submission_file">
@@ -403,7 +403,7 @@
 		<sequence>
 			<element name="title" type="string" minOccurs="1" maxOccurs="1" />
 			<element name="contents" type="string" minOccurs="1" maxOccurs="1" />
-			<element ref="pkp:submission_file" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:workflow_file" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="date_created" type="string" />
 		<attribute name="date_modified" type="string" />

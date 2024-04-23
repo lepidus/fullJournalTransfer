@@ -237,7 +237,7 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $stageNode = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'stage')->item(0);
         $queryNode = $stageNode->getElementsByTagNameNS($deployment->getNamespace(), 'query')->item(0);
         $noteNode = $queryNode->getElementsByTagNameNS($deployment->getNamespace(), 'note')->item(0);
-        $noteFileNode = $queryNode->getElementsByTagNameNS($deployment->getNamespace(), 'submission_file')->item(0);
+        $noteFileNode = $queryNode->getElementsByTagNameNS($deployment->getNamespace(), 'workflow_file')->item(0);
         $noteNode->removeChild($noteFileNode);
 
         $parsedQueryId = $articleImportFilter->parseQuery($queryNode, $submission, $stageId);
