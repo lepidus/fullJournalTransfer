@@ -13,6 +13,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $reviewForm;
     private $reviewRound;
     private $reviewAssignment;
+    private $note;
     private $navigationMenuItemDBIds;
     private $reviewFormDBIds;
     private $reviewFormElementDBIds;
@@ -108,6 +109,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getReviewAssignment()
     {
         return $this->reviewAssignment;
+    }
+
+    public function setNote($note)
+    {
+        $this->note = $note;
+    }
+
+    public function getNote()
+    {
+        return $this->note;
     }
 
     public function getNavigationMenuItemDBIds()

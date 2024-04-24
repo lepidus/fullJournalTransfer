@@ -46,10 +46,11 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         if ($stageId === WORKFLOW_STAGE_ID_EXTERNAL_REVIEW) {
             $this->addReviewRounds($doc, $stageNode, $submission, $stageId);
-            return;
+        } else {
+            $this->addEditorDecisions($doc, $stageNode, $submission, $stageId);
         }
 
-        $this->addEditorDecisions($doc, $stageNode, $submission, $stageId);
+        $this->addQueries($doc, $stageNode, $submission, $stageId);
     }
 
     public function addParticipants($doc, $stageNode, $submission, $stageId)
@@ -110,6 +111,109 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
+    public function addQueries($doc, $parentNode, $submission, $stageId)
+    {
+        $deployment = $this->getDeployment();
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+
+        $queries = $queryDAO->getByAssoc(ASSOC_TYPE_SUBMISSION, $submission->getId(), $stageId);
+
+        $queriesNode = $doc->createElementNS($deployment->getNamespace(), 'queries');
+        while ($query = $queries->next()) {
+            $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
+            $queryNode->setAttribute('seq', $query->getData('sequence'));
+            $queryNode->setAttribute('closed', (int) $query->getData('closed'));
+
+            $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $query));
+            $queryNode->appendChild($this->createQueryRepliesNode($doc, $deployment, $submission, $query));
+
+            $queriesNode->appendChild($queryNode);
+        }
+
+        if ($queriesNode->hasChildNodes()) {
+            $parentNode->appendChild($queriesNode);
+        }
+    }
+
+    private function createQueryParticipantsNode($doc, $deployment, $query)
+    {
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $participantsNode = $doc->createElementNS($deployment->getNamespace(), 'participants');
+        $participantIds = $queryDAO->getParticipantIds($query->getId());
+
+        foreach ($participantIds as $participantId) {
+            $participant = $userDAO->getById($participantId);
+            $participantNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'participant',
+                htmlspecialchars($participant->getEmail(), ENT_COMPAT, 'UTF-8')
+            );
+            $participantsNode->appendChild($participantNode);
+        }
+
+        return $participantsNode;
+    }
+
+    private function createQueryRepliesNode($doc, $deployment, $submission, $query)
+    {
+        $repliesNode = $doc->createElementNS($deployment->getNamespace(), 'replies');
+        $replies = $query->getReplies();
+
+        while ($note = $replies->next()) {
+            $user = $note->getUser();
+            $noteNode = $doc->createElementNS($deployment->getNamespace(), 'note');
+            $noteNode->setAttribute('user_email', htmlspecialchars($user->getEmail(), ENT_COMPAT, 'UTF-8'));
+            $noteNode->setAttribute('date_modified', $note->getDateModified());
+            $noteNode->setAttribute('date_created', $note->getDateCreated());
+
+            $titleNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'title',
+                htmlspecialchars($note->getTitle(), ENT_COMPAT, 'UTF-8')
+            );
+            $contentsNode = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'contents',
+                htmlspecialchars($note->getContents(), ENT_COMPAT, 'UTF-8')
+            );
+
+            $noteNode->appendChild($titleNode);
+            $noteNode->appendChild($contentsNode);
+            $this->addNoteFiles($doc, $noteNode, $submission, $note);
+
+            $repliesNode->appendChild($noteNode);
+        }
+
+        return $repliesNode;
+    }
+
+    private function addNoteFiles($doc, $noteNode, $submission, $note)
+    {
+        $deployment = $this->getDeployment();
+        $noteFiles = Services::get('submissionFile')->getMany([
+            'assocTypes' => [ASSOC_TYPE_NOTE],
+            'assocIds' => [$note->getId()],
+            'submissionIds' => [$submission->getId()],
+            'fileStages' => [SUBMISSION_FILE_QUERY]
+        ]);
+
+        $filterDao = DAORegistry::getDAO('FilterDAO');
+        $nativeExportFilters = $filterDao->getObjectsByGroup('workflow-file=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setOpts($this->opts);
+
+        foreach ($noteFiles as $submissionFile) {
+            $submissionFileDoc = $exportFilter->execute($submissionFile);
+            if ($submissionFileDoc) {
+                $clone = $doc->importNode($submissionFileDoc->documentElement, true);
+                $noteNode->appendChild($clone);
+            }
+        }
+    }
+
     public function addReviewRounds($doc, $stageNode, $submission, $stageId)
     {
         $deployment = $this->getDeployment();
@@ -138,13 +242,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $deployment = $this->getDeployment();
-        foreach ($submissionFilesIterator as $submissionFile) {
-            $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
-            assert(count($nativeExportFilters) == 1);
-            $exportFilter = array_shift($nativeExportFilters);
-            $exportFilter->setDeployment($this->getDeployment());
+        $nativeExportFilters = $filterDao->getObjectsByGroup('workflow-file=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setOpts($this->opts);
 
-            $exportFilter->setOpts($this->opts);
+        foreach ($submissionFilesIterator as $submissionFile) {
             $submissionFileDoc = $exportFilter->execute($submissionFile, true);
             if ($submissionFileDoc) {
                 $clone = $doc->importNode($submissionFileDoc->documentElement, true);
@@ -247,13 +351,13 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         ]);
 
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        foreach ($submissionFilesIterator as $submissionFile) {
-            $nativeExportFilters = $filterDao->getObjectsByGroup('review-round-file=>native-xml');
-            assert(count($nativeExportFilters) == 1);
-            $exportFilter = array_shift($nativeExportFilters);
-            $exportFilter->setDeployment($this->getDeployment());
+        $nativeExportFilters = $filterDao->getObjectsByGroup('workflow-file=>native-xml');
+        assert(count($nativeExportFilters) == 1);
+        $exportFilter = array_shift($nativeExportFilters);
+        $exportFilter->setDeployment($this->getDeployment());
+        $exportFilter->setOpts($this->opts);
 
-            $exportFilter->setOpts($this->opts);
+        foreach ($submissionFilesIterator as $submissionFile) {
             $submissionFileDoc = $exportFilter->execute($submissionFile, true);
             if ($submissionFileDoc) {
                 $clone = $doc->importNode($submissionFileDoc->documentElement, true);

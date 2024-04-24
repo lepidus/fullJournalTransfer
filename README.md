@@ -59,10 +59,10 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 - Revision Files
 - Stage Assignments
 - Editor Decisions
+- Discussions
 
 **To Do**:
 
-- Discussions
 - Metrics
 
 ## Running Tests

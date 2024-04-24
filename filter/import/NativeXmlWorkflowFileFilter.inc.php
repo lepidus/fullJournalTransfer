@@ -1,14 +1,14 @@
 <?php
 
 /**
-* @file plugins/importexport/fullJournalTransfer/filter/import/NativeXmlReviewRoundFileFilter.inc.php
+* @file plugins/importexport/fullJournalTransfer/filter/import/NativeXmlWorkflowFileFilter.inc.php
 *
 * Copyright (c) 2014-2021 Simon Fraser University
 * Copyright (c) 2000-2021 John Willinsky
 * Copyright (c) 2014-2024 Lepidus Tecnologia
 * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
 *
-* @class NativeXmlReviewRoundFileFilter
+* @class NativeXmlWorkflowFileFilter
 * @ingroup plugins_importexport_fullJournalTransfer
 *
 * @brief Class that converts a Native XML document to an review file.
@@ -16,27 +16,11 @@
 
 import('plugins.importexport.native.filter.NativeXmlArticleFileFilter');
 
-class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
+class NativeXmlWorkflowFileFilter extends NativeXmlArticleFileFilter
 {
-    public function __construct($filterGroup)
-    {
-        $this->setDisplayName('Native XML review round import');
-        parent::__construct($filterGroup);
-    }
-
-    public function getPluralElementName()
-    {
-        return 'review_round_files';
-    }
-
-    public function getSingularElementName()
-    {
-        return 'review_round_file';
-    }
-
     public function getClassName()
     {
-        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlReviewRoundFileFilter';
+        return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlWorkflowFileFilter';
     }
 
     public function handleElement($node)
@@ -140,6 +124,26 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
             $submissionFile->setViewable(true);
         }
 
+        if ($node->getAttribute('assoc_type')) {
+            $reviewRoundFileStages = [SUBMISSION_FILE_REVIEW_FILE, SUBMISSION_FILE_REVIEW_REVISION];
+            if (in_array($submissionFile->getData('fileStage'), $reviewRoundFileStages)) {
+                $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ROUND);
+                $submissionFile->setData('assocId', $reviewRound->getId());
+            }
+
+            if ($submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_ATTACHMENT) {
+                $reviewAssignment = $deployment->getReviewAssignment();
+                $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ASSIGNMENT);
+                $submissionFile->setData('assocId', $reviewAssignment->getId());
+            }
+
+            if ($submissionFile->getData('fileStage') == SUBMISSION_FILE_QUERY) {
+                $note = $deployment->getNote();
+                $submissionFile->setData('assocType', ASSOC_TYPE_NOTE);
+                $submissionFile->setData('assocId', $note->getId());
+            }
+        }
+
         $allRevisionIds = [];
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
@@ -162,20 +166,6 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
                                 $submissionFile->setData('assocType', ASSOC_TYPE_SUBMISSION_FILE);
                                 $submissionFile->setData('assocId', $newAssocId);
                             }
-                        }
-                        break;
-                    case 'review_ref':
-                        if (
-                            $submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_FILE
-                            || $submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_REVISION
-                        ) {
-                            $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ROUND);
-                            $submissionFile->setData('assocId', $reviewRound->getId());
-                        }
-                        if ($submissionFile->getData('fileStage') == SUBMISSION_FILE_REVIEW_ATTACHMENT) {
-                            $reviewAssignment = $deployment->getReviewAssignment();
-                            $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ASSIGNMENT);
-                            $submissionFile->setData('assocId', $reviewAssignment->getId());
                         }
                         break;
                     case 'file':
@@ -221,8 +211,11 @@ class NativeXmlReviewRoundFileFilter extends NativeXmlArticleFileFilter
             $submissionFile = Services::get('submissionFile')->edit($submissionFile, ['fileId' => $currentFileId], $request);
         }
 
+        $reviewFileStages = [SUBMISSION_FILE_REVIEW_FILE, SUBMISSION_FILE_REVIEW_REVISION, SUBMISSION_FILE_REVIEW_ATTACHMENT];
+        if (in_array($submissionFile->getData('fileStage'), $reviewFileStages)) {
+            $submissionFileDao->assignRevisionToReviewRound($submissionFile->getId(), $reviewRound);
+        }
 
-        $submissionFileDao->assignRevisionToReviewRound($submissionFile->getId(), $reviewRound);
         $deployment->setSubmissionFileDBId($node->getAttribute('id'), $submissionFile->getId());
 
         return $submissionFile;

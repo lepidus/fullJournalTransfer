@@ -21,6 +21,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
     public function parseStage($node, $submission)
     {
         $stageId = WorkflowStageDAO::getIdFromPath($node->getAttribute('path'));
+        $deployment = $this->getDeployment();
 
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
@@ -33,6 +34,13 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                         break;
                     case 'review_round':
                         $this->parseReviewRound($childNode, $submission, $stageId);
+                        break;
+                    case 'queries':
+                        $queryNodes = $childNode->getElementsByTagNameNS($deployment->getNamespace(), 'query');
+                        for ($i = 0; $i < $queryNodes->count(); $i++) {
+                            $queryNode = $queryNodes->item($i);
+                            $this->parseQuery($queryNode, $submission, $stageId);
+                        }
                         break;
                     default:
                         break;
@@ -98,8 +106,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
                 switch ($childNode->tagName) {
-                    case 'review_round_file':
-                        $this->parseReviewRoundFile($childNode);
+                    case 'workflow_file':
+                        $this->parseArticleFile($childNode);
                         break;
                     case 'review_assignment':
                         $this->parseReviewAssignment($childNode, $reviewRound);
@@ -150,6 +158,64 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             $stageId,
             $reviewRound ?? null
         );
+    }
+
+    public function parseQuery($node, $submission, $stageId)
+    {
+        $queryDAO = DAORegistry::getDAO('QueryDAO');
+        $noteDAO = DAORegistry::getDAO('NoteDAO');
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $deployment = $this->getDeployment();
+
+        $query = $queryDAO->newDataObject();
+        $query->setAssocType(ASSOC_TYPE_SUBMISSION);
+        $query->setAssocId($submission->getId());
+        $query->setStageId($stageId);
+        $query->setIsClosed((bool) $node->getAttribute('closed'));
+        $query->setSequence((float) $node->getAttribute('seq'));
+
+        $queryId = $queryDAO->insertObject($query);
+
+        $participantNodes = $node->getElementsByTagNameNS($deployment->getNamespace(), 'participant');
+        for ($i = 0; $i < $participantNodes->count(); $i++) {
+            $participantNode = $participantNodes->item($i);
+            $email = $participantNode->textContent;
+            $participant = $userDAO->getUserByEmail($email);
+
+            if ($participant) {
+                $queryDAO->insertParticipant($queryId, $participant->getId());
+            }
+        }
+
+        $noteNodes = $node->getElementsByTagNameNS($deployment->getNamespace(), 'note');
+        for ($i = 0; $i < $noteNodes->count(); $i++) {
+            $noteNode = $noteNodes->item($i);
+            $titleNode = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'title')->item(0);
+            $contentsNode = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'contents')->item(0);
+            $email = $noteNode->getAttribute('user_email');
+            $noteUser = $userDAO->getUserByEmail($email);
+
+            $note = $noteDAO->newDataObject();
+            if ($noteUser) {
+                $note->setUserId($noteUser->getId());
+            }
+            $note->setDateCreated($noteNode->getAttribute('date_created'));
+            $note->setTitle($titleNode->textContent);
+            $note->setContents($contentsNode->textContent);
+            $note->setAssocType(ASSOC_TYPE_QUERY);
+            $note->setAssocId($queryId);
+
+            $noteDAO->insertObject($note);
+
+            $deployment->setNote($note);
+            $noteFilesNodes = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'workflow_file');
+            for ($i = 0; $i < $noteFilesNodes->count(); $i++) {
+                $noteNode = $noteFilesNodes->item($i);
+                $this->parseArticleFile($noteNode);
+            }
+        }
+
+        return $queryId;
     }
 
     public function parseReviewAssignment($node, $reviewRound)
@@ -236,8 +302,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                             }
                         }
                         break;
-                    case 'review_round_file':
-                        $this->parseReviewRoundFile($childNode);
+                    case 'workflow_file':
+                        $this->parseArticleFile($childNode);
                         break;
                     case 'response':
                         $this->parseResponse($childNode, $reviewAssignment);
@@ -272,10 +338,10 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
     }
 
-    public function parseReviewRoundFile($node)
+    public function parseArticleFile($node)
     {
         $filterDAO = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>review-round-file');
+        $importFilters = $filterDAO->getObjectsByGroup('native-xml=>workflow-file');
         $importFilter = array_shift($importFilters);
         assert(isset($importFilter));
 

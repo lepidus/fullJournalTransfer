@@ -3,6 +3,8 @@
 import('classes.article.Author');
 import('classes.submission.Submission');
 import('classes.publication.Publication');
+import('lib.pkp.classes.query.Query');
+import('lib.pkp.classes.note.Note');
 import('classes.workflow.EditorDecisionActionsManager');
 import('lib.pkp.classes.submission.reviewRound.ReviewRound');
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
@@ -24,8 +26,8 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     {
         return [
             'UserDAO', 'UserGroupDAO',
-            'StageAssignmentDAO', 'EditDecisionDAO',
-            'ReviewRoundDAO', 'ReviewAssignmentDAO',
+            'StageAssignmentDAO', 'QueryDAO', 'NoteDAO',
+            'EditDecisionDAO', 'ReviewRoundDAO', 'ReviewAssignmentDAO',
             'ReviewFormResponseDAO', 'SectionDAO'
         ];
     }
@@ -48,7 +50,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         Registry::set('application', $mockApplication);
     }
 
-    private function registerMockUserDAO($email)
+    private function registerMockUserDAO($email, $username = null)
     {
         $mockDAO = $this->getMockBuilder(UserDAO::class)
             ->setMethods(['getById'])
@@ -56,6 +58,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $user = $mockDAO->newDataObject();
         $user->setEmail($email);
+        $user->setUsername($username);
 
         $mockDAO->expects($this->any())
             ->method('getById')
@@ -128,6 +131,54 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->will($this->returnValue([$editorDecision]));
 
         DAORegistry::registerDAO('EditDecisionDAO', $mockDAO);
+    }
+
+    private function registerMockQueryDAO($query)
+    {
+        $mockDAO = $this->getMockBuilder(QueryDAO::class)
+            ->setMethods(['getByAssoc', 'getParticipantIds'])
+            ->getMock();
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($query, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getByAssoc')
+            ->will($this->returnValue($mockResult));
+
+        $mockDAO->expects($this->any())
+            ->method('getParticipantIds')
+            ->will($this->returnValue([123]));
+
+        DAORegistry::registerDAO('QueryDAO', $mockDAO);
+    }
+
+    private function registerMockNoteDAO($note)
+    {
+        $mockDAO = $this->getMockBuilder(NoteDAO::class)
+            ->setMethods(['getByAssoc'])
+            ->getMock();
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($note, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getByAssoc')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('NoteDAO', $mockDAO);
     }
 
     private function registerMockReviewRoundDAO()
@@ -347,6 +398,159 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         );
     }
 
+    public function testAddingQueries()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $articleExportFilter->setOpts(['no-embed' => true]);
+        $deployment = $articleExportFilter->getDeployment();
+
+        $context = new Journal();
+        $context->setPrimaryLocale('en_US');
+        $deployment->setContext($context);
+
+        $submission = new Submission();
+        $submission->setData('contextId', 1);
+        $submission->setData('locale', 'en_US');
+
+        $submissionDAO = DAORegistry::getDAO('SubmissionDAO');
+        $submissionId = $submissionDAO->insertObject($submission);
+
+        $query = new Query();
+        $query->setSequence(1);
+        $query->setIsClosed(false);
+
+        $note = new Note();
+        $note->setId(456);
+        $note->setUserId(123);
+        $note->setDateCreated('2015-03-03 20:33:43');
+        $note->setDateModified('2015-03-03 20:37:37');
+        $note->setTitle('Recommendation');
+        $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
+
+        $submissionFile = new SubmissionFile();
+        $submissionFile->setData('submissionId', $submissionId);
+        $submissionFile->setData('assocId', $note->getId());
+        $submissionFile->setData('assocType', ASSOC_TYPE_NOTE);
+        $submissionFile->setData('fileStage', SUBMISSION_FILE_QUERY);
+        $submissionFile->setData('createdAt', '2023-11-18 15:47:38');
+        $submissionFile->setData('updatedAt', '2023-11-26 15:47:49');
+        $submissionFile->setData('fileId', 1);
+        $submissionFile->setData('genreId', 1);
+        $submissionFile->setData('viewable', true);
+        $submissionFile->setData('uploaderUserId', 123);
+        $submissionFile->setData('name', 'dummy.pdf', 'en_US');
+
+        $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
+        $submissionFileId = $submissionFileDAO->insertObject($submissionFile);
+
+        $this->registerApplicationMock();
+        $this->registerMockUserDAO('editor@email.com', 'editor');
+        $this->registerMockQueryDAO($query);
+        $this->registerMockNoteDAO($note);
+
+        $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $queriesNode = $this->doc->createElementNS($deployment->getNamespace(), 'queries');
+        $queriesNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $queryNode = $this->doc->createElementNS($deployment->getNamespace(), 'query');
+        $queryNode->setAttribute('seq', $query->getSequence());
+        $queryNode->setAttribute('closed', (int) $query->getIsClosed());
+        $queryNode->appendChild($this->createQueryParticipantsNode($deployment, ['editor@email.com']));
+        $queryNode->appendChild($this->createQueryRepliesNode($deployment, [$note], $submissionFile));
+        $queriesNode->appendChild($queryNode);
+        $expectedStageNode->appendChild($queriesNode);
+
+        $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $articleExportFilter->addQueries($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
+
+        $submissionFileDAO->deleteById($submissionFileId);
+        $submissionDAO->deleteById($submissionId);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedStageNode),
+            $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    private function createQueryParticipantsNode($deployment, $participantEmails)
+    {
+        $participantsNode = $this->doc->createElementNS($deployment->getNamespace(), 'participants');
+
+        foreach ($participantEmails as $email) {
+            $participantNode = $this->doc->createElementNS(
+                $deployment->getNamespace(),
+                'participant',
+                htmlspecialchars($email, ENT_COMPAT, 'UTF-8')
+            );
+            $participantsNode->appendChild($participantNode);
+        }
+        return $participantsNode;
+    }
+
+    private function createQueryRepliesNode($deployment, $notes, $submissionFile)
+    {
+        $repliesNode = $this->doc->createElementNS($deployment->getNamespace(), 'replies');
+        $articleExportFilter = $this->getNativeImportExportFilter();
+
+        foreach ($notes as $note) {
+            $noteNode = $this->doc->createElementNS($deployment->getNamespace(), 'note');
+            $noteNode->setAttribute('user_email', 'editor@email.com');
+            $noteNode->setAttribute('date_modified', $note->getDateModified());
+            $noteNode->setAttribute('date_created', $note->getDateCreated());
+
+            $titleNode = $this->doc->createElementNS(
+                $deployment->getNamespace(),
+                'title',
+                htmlspecialchars($note->getTitle(), ENT_COMPAT, 'UTF-8')
+            );
+            $contentsNode = $this->doc->createElementNS(
+                $deployment->getNamespace(),
+                'contents',
+                htmlspecialchars($note->getContents(), ENT_COMPAT, 'UTF-8')
+            );
+
+            $noteNode->appendChild($titleNode);
+            $noteNode->appendChild($contentsNode);
+            $noteNode->appendChild($this->createNoteFileNode($deployment, $articleExportFilter, $submissionFile));
+            $repliesNode->appendChild($noteNode);
+        }
+        return $repliesNode;
+    }
+
+    private function createNoteFileNode($deployment, $filter, $submissionFile)
+    {
+        $submissionFileNode = $this->doc->createElementNS($deployment->getNamespace(), 'workflow_file');
+        $submissionFileNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
+        $submissionFileNode->setAttribute('id', $submissionFile->getId());
+        $submissionFileNode->setAttribute('created_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('createdAt'))));
+        $submissionFileNode->setAttribute('date_created', $submissionFile->getData('dateCreated'));
+        $submissionFileNode->setAttribute('file_id', $submissionFile->getData('fileId'));
+        $submissionFileNode->setAttribute('stage', 'query');
+        $submissionFileNode->setAttribute('assoc_type', ASSOC_TYPE_NOTE);
+        $submissionFileNode->setAttribute('updated_at', strftime('%Y-%m-%d', strtotime($submissionFile->getData('updatedAt'))));
+        $submissionFileNode->setAttribute('viewable', $submissionFile->getViewable() ? 'true' : 'false');
+        $submissionFileNode->setAttribute('genre', 'Article Text');
+        $submissionFileNode->setAttribute('uploader', 'editor');
+
+        $filter->createLocalizedNodes($this->doc, $submissionFileNode, 'name', $submissionFile->getData('name'));
+
+        $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
+        $revisions = $submissionFileDAO->getRevisions($submissionFile->getId());
+        foreach ($revisions as $file) {
+            $fileNode = $this->doc->createElementNS($deployment->getNamespace(), 'file');
+            $fileNode->setAttribute('id', $file->fileId);
+            $fileNode->setAttribute('filesize', '14572');
+            $fileNode->setAttribute('extension', pathinfo($file->path, PATHINFO_EXTENSION));
+            $fileNode->appendChild($hrefNode = $this->doc->createElementNS($deployment->getNamespace(), 'href'));
+            $hrefNode->setAttribute('src', $file->path);
+            $hrefNode->setAttribute('mime_type', $file->mimetype);
+
+            $submissionFileNode->appendChild($fileNode);
+        }
+
+        return $submissionFileNode;
+    }
+
     public function testAddingReviewRounds()
     {
         $articleExportFilter = $this->getNativeImportExportFilter();
@@ -458,6 +662,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
     public function testParseArticleToXML()
     {
         $articleExportFilter = $this->getNativeImportExportFilter();
+        $articleExportFilter->setOpts(['no-embed' => true]);
         $deployment = $articleExportFilter->getDeployment();
 
         $context = new Journal();
@@ -478,8 +683,8 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $publication->setData('title', 'Test article', 'en_US');
 
         $submission = new Submission();
-        $submission->setId(901);
         $submission->setSubmissionProgress(0);
+        $submission->setData('contextId', 1);
         $submission->setData('currentPublicationId', 1023);
         $submission->setData('stageId', WORKFLOW_STAGE_ID_EXTERNAL_REVIEW);
         $submission->setData('status', STATUS_PUBLISHED);
@@ -487,6 +692,9 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submission->setDateSubmitted('2020-01-01');
         $submission->setData('publications', [$publication]);
         $submissions = [$submission];
+
+        $submissionDAO = DAORegistry::getDAO('SubmissionDAO');
+        $submissionId = $submissionDAO->insertObject($submission);
 
         $this->registerApplicationMock();
         $this->registerMockReviewRoundDAO();
@@ -499,11 +707,13 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->getMock();
         $editorUser = $mockUserDAO->newDataObject();
         $editorUser->setEmail('editor@email.com');
+        $editorUser->setUsername('editor');
         $reviewerUser = $mockUserDAO->newDataObject();
         $reviewerUser->setEmail('reviewer@email.com');
+        $reviewerUser->setUsername('reviewer');
         $mockUserDAO->expects($this->any())
             ->method('getById')
-            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));
+            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $editorUser, $editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
         $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
@@ -570,10 +780,50 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->will($this->onConsecutiveCalls([$submissionStageEditorDecision], [], [$reviewStageEditorDecision]));
         DAORegistry::registerDAO('EditDecisionDAO', $mockEditorDecisionDAO);
 
+        $query = new Query();
+        $query->setSequence(1);
+        $query->setIsClosed(false);
+        $this->registerMockQueryDAO($query);
+
+        $note = new Note();
+        $note->setId(42);
+        $note->setUserId(123);
+        $note->setDateCreated('2015-03-03 20:33:43');
+        $note->setDateModified('2015-03-03 20:37:37');
+        $note->setTitle('Recommendation');
+        $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
+        $this->registerMockNoteDAO($note);
+
+        $submissionFile = new SubmissionFile();
+        $submissionFile->setId(79);
+        $submissionFile->setData('submissionId', $submission->getId());
+        $submissionFile->setData('assocId', $note->getId());
+        $submissionFile->setData('assocType', ASSOC_TYPE_NOTE);
+        $submissionFile->setData('fileStage', SUBMISSION_FILE_QUERY);
+        $submissionFile->setData('createdAt', '2023-11-18 15:47:38');
+        $submissionFile->setData('updatedAt', '2023-11-26 15:47:49');
+        $submissionFile->setData('fileId', 1);
+        $submissionFile->setData('genreId', 1);
+        $submissionFile->setData('viewable', true);
+        $submissionFile->setData('uploaderUserId', 123);
+        $submissionFile->setData('name', 'dummy.pdf', 'en_US');
+
+        $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
+        $submissionFileId = $submissionFileDAO->insertObject($submissionFile);
+
         $doc = $articleExportFilter->execute($submissions);
 
+        $submissionFileDAO->deleteById($submissionFileId);
+        $submissionDAO->deleteById($submissionId);
+
+        $expectedDoc = $this->getSampleXml('article.xml');
+        $submissionIdNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'id')->item(0);
+        $submissionIdNode->textContent = $submissionId;
+        $submissionFileNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'workflow_file')->item(0);
+        $submissionFileNode->setAttribute('id', $submissionFileId);
+
         $this->assertXmlStringEqualsXmlString(
-            $this->getSampleXml('article.xml')->saveXml(),
+            $expectedDoc->saveXml(),
             $doc->saveXML(),
             "actual xml is equal to expected xml"
         );
