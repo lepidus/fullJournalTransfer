@@ -91,7 +91,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
             if (is_a($childNode, 'DOMElement')) {
                 switch ($childNode->tagName) {
-                    case 'submission_file':
+                    case 'workflow_file':
                         $this->parseArticleFile($childNode);
                         break;
                     case 'review_assignment':
@@ -178,7 +178,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             $noteDAO->insertObject($note);
 
             $deployment->setNote($note);
-            $noteFilesNodes = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'submission_file');
+            $noteFilesNodes = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'workflow_file');
             for ($i = 0; $i < $noteFilesNodes->count(); $i++) {
                 $noteNode = $noteFilesNodes->item($i);
                 $this->parseArticleFile($noteNode);
@@ -258,7 +258,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                             }
                         }
                         break;
-                    case 'submission_file':
+                    case 'workflow_file':
                         $this->parseArticleFile($childNode);
                         break;
                     case 'response':

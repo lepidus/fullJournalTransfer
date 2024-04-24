@@ -124,7 +124,7 @@ class NativeXmlWorkflowFileFilter extends NativeXmlArticleFileFilter
             $submissionFile->setViewable(true);
         }
 
-        if ($node->getAttribute('assocType')) {
+        if ($node->getAttribute('assoc_type')) {
             $reviewRoundFileStages = [SUBMISSION_FILE_REVIEW_FILE, SUBMISSION_FILE_REVIEW_REVISION];
             if (in_array($submissionFile->getData('fileStage'), $reviewRoundFileStages)) {
                 $submissionFile->setData('assocType', ASSOC_TYPE_REVIEW_ROUND);

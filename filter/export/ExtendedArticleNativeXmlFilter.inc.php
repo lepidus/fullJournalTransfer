@@ -46,10 +46,10 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         if ($stageId === WORKFLOW_STAGE_ID_EXTERNAL_REVIEW) {
             $this->addReviewRounds($doc, $stageNode, $submission, $stageId);
-            return;
+        } else {
+            $this->addEditorDecisions($doc, $stageNode, $submission, $stageId);
         }
 
-        $this->addEditorDecisions($doc, $stageNode, $submission, $stageId);
         $this->addQueries($doc, $stageNode, $submission, $stageId);
     }
 
