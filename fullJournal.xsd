@@ -394,7 +394,7 @@
 	<element name="replies">
 		<complexType>
 			<sequence>
-				<element ref="pkp:note" minOccurs="1" maxOccurs="unbounded" />
+				<element ref="pkp:note" minOccurs="0" maxOccurs="unbounded" />
 			</sequence>
 		</complexType>
 	</element>

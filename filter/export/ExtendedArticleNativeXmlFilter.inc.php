@@ -117,14 +117,19 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         $queryDAO = DAORegistry::getDAO('QueryDAO');
 
         $queries = $queryDAO->getByAssoc(ASSOC_TYPE_SUBMISSION, $submission->getId(), $stageId);
-
         $queriesNode = $doc->createElementNS($deployment->getNamespace(), 'queries');
         while ($query = $queries->next()) {
+            $participantIds = $queryDAO->getParticipantIds($query->getId());
+
+            if (empty($participantIds)) {
+                continue;
+            }
+
             $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
             $queryNode->setAttribute('seq', $query->getData('sequence'));
             $queryNode->setAttribute('closed', (int) $query->getData('closed'));
 
-            $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $query));
+            $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $participantIds));
             $queryNode->appendChild($this->createQueryRepliesNode($doc, $deployment, $submission, $query));
 
             $queriesNode->appendChild($queryNode);
@@ -135,12 +140,10 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
-    private function createQueryParticipantsNode($doc, $deployment, $query)
+    private function createQueryParticipantsNode($doc, $deployment, $participantIds)
     {
-        $queryDAO = DAORegistry::getDAO('QueryDAO');
         $userDAO = DAORegistry::getDAO('UserDAO');
         $participantsNode = $doc->createElementNS($deployment->getNamespace(), 'participants');
-        $participantIds = $queryDAO->getParticipantIds($query->getId());
 
         foreach ($participantIds as $participantId) {
             $participant = $userDAO->getById($participantId);
@@ -162,6 +165,9 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         while ($note = $replies->next()) {
             $user = $note->getUser();
+            if (!$user) {
+                continue;
+            }
             $noteNode = $doc->createElementNS($deployment->getNamespace(), 'note');
             $noteNode->setAttribute('user_email', htmlspecialchars($user->getEmail(), ENT_COMPAT, 'UTF-8'));
             $noteNode->setAttribute('date_modified', $note->getDateModified());

@@ -209,8 +209,8 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
 
             $deployment->setNote($note);
             $noteFilesNodes = $noteNode->getElementsByTagNameNS($deployment->getNamespace(), 'workflow_file');
-            for ($i = 0; $i < $noteFilesNodes->count(); $i++) {
-                $noteNode = $noteFilesNodes->item($i);
+            for ($fileIndex = 0; $fileIndex < $noteFilesNodes->count(); $fileIndex++) {
+                $noteNode = $noteFilesNodes->item($fileIndex);
                 $this->parseArticleFile($noteNode);
             }
         }
