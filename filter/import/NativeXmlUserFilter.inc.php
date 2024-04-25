@@ -29,6 +29,15 @@ class NativeXmlUserFilter extends UserXmlPKPUserFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlUserFilter';
     }
 
+    public function importUserPasswordValidation($userToImport, $encryption)
+    {
+        $password = parent::importUserPasswordValidation($userToImport, $encryption);
+
+        $this->generateUsername($userToImport);
+
+        return $password;
+    }
+
     public function generateUsername($user)
     {
         $userDAO = DAORegistry::getDAO('UserDAO');
