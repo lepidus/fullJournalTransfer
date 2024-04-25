@@ -26,6 +26,13 @@
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
             outputType="class::classes.journal.Journal" />
+        <!-- Native XML Users input -->
+        <filterGroup
+			symbolic="native-xml=>user"
+			displayName="plugins.importexport.fullJournalTransfer.displayName"
+			description="plugins.importexport.fullJournalTransfer.description"
+			inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
+			outputType="class::classes.users.User[]" />
         <!-- Plugin native XML output -->
         <filterGroup
             symbolic="plugin=>native-xml"
@@ -175,6 +182,10 @@
         <filter
             inGroup="native-xml=>journal"
             class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlJournalFilter"
+            isTemplate="0" />
+        <filter
+            inGroup="native-xml=>user"
+            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlUserFilter"
             isTemplate="0" />
         <filter
             inGroup="plugin=>native-xml"

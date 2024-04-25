@@ -221,7 +221,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseUsers($node, $journal)
     {
         $filterDao = DAORegistry::getDAO('FilterDAO');
-        $userFilters = $filterDao->getObjectsByGroup('user-xml=>user');
+        $userFilters = $filterDao->getObjectsByGroup('native-xml=>user');
         assert(count($userFilters) == 1);
         $filter = array_shift($userFilters);
         $filter->setDeployment(new PKPUserImportExportDeployment($journal, null));
