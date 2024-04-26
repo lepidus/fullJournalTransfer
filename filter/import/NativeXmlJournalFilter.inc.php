@@ -162,6 +162,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 $this->parsePlugin($n);
             }
         }
+
+        $categories = PluginRegistry::getCategories();
+        foreach ($categories as $category) {
+            PluginRegistry::loadCategory($category);
+        }
     }
 
     public function parsePlugin($node)
