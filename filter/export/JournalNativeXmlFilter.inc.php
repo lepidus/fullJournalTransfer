@@ -458,6 +458,39 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
     }
 
+    public function addMetrics($doc, $journalNode, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $metrics = $metricsDAO->getByContextId($journal->getId());
+
+        if (empty($metrics)) {
+            return;
+        }
+
+        echo __('plugins.importexport.fullJournal.exportingMetrics') . "\n";
+
+        $metricsNode = $doc->createElementNS($deployment->getNamespace(), 'metrics');
+        foreach ($metrics as $metric) {
+            $metricNode = $doc->createElementNS($deployment->getNamespace(), 'metric');
+            $metricNode->setAttribute('assoc_type', $metric['assoc_type']);
+            $metricNode->setAttribute('assoc_id', $metric['assoc_id']);
+            $metricNode->setAttribute('day', $metric['day']);
+            $metricNode->setAttribute('country_id', $metric['country_id']);
+            $metricNode->setAttribute('region', $metric['region']);
+            $metricNode->setAttribute('city', $metric['city']);
+            $metricNode->setAttribute('file_type', $metric['file_type']);
+            $metricNode->setAttribute('metric', $metric['metric']);
+            $metricNode->setAttribute('metric_type', $metric['metric_type']);
+            $metricNode->setAttribute('load_id', $metric['load_id']);
+
+            $metricsNode->appendChild($metricNode);
+        }
+
+        $journalNode->appendChild($metricsNode);
+    }
+
     private function removeDuplicatedInterests($usersDoc)
     {
         $deployment = $this->getDeployment();
