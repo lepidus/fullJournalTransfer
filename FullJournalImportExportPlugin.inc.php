@@ -14,6 +14,9 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
     {
         $success = parent::register($category, $path, $mainContextId);
         $this->addLocaleData();
+        $this->import('classes.FullJournalMetricsDAO');
+        $fullJournalMetricsDAO = new FullJournalMetricsDAO();
+        DAORegistry::registerDAO('FullJournalMetricsDAO', $fullJournalMetricsDAO);
         return $success;
     }
 
