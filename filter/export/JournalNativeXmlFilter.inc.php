@@ -167,6 +167,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addReviewForms($doc, $journalNode, $journal);
         $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
+        $this->addMetrics($doc, $journalNode, $journal);
 
         return $journalNode;
     }
