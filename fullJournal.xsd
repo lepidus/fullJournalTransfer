@@ -65,6 +65,7 @@
 			<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_issues" minOccurs="0" maxOccurs="unbounded" />
 			<element ref="pkp:extended_articles" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:metrics" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
 		<attribute name="seq" type="int" />
 		<attribute name="url_path" type="string" />
@@ -410,6 +411,27 @@
 		<attribute name="user_email" type="string" />
 	</complexType>
 
+    <complexType name="metric">
+		<attribute name="assoc_type" type="int" />
+		<attribute name="assoc_id" type="int" />
+		<attribute name="day" type="string" />
+		<attribute name="country_id" type="string" />
+		<attribute name="region" type="string" />
+		<attribute name="city" type="string" />
+		<attribute name="file_type" type="int" />
+		<attribute name="metric" type="int" />
+		<attribute name="metric_type" type="string" />
+		<attribute name="load_id" type="string" />
+	</complexType>
+
+    <element name="metrics">
+		<complexType>
+			<sequence>
+				<element ref="pkp:metric" minOccurs="0" maxOccurs="unbounded" />
+			</sequence>
+		</complexType>
+	</element>
+
     <element name="journal" type="pkp:journal" />
 
     <element name="extended_issue" type="pkp:extended_issue" />
@@ -443,4 +465,6 @@
 	<element name="review_form" type="pkp:review_form" />
 
 	<element name="review_form_element" type="pkp:review_form_element" />
+
+    <element name="metric" type="pkp:metric" />
 </schema>

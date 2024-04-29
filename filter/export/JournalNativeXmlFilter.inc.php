@@ -167,6 +167,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addReviewForms($doc, $journalNode, $journal);
         $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
+        $this->addMetrics($doc, $journalNode, $journal);
 
         return $journalNode;
     }
@@ -456,6 +457,48 @@ class JournalNativeXmlFilter extends NativeExportFilter
             $clone = $doc->importNode($articlesDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
+    }
+
+    public function addMetrics($doc, $journalNode, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $metrics = $metricsDAO->getByContextId($journal->getId());
+
+        if (empty($metrics)) {
+            return;
+        }
+
+        echo __('plugins.importexport.fullJournal.exportingMetrics') . "\n";
+
+        $metricsNode = $doc->createElementNS($deployment->getNamespace(), 'metrics');
+        foreach ($metrics as $metric) {
+            $metricNode = $doc->createElementNS($deployment->getNamespace(), 'metric');
+            $metricNode->setAttribute('assoc_type', $metric['assoc_type']);
+            $metricNode->setAttribute('assoc_id', $metric['assoc_id']);
+            $metricNode->setAttribute('day', $metric['day']);
+            $metricNode->setAttribute('metric', $metric['metric']);
+            $metricNode->setAttribute('metric_type', $metric['metric_type']);
+            $metricNode->setAttribute('load_id', $metric['load_id']);
+
+            if ($country = $metric['country_id']) {
+                $metricNode->setAttribute('country_id', $country);
+            }
+            if ($region = $metric['region']) {
+                $metricNode->setAttribute('region', $region);
+            }
+            if ($city = $metric['city']) {
+                $metricNode->setAttribute('city', $city);
+            }
+            if ($fileType = $metric['file_type']) {
+                $metricNode->setAttribute('file_type', $fileType);
+            }
+
+            $metricsNode->appendChild($metricNode);
+        }
+
+        $journalNode->appendChild($metricsNode);
     }
 
     private function removeDuplicatedInterests($usersDoc)

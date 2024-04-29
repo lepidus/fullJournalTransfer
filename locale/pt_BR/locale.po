@@ -26,6 +26,9 @@ msgstr "Exportando edições..."
 msgid "plugins.importexport.fullJournal.exportingArticles"
 msgstr "Exportando artigos..."
 
+msgid "plugins.importexport.fullJournal.exportingMetrics"
+msgstr "Exportando métricas..."
+
 msgid "plugins.importexport.fullJournal.exportCompleted"
 msgstr "Exportaçào concluída com sucesso"
 

@@ -26,6 +26,9 @@ msgstr "Exporting issues..."
 msgid "plugins.importexport.fullJournal.exportingArticles"
 msgstr "Exporting articles..."
 
+msgid "plugins.importexport.fullJournal.exportingMetrics"
+msgstr "Exporting metrics..."
+
 msgid "plugins.importexport.fullJournal.exportCompleted"
 msgstr "Export completed successfully"
 

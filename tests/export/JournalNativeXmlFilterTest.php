@@ -820,6 +820,66 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         );
     }
 
+    public function testAddMetrics()
+    {
+        $journalExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalExportFilter->getDeployment();
+
+        $journal = $this->createJournal();
+
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+
+        $mockMetricsDAO = $this->getMockBuilder(FullJournalMetricsDAO::class)
+            ->setMethods(['getByContextId'])
+            ->getMock();
+
+        $metrics = [
+            [
+                'assoc_type' => ASSOC_TYPE_SUBMISSION_FILE,
+                'assoc_id' => 94,
+                'day' => '20240101',
+                'country_id' => 'BR',
+                'region' => 27,
+                'city' => 'São Paulo',
+                'file_type' => STATISTICS_FILE_TYPE_PDF,
+                'metric' => 2,
+                'metric_type' => OJS_METRIC_TYPE_COUNTER,
+                'load_id' => 'usage_events_20240101.log'
+            ]
+        ];
+
+        $mockMetricsDAO->expects($this->any())
+            ->method('getByContextId')
+            ->will($this->returnValue($metrics));
+
+        DAORegistry::registerDAO('FullJournalMetricsDAO', $mockMetricsDAO);
+
+        $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $expectedJournalNode->appendChild($metricsNode = $doc->createElementNS($deployment->getNamespace(), 'metrics'));
+        $metricsNode->appendChild($metricNode = $doc->createElementNS($deployment->getNamespace(), 'metric'));
+        $metricNode->setAttribute('assoc_type', ASSOC_TYPE_SUBMISSION_FILE);
+        $metricNode->setAttribute('assoc_id', 94);
+        $metricNode->setAttribute('day', '20240101');
+        $metricNode->setAttribute('country_id', 'BR');
+        $metricNode->setAttribute('region', 27);
+        $metricNode->setAttribute('city', 'São Paulo');
+        $metricNode->setAttribute('file_type', STATISTICS_FILE_TYPE_PDF);
+        $metricNode->setAttribute('metric', 2);
+        $metricNode->setAttribute('metric_type', OJS_METRIC_TYPE_COUNTER);
+        $metricNode->setAttribute('load_id', 'usage_events_20240101.log');
+
+        $journalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
+        $journalExportFilter->addMetrics($doc, $journalNode, $journal);
+
+        $this->assertXmlStringEqualsXmlString(
+            $doc->saveXML($expectedJournalNode),
+            $doc->saveXML($journalNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
     public function testCreateJournalNode()
     {
         $journalExportFilter = $this->getNativeImportExportFilter();
