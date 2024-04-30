@@ -432,7 +432,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $deployment = $this->getDeployment();
 
         $metricKeys = [
-            'assoc_type', 'assoc_id', 'day', 'country_id', 'region', 'city', 'file_type', 'metric', 'metric_type', 'load_id'
+            'assoc_type', 'day', 'country_id', 'region', 'city', 'file_type', 'metric', 'metric_type', 'load_id'
         ];
 
         for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
@@ -440,6 +440,28 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 $record = [];
                 foreach ($metricKeys as $key) {
                     $record[$key] = $childNode->getAttribute($key);
+                }
+                $oldAssocId = $childNode->getAttribute('assoc_id');
+                switch ($record['assoc_type']) {
+                    case ASSOC_TYPE_SUBMISSION_FILE:
+                    case ASSOC_TYPE_SUBMISSION_FILE_COUNTER_OTHER:
+                        $record['assoc_id'] = $deployment->getSubmissionFileDBId($oldAssocId);
+                        break;
+                    case ASSOC_TYPE_REPRESENTATION:
+                        $record['assoc_id'] = $oldAssocId;
+                        break;
+                    case ASSOC_TYPE_SUBMISSION:
+                        $record['assoc_id'] = $deployment->getSubmissionDBId($oldAssocId);
+                        break;
+                    case Application::getContextAssocType():
+                        $record['assoc_id'] = $journal->getId();
+                        break;
+                    case ASSOC_TYPE_ISSUE_GALLEY:
+                        $record['assoc_id'] = $oldAssocId;
+                        break;
+                    case ASSOC_TYPE_ISSUE:
+                        $record['assoc_id'] = $oldAssocId;
+                        break;
                 }
                 $metricsDAO = DAORegistry::getDAO('MetricsDAO');
                 $metricsDAO->insertRecord($record);
