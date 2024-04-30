@@ -29,8 +29,14 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'navigation_menu_item_assignments',
             'navigation_menu_item_assignment_settings',
             'sections', 'section_settings',
-            'genres', 'genre_settings'
+            'genres', 'genre_settings',
+            'metrics'
         ];
+    }
+
+    protected function getMockedDAOs()
+    {
+        return ['MetricsDAO'];
     }
 
     private function setJournalAttributeData($journal)
@@ -349,6 +355,50 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         ];
 
         $this->assertEquals($expectedIssueData, $issue->_data);
+    }
+
+    public function testParseMetrics()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+
+        $journal = new Journal();
+        $journal->setId(rand(1, 500));
+
+        $mockMetricsDAO = $this->getMockBuilder(MetricsDAO::class)
+            ->setMethods(['foreignKeyLookup'])
+            ->getMock();
+
+        $mockMetricsDAO->expects($this->any())
+            ->method('foreignKeyLookup')
+            ->will($this->returnValue([$journal->getId(), null, null, null, null, null]));
+
+        DAORegistry::registerDAO('MetricsDAO', $mockMetricsDAO);
+
+        $doc = $this->getSampleXml('journal.xml');
+        $metricsNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'metrics');
+
+        $journalImportFilter->parseMetrics($metricsNodeList->item(0), $journal);
+
+        $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $metrics = $metricsDAO->getByContextId($journal->getId());
+
+        $expectedMetrics = [
+            [
+                'assoc_type' => ASSOC_TYPE_SUBMISSION_FILE,
+                'assoc_id' => 94,
+                'day' => '20240101',
+                'country_id' => 'BR',
+                'region' => 27,
+                'city' => 'São Paulo',
+                'file_type' => STATISTICS_FILE_TYPE_PDF,
+                'metric' => 2,
+                'metric_type' => OJS_METRIC_TYPE_COUNTER,
+                'load_id' => 'usage_events_20240101.log'
+            ]
+        ];
+
+        $this->assertEquals($expectedMetrics, $metrics);
     }
 
     public function testHandleJournalElement()

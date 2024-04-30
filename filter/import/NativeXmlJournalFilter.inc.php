@@ -427,6 +427,26 @@ class NativeXmlJournalFilter extends NativeImportFilter
         return $importFilter->execute($articleDoc);
     }
 
+    public function parseMetrics($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $metricKeys = [
+            'assoc_type', 'assoc_id', 'day', 'country_id', 'region', 'city', 'file_type', 'metric', 'metric_type', 'load_id'
+        ];
+
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement') && $childNode->tagName  === 'metric') {
+                $record = [];
+                foreach ($metricKeys as $key) {
+                    $record[$key] = $childNode->getAttribute($key);
+                }
+                $metricsDAO = DAORegistry::getDAO('MetricsDAO');
+                $metricsDAO->insertRecord($record);
+            }
+        }
+    }
+
     private function getSimpleJournalNodeMapping()
     {
         return [
