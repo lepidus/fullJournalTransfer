@@ -129,6 +129,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
             'extended_issues' => 'parseIssues',
             'extended_issue' => 'parseIssue',
             'extended_articles' => 'parseArticles',
+            'metrics' => 'parseMetrics'
         ];
 
         if ($node instanceof DOMElement) {
