@@ -129,6 +129,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
             'extended_issues' => 'parseIssues',
             'extended_issue' => 'parseIssue',
             'extended_articles' => 'parseArticles',
+            'metrics' => 'parseMetrics'
         ];
 
         if ($node instanceof DOMElement) {
@@ -425,6 +426,48 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $articleDoc = new DOMDocument();
         $articleDoc->appendChild($articleDoc->importNode($node, true));
         return $importFilter->execute($articleDoc);
+    }
+
+    public function parseMetrics($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $metricKeys = [
+            'assoc_type', 'day', 'country_id', 'region', 'city', 'file_type', 'metric', 'metric_type', 'load_id'
+        ];
+
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement') && $childNode->tagName  === 'metric') {
+                $record = [];
+                foreach ($metricKeys as $key) {
+                    $record[$key] = $childNode->getAttribute($key);
+                }
+                $oldAssocId = $childNode->getAttribute('assoc_id');
+                switch ($record['assoc_type']) {
+                    case ASSOC_TYPE_SUBMISSION_FILE:
+                    case ASSOC_TYPE_SUBMISSION_FILE_COUNTER_OTHER:
+                        $record['assoc_id'] = $deployment->getSubmissionFileDBId($oldAssocId);
+                        break;
+                    case ASSOC_TYPE_REPRESENTATION:
+                        $record['assoc_id'] = $deployment->getRepresentationDBId($oldAssocId);
+                        break;
+                    case ASSOC_TYPE_SUBMISSION:
+                        $record['assoc_id'] = $deployment->getSubmissionDBId($oldAssocId);
+                        break;
+                    case Application::getContextAssocType():
+                        $record['assoc_id'] = $journal->getId();
+                        break;
+                    case ASSOC_TYPE_ISSUE_GALLEY:
+                        $record['assoc_id'] = $deployment->getIssueGalleyDBId($oldAssocId);
+                        break;
+                    case ASSOC_TYPE_ISSUE:
+                        $record['assoc_id'] = $deployment->getIssueDBId($oldAssocId);
+                        break;
+                }
+                $metricsDAO = DAORegistry::getDAO('MetricsDAO');
+                $metricsDAO->insertRecord($record);
+            }
+        }
     }
 
     private function getSimpleJournalNodeMapping()

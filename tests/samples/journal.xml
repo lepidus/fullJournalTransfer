@@ -112,4 +112,7 @@
         <extended_articles xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
     </extended_issue>
     <extended_articles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd"/>
+    <metrics>
+        <metric assoc_type="515" assoc_id="94" day="20240101" metric="2" metric_type="ojs::counter" load_id="usage_events_20240101.log" country_id="BR" region="27" city="S&#xE3;o Paulo" file_type="2"/>
+    </metrics>
 </journal>

@@ -29,8 +29,27 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'navigation_menu_item_assignments',
             'navigation_menu_item_assignment_settings',
             'sections', 'section_settings',
-            'genres', 'genre_settings'
+            'genres', 'genre_settings',
+            'metrics'
         ];
+    }
+
+    protected function getMockedDAOs()
+    {
+        return ['MetricsDAO'];
+    }
+
+    private function registerMockMetricsDAO($journal)
+    {
+        $mockMetricsDAO = $this->getMockBuilder(MetricsDAO::class)
+            ->setMethods(['foreignKeyLookup'])
+            ->getMock();
+
+        $mockMetricsDAO->expects($this->any())
+            ->method('foreignKeyLookup')
+            ->will($this->returnValue([$journal->getId() ?? rand(1, 100), null, null, null, null, null]));
+
+        DAORegistry::registerDAO('MetricsDAO', $mockMetricsDAO);
     }
 
     private function setJournalAttributeData($journal)
@@ -150,6 +169,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
     {
         $journalImportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalImportFilter->getDeployment();
+        $deployment->setSubmissionFileDBId(94, 102);
 
         $expectedJournal = new Journal();
         $this->setJournalSimpleNodeData($expectedJournal);
@@ -163,6 +183,9 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $actualJournal = new Journal();
         for ($n = $journalNode->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement')) {
+                if ($n->tagName == 'metrics') {
+                    $this->registerMockMetricsDAO($actualJournal);
+                }
                 $journalImportFilter->handleChildElement($n, $actualJournal);
             }
         }
@@ -320,7 +343,6 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journal->setId(rand());
         $deployment->setContext($journal);
 
-
         $doc = $this->getSampleXml('journal.xml');
         $issueNodeList = $doc->getElementsByTagNameNS(
             $deployment->getNamespace(),
@@ -351,10 +373,48 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $this->assertEquals($expectedIssueData, $issue->_data);
     }
 
+    public function testParseMetrics()
+    {
+        $journalImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $journalImportFilter->getDeployment();
+        $deployment->setSubmissionFileDBId(94, 102);
+
+        $journal = new Journal();
+        $journal->setId(rand(1, 500));
+
+        $this->registerMockMetricsDAO($journal);
+
+        $doc = $this->getSampleXml('journal.xml');
+        $metricsNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'metrics');
+
+        $journalImportFilter->parseMetrics($metricsNodeList->item(0), $journal);
+
+        $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $metrics = $metricsDAO->getByContextId($journal->getId());
+
+        $expectedMetrics = [
+            [
+                'assoc_type' => ASSOC_TYPE_SUBMISSION_FILE,
+                'assoc_id' => 102,
+                'day' => '20240101',
+                'country_id' => 'BR',
+                'region' => 27,
+                'city' => 'São Paulo',
+                'file_type' => STATISTICS_FILE_TYPE_PDF,
+                'metric' => 2,
+                'metric_type' => OJS_METRIC_TYPE_COUNTER,
+                'load_id' => 'usage_events_20240101.log'
+            ]
+        ];
+
+        $this->assertEquals($expectedMetrics, $metrics);
+    }
+
     public function testHandleJournalElement()
     {
         $journalImportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalImportFilter->getDeployment();
+        $deployment->setSubmissionFileDBId(94, 102);
         $deployment->isTestEnv = true;
 
         $journal = new Journal();
@@ -364,6 +424,8 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $this->setJournalLocalesNodeData($journal);
         $this->setJournalChecklistNodeData($journal);
         $expectedJournalData = $journal->_data;
+
+        $this->registerMockMetricsDAO($journal);
 
         $doc = $this->getSampleXml('journal.xml');
         $journalNode = $doc->documentElement;

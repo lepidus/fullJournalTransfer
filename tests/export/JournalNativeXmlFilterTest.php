@@ -1,9 +1,12 @@
 <?php
 
-import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
-import('plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter');
-import('lib.pkp.plugins.importexport.users.PKPUserImportExportDeployment');
 import('lib.pkp.classes.plugins.Plugin');
+import('lib.pkp.plugins.importexport.users.PKPUserImportExportDeployment');
+import('plugins.generic.usageStats.OJSUsageStatsReportPlugin');
+import('plugins.importexport.fullJournalTransfer.classes.FullJournalMetricsDAO');
+import('plugins.importexport.fullJournalTransfer.filter.export.JournalNativeXmlFilter');
+import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
+
 
 class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 {
@@ -15,9 +18,11 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'user_groups', 'user_interests',
             'user_settings', 'user_user_groups',
             'users', 'sections', 'section_settings',
-            'submissions', 'submission_settings', 'publications', 'publication_settings'
+            'submissions', 'submission_settings', 'publications', 'publication_settings',
+            'metrics'
         ];
     }
+
     protected function getSymbolicFilterGroup()
     {
         return 'journal=>native-xml';
@@ -36,7 +41,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             'NavigationMenuItemAssignmentDAO',
             'SectionDAO',
             'SubmissionDAO',
-            'IssueDAO'
+            'IssueDAO',
         ];
     }
 
@@ -146,6 +151,33 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
             ->will($this->returnValue([]));
 
         DAORegistry::registerDAO('SectionDAO', $mockDAO);
+    }
+
+    private function insertTestMetrics($journal)
+    {
+        $metric = [
+            'context_id' => $journal->getId(),
+            'assoc_type' => ASSOC_TYPE_SUBMISSION_FILE,
+            'assoc_id' => 94,
+            'day' => '20240101',
+            'country_id' => 'BR',
+            'region' => 27,
+            'city' => 'São Paulo',
+            'file_type' => STATISTICS_FILE_TYPE_PDF,
+            'metric' => 2,
+            'metric_type' => OJS_METRIC_TYPE_COUNTER,
+            'load_id' => 'usage_events_20240101.log'
+        ];
+        $params = array_values($metric);
+
+        $metricsDAO = new FullJournalMetricsDAO();
+        $metricsDAO->update(
+            'INSERT INTO metrics
+            (context_id, assoc_type, assoc_id, day, country_id, region, city, file_type, metric, metric_type, load_id)
+            VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            $params
+        );
     }
 
     private function getUsersExportFilter($journal)
@@ -831,30 +863,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
-        $mockMetricsDAO = $this->getMockBuilder(FullJournalMetricsDAO::class)
-            ->setMethods(['getByContextId'])
-            ->getMock();
-
-        $metrics = [
-            [
-                'assoc_type' => ASSOC_TYPE_SUBMISSION_FILE,
-                'assoc_id' => 94,
-                'day' => '20240101',
-                'country_id' => 'BR',
-                'region' => 27,
-                'city' => 'São Paulo',
-                'file_type' => STATISTICS_FILE_TYPE_PDF,
-                'metric' => 2,
-                'metric_type' => OJS_METRIC_TYPE_COUNTER,
-                'load_id' => 'usage_events_20240101.log'
-            ]
-        ];
-
-        $mockMetricsDAO->expects($this->any())
-            ->method('getByContextId')
-            ->will($this->returnValue($metrics));
-
-        DAORegistry::registerDAO('FullJournalMetricsDAO', $mockMetricsDAO);
+        $this->insertTestMetrics($journal);
 
         $expectedJournalNode = $doc->createElementNS($deployment->getNamespace(), 'journal');
         $expectedJournalNode->appendChild($metricsNode = $doc->createElementNS($deployment->getNamespace(), 'metrics'));
@@ -1069,8 +1078,8 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $this->registerMockSectionDAO();
         $this->registerMockIssues();
         $this->createUsersAndUserGroups($journal);
-
         $this->createSubmission();
+        $this->insertTestMetrics($journal);
 
         $doc = $journalExportFilter->execute($journal);
 

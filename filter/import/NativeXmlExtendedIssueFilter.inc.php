@@ -19,6 +19,26 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
         return 'extended_issue';
     }
 
+    public function handleElement($node)
+    {
+        $issue = parent::handleElement($node);
+        $deployment = $this->getDeployment();
+
+        if ($issue) {
+            for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                if (
+                    is_a($childNode, 'DOMElement')
+                    && $childNode->tagName == 'id'
+                    && $childNode->getAttribute('type') == 'internal'
+                ) {
+                    $deployment->setIssueDBId($childNode->textContent, $issue->getId());
+                }
+            }
+        }
+
+        return $issue;
+    }
+
     public function handleChildElement($node, $issue, $processOnlyChildren)
     {
         $deployment = $this->getDeployment();
@@ -103,5 +123,26 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
         $articleDoc = new DOMDocument('1.0', 'utf-8');
         $articleDoc->appendChild($articleDoc->importNode($node, true));
         return $importFilter->execute($articleDoc);
+    }
+
+    public function parseIssueGalley($n, $issue)
+    {
+        $deployment = $this->getDeployment();
+        $importedObjects = parent::parseIssueGalley($n, $issue);
+
+        $issueGalley = array_shift($importedObjects);
+        if (is_a($issueGalley, 'IssueGalley')) {
+            for ($childNode = $n->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                if (
+                    is_a($childNode, 'DOMElement')
+                    && $childNode->tagName == 'id'
+                    && $childNode->getAttribute('type') == 'internal'
+                ) {
+                    $deployment->setIssueGalleyDBId($childNode->textContent, $issueGalley->getId());
+                }
+            }
+        }
+
+        return $importedObjects;
     }
 }

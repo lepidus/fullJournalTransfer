@@ -9,6 +9,24 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter';
     }
 
+    public function handleElement($node)
+    {
+        $submission = parent::handleElement($node);
+        $deployment = $this->getDeployment();
+
+        if ($submission) {
+            for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                if (
+                    is_a($childNode, 'DOMElement')
+                    && $childNode->tagName == 'id'
+                    && $childNode->getAttribute('type') == 'internal'
+                ) {
+                    $deployment->setSubmissionDBId($childNode->textContent, $submission->getId());
+                }
+            }
+        }
+    }
+
     public function handleChildElement($node, $submission)
     {
         if ($node->tagName === 'stage') {
@@ -349,5 +367,19 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewRoundFileDoc = new DOMDocument('1.0', 'utf-8');
         $reviewRoundFileDoc->appendChild($reviewRoundFileDoc->importNode($node, true));
         return $importFilter->execute($reviewRoundFileDoc);
+    }
+
+    public function getImportFilter($elementName)
+    {
+        if ($elementName == 'publication') {
+            $importClass = 'extended-publication';
+
+            $filterDao = DAORegistry::getDAO('FilterDAO');
+            $importFilters = $filterDao->getObjectsByGroup('native-xml=>' . $importClass);
+            $importFilter = array_shift($importFilters);
+            return $importFilter;
+        }
+
+        return parent::getImportFilter($elementName);
     }
 }

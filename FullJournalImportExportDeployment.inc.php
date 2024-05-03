@@ -17,6 +17,10 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $navigationMenuItemDBIds;
     private $reviewFormDBIds;
     private $reviewFormElementDBIds;
+    private $representationDBIds;
+    private $issueDBIds;
+    private $issueGalleyDBIds;
+    private $submissionDBIds;
 
     public function __construct($context, $user = null)
     {
@@ -24,6 +28,10 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         $this->setNavigationMenuItemDBIds([]);
         $this->setReviewFormDBIds([]);
         $this->setReviewFormElementDBIds([]);
+        $this->setRepresentationDBIds([]);
+        $this->setIssueDBIds([]);
+        $this->setIssueGalleyDBIds([]);
+        $this->setSubmissionDBIds([]);
     }
 
     public function getSchemaFilename()
@@ -188,5 +196,97 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function setReviewFormElementDBId($reviewFormElementDBId, $DBId)
     {
         return $this->reviewFormElementDBIds[$reviewFormElementDBId] = $DBId;
+    }
+
+    public function getRepresentationDBIds()
+    {
+        return $this->representationDBIds;
+    }
+
+    public function setRepresentationDBIds($representationDBIds)
+    {
+        return $this->representationDBIds = $representationDBIds;
+    }
+
+    public function getRepresentationDBId($representationDBId)
+    {
+        if (array_key_exists($representationDBId, $this->representationDBIds)) {
+            return $this->representationDBIds[$representationDBId];
+        }
+        return null;
+    }
+
+    public function setRepresentationDBId($representationDBId, $DBId)
+    {
+        return $this->representationDBIds[$representationDBId] = $DBId;
+    }
+
+    public function getIssueDBIds()
+    {
+        return $this->issueDBIds;
+    }
+
+    public function setIssueDBIds($issueDBIds)
+    {
+        return $this->issueDBIds = $issueDBIds;
+    }
+
+    public function getIssueDBId($issueDBId)
+    {
+        if (array_key_exists($issueDBId, $this->issueDBIds)) {
+            return $this->issueDBIds[$issueDBId];
+        }
+        return null;
+    }
+
+    public function setIssueDBId($issueDBId, $DBId)
+    {
+        return $this->issueDBIds[$issueDBId] = $DBId;
+    }
+
+    public function getIssueGalleyDBIds()
+    {
+        return $this->issueGalleyDBIds;
+    }
+
+    public function setIssueGalleyDBIds($issueGalleyDBIds)
+    {
+        return $this->issueGalleyDBIds = $issueGalleyDBIds;
+    }
+
+    public function getIssueGalleyDBId($issueGalleyDBId)
+    {
+        if (array_key_exists($issueGalleyDBId, $this->issueGalleyDBIds)) {
+            return $this->issueGalleyDBIds[$issueGalleyDBId];
+        }
+        return null;
+    }
+
+    public function setIssueGalleyDBId($issueGalleyDBId, $DBId)
+    {
+        return $this->issueGalleyDBIds[$issueGalleyDBId] = $DBId;
+    }
+
+    public function getSubmissionDBIds()
+    {
+        return $this->submissionDBIds;
+    }
+
+    public function setSubmissionDBIds($submissionDBIds)
+    {
+        return $this->submissionDBIds = $submissionDBIds;
+    }
+
+    public function getSubmissionDBId($submissionDBId)
+    {
+        if (array_key_exists($submissionDBId, $this->submissionDBIds)) {
+            return $this->submissionDBIds[$submissionDBId];
+        }
+        return null;
+    }
+
+    public function setSubmissionDBId($submissionDBId, $DBId)
+    {
+        return $this->submissionDBIds[$submissionDBId] = $DBId;
     }
 }
