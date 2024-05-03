@@ -29,6 +29,32 @@ class NativeXmlUserFilter extends UserXmlPKPUserFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlUserFilter';
     }
 
+    public function parseUser($node)
+    {
+        $user = parent::parseUser($node);
+
+        $userDao = DAORegistry::getDAO('UserDAO');
+        $userByEmail = $userDao->getUserByEmail($user->getEmail(), true);
+
+        if ($userByEmail) {
+            $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+            $userGroupsFactory = $userGroupDao->getByContextId($context->getId());
+            $userGroups = $userGroupsFactory->toArray();
+
+            $userGroupNodeList = $node->getElementsByTagNameNS($deployment->getNamespace(), 'user_group_ref');
+            if ($userGroupNodeList->length > 0) {
+                for ($i = 0; $i < $userGroupNodeList->length; $i++) {
+                    $n = $userGroupNodeList->item($i);
+                    foreach ($userGroups as $userGroup) {
+                        if (in_array($n->textContent, $userGroup->getName(null))) {
+                            $userGroupDao->assignUserToGroup($userId, $userGroup->getId());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public function importUserPasswordValidation($userToImport, $encryption)
     {
         $password = parent::importUserPasswordValidation($userToImport, $encryption);
