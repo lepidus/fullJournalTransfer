@@ -32,6 +32,8 @@ class NativeXmlUserFilter extends UserXmlPKPUserFilter
     public function parseUser($node)
     {
         $user = parent::parseUser($node);
+        $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
 
         $userDao = DAORegistry::getDAO('UserDAO');
         $userByEmail = $userDao->getUserByEmail($user->getEmail(), true);
@@ -47,12 +49,13 @@ class NativeXmlUserFilter extends UserXmlPKPUserFilter
                     $n = $userGroupNodeList->item($i);
                     foreach ($userGroups as $userGroup) {
                         if (in_array($n->textContent, $userGroup->getName(null))) {
-                            $userGroupDao->assignUserToGroup($userId, $userGroup->getId());
+                            $userGroupDao->assignUserToGroup($userByEmail->getId(), $userGroup->getId());
                         }
                     }
                 }
             }
         }
+        return $user;
     }
 
     public function importUserPasswordValidation($userToImport, $encryption)
