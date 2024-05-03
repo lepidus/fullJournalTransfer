@@ -431,6 +431,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseMetrics($node, $journal)
     {
         $deployment = $this->getDeployment();
+        echo __('plugins.importexport.fullJournal.importingMetrics') . "\n";
 
         $metricKeys = [
             'assoc_type', 'day', 'country_id', 'region', 'city', 'file_type', 'metric', 'metric_type', 'load_id'
@@ -465,7 +466,18 @@ class NativeXmlJournalFilter extends NativeImportFilter
                         break;
                 }
                 $metricsDAO = DAORegistry::getDAO('MetricsDAO');
-                $metricsDAO->insertRecord($record);
+                try {
+                    $metricsDAO->insertRecord($record);
+                } catch (Exception $e) {
+                    $deployment->addWarning(
+                        ASSOC_TYPE_JOURNAL,
+                        $journal->getId(),
+                        __(
+                            'plugins.importexport.fullJournal.error.metric',
+                            ['reason' => $e->getMessage()]
+                        )
+                    );
+                }
             }
         }
     }

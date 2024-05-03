@@ -47,8 +47,14 @@ msgstr "Importing issues..."
 msgid "plugins.importexport.fullJournal.importingArticles"
 msgstr "Importing articles..."
 
+msgid "plugins.importexport.fullJournal.importingMetrics"
+msgstr "Importing metrics..."
+
 msgid "plugins.importexport.fullJournal.importCompleted"
 msgstr "Import completed successfully"
 
 msgid "plugins.importexport.fullJournal.error.userNotFound"
 msgstr "User with email {$email} is not present on the site."
+
+msgid "plugins.importexport.fullJournal.error.metric"
+msgstr "Failed to import metric. {$reason}"

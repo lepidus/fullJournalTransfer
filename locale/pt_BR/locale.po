@@ -47,8 +47,14 @@ msgstr "Importando edições..."
 msgid "plugins.importexport.fullJournal.importingArticles"
 msgstr "Importando artigos..."
 
+msgid "plugins.importexport.fullJournal.importingMetrics"
+msgstr "Importando métricas..."
+
 msgid "plugins.importexport.fullJournal.importCompleted"
 msgstr "Importação concluída com sucesso"
 
 msgid "plugins.importexport.fullJournal.error.userNotFound"
 msgstr "Usuário com email {$email} não está presente no site."
+
+msgid "plugins.importexport.fullJournal.error.metric"
+msgstr "Falha ao importar a métrica. {$reason}"
