@@ -124,4 +124,22 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
         $articleDoc->appendChild($articleDoc->importNode($node, true));
         return $importFilter->execute($articleDoc);
     }
+
+    public function parseIssueGalley($n, $issue)
+    {
+        $importedObjects = parent::parseIssueGalley($n, $issue);
+        $issueGalley = array_shift($importedObjects);
+        if (is_a($issueGalley, 'IssueGalley')) {
+            for ($childNode = $n->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                if (
+                    is_a($childNode, 'DOMElement')
+                    && $childNode->tagName == 'id'
+                    && $childNode->getAttribute('type') == 'internal'
+                ) {
+                    $deployment->setIssueGalleyDBId($childNode->textContent, $issueGalley->getId());
+                }
+            }
+        }
+        return $importedObjects;
+    }
 }

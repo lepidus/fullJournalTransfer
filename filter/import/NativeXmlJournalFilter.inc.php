@@ -458,7 +458,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
                         $record['assoc_id'] = $journal->getId();
                         break;
                     case ASSOC_TYPE_ISSUE_GALLEY:
-                        $record['assoc_id'] = $oldAssocId;
+                        $record['assoc_id'] = $deployment->getIssueGalleyDBId($oldAssocId);
                         break;
                     case ASSOC_TYPE_ISSUE:
                         $record['assoc_id'] = $deployment->getIssueDBId($oldAssocId);

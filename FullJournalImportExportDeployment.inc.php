@@ -19,6 +19,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $reviewFormElementDBIds;
     private $representationDBIds;
     private $issueDBIds;
+    private $issueGalleyDBIds;
 
     public function __construct($context, $user = null)
     {
@@ -28,6 +29,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         $this->setReviewFormElementDBIds([]);
         $this->setRepresentationDBIds([]);
         $this->setIssueDBIds([]);
+        $this->setIssueGalleyDBIds([]);
     }
 
     public function getSchemaFilename()
@@ -238,5 +240,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function setIssueDBId($issueDBId, $DBId)
     {
         return $this->issueDBIds[$issueDBId] = $DBId;
+    }
+
+    public function getIssueGalleyDBIds()
+    {
+        return $this->issueGalleyDBIds;
+    }
+
+    public function setIssueGalleyDBIds($issueGalleyDBIds)
+    {
+        return $this->issueGalleyDBIds = $issueGalleyDBIds;
+    }
+
+    public function getIssueGalleyDBId($issueGalleyDBId)
+    {
+        if (array_key_exists($issueGalleyDBId, $this->issueGalleyDBIds)) {
+            return $this->issueGalleyDBIds[$issueGalleyDBId];
+        }
+        return null;
+    }
+
+    public function setIssueGalleyDBId($issueGalleyDBId, $DBId)
+    {
+        return $this->issueGalleyDBIds[$issueGalleyDBId] = $DBId;
     }
 }
