@@ -22,11 +22,15 @@ class NativeXmlExtendedPublicationFilter extends NativeXmlPublicationFilter
         if ($n->tagName == 'article_galley') {
             $articleGalleys = $this->parseArticleGalley($n, $publication);
             $articleGalley = array_shift($articleGalleys);
-            $articleGalleyIdNodeList = $n->getElementsByTagNameNS($deployment->getNamespace(), 'id');
-            for ($i = 0; $i < $articleGalleyIdNodeList->count(); $i++) {
-                $articleGalleyIdNode = $articleGalleyIdNodeList->item($i);
-                if ($articleGalleyIdNode->getAttribute('type') == 'internal') {
-                    $deployment->setRepresentationDBId($articleGalleyIdNode->textContent, $articleGalley->getId());
+            if (is_a($articleGalley, 'ArticleGalley')) {
+                for ($childNode = $n->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                    if (
+                        is_a($childNode, 'DOMElement')
+                        && $childNode->tagName == 'id'
+                        && $childNode->getAttribute('type') == 'internal'
+                    ) {
+                        $deployment->setRepresentationDBId($childNode->textContent, $articleGalley->getId());
+                    }
                 }
             }
             return;
