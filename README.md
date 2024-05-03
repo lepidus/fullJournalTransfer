@@ -60,9 +60,6 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 - Stage Assignments
 - Editor Decisions
 - Discussions
-
-**To Do**:
-
 - Metrics
 
 ## Running Tests
