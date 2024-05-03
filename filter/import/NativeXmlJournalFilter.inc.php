@@ -393,7 +393,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
         if ($issue = $deployment->getCurrentIssue()) {
             $issueDao = DAORegistry::getDAO('IssueDAO');
-            $issueDao->updateCurrent($journal->setId(), $issue);
+            $issueDao->updateCurrent($journal->getId(), $issue);
         }
     }
 
