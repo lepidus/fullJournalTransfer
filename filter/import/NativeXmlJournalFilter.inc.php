@@ -449,7 +449,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
                         $record['assoc_id'] = $deployment->getSubmissionFileDBId($oldAssocId);
                         break;
                     case ASSOC_TYPE_REPRESENTATION:
-                        $record['assoc_id'] = $oldAssocId;
+                        $record['assoc_id'] = $deployment->getRepresentationDBId($oldAssocId);
                         break;
                     case ASSOC_TYPE_SUBMISSION:
                         $record['assoc_id'] = $deployment->getSubmissionDBId($oldAssocId);

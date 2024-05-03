@@ -17,6 +17,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $navigationMenuItemDBIds;
     private $reviewFormDBIds;
     private $reviewFormElementDBIds;
+    private $representationDBIds;
 
     public function __construct($context, $user = null)
     {
@@ -24,6 +25,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         $this->setNavigationMenuItemDBIds([]);
         $this->setReviewFormDBIds([]);
         $this->setReviewFormElementDBIds([]);
+        $this->setRepresentationDBIds([]);
     }
 
     public function getSchemaFilename()
@@ -188,5 +190,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function setReviewFormElementDBId($reviewFormElementDBId, $DBId)
     {
         return $this->reviewFormElementDBIds[$reviewFormElementDBId] = $DBId;
+    }
+
+    public function getRepresentationDBIds()
+    {
+        return $this->representationDBIds;
+    }
+
+    public function setRepresentationDBIds($representationDBIds)
+    {
+        return $this->representationDBIds = $representationDBIds;
+    }
+
+    public function getRepresentationDBId($representationDBId)
+    {
+        if (array_key_exists($representationDBId, $this->representationDBIds)) {
+            return $this->representationDBIds[$representationDBId];
+        }
+        return null;
+    }
+
+    public function setRepresentationDBId($representationDBId, $DBId)
+    {
+        return $this->representationDBIds[$representationDBId] = $DBId;
     }
 }

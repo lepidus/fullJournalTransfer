@@ -350,4 +350,18 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewRoundFileDoc->appendChild($reviewRoundFileDoc->importNode($node, true));
         return $importFilter->execute($reviewRoundFileDoc);
     }
+
+    public function getImportFilter($elementName)
+    {
+        if ($elementName == 'publication') {
+            $importClass = 'extended-publication';
+
+            $filterDao = DAORegistry::getDAO('FilterDAO');
+            $importFilters = $filterDao->getObjectsByGroup('native-xml=>' . $importClass);
+            $importFilter = array_shift($importFilters);
+            return $importFilter;
+        }
+
+        return parent::getImportFilter($elementName);
+    }
 }
