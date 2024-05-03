@@ -127,7 +127,9 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
 
     public function parseIssueGalley($n, $issue)
     {
+        $deployment = $this->getDeployment();
         $importedObjects = parent::parseIssueGalley($n, $issue);
+
         $issueGalley = array_shift($importedObjects);
         if (is_a($issueGalley, 'IssueGalley')) {
             for ($childNode = $n->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
@@ -140,6 +142,7 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
                 }
             }
         }
+
         return $importedObjects;
     }
 }

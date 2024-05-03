@@ -20,6 +20,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $representationDBIds;
     private $issueDBIds;
     private $issueGalleyDBIds;
+    private $submissionDBIds;
 
     public function __construct($context, $user = null)
     {
@@ -30,6 +31,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         $this->setRepresentationDBIds([]);
         $this->setIssueDBIds([]);
         $this->setIssueGalleyDBIds([]);
+        $this->setSubmissionDBIds([]);
     }
 
     public function getSchemaFilename()
@@ -263,5 +265,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function setIssueGalleyDBId($issueGalleyDBId, $DBId)
     {
         return $this->issueGalleyDBIds[$issueGalleyDBId] = $DBId;
+    }
+
+    public function getSubmissionDBIds()
+    {
+        return $this->submissionDBIds;
+    }
+
+    public function setSubmissionDBIds($submissionDBIds)
+    {
+        return $this->submissionDBIds = $submissionDBIds;
+    }
+
+    public function getSubmissionDBId($submissionDBId)
+    {
+        if (array_key_exists($submissionDBId, $this->submissionDBIds)) {
+            return $this->submissionDBIds[$submissionDBId];
+        }
+        return null;
+    }
+
+    public function setSubmissionDBId($submissionDBId, $DBId)
+    {
+        return $this->submissionDBIds[$submissionDBId] = $DBId;
     }
 }

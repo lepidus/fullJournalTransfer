@@ -9,6 +9,24 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlExtendedArticleFilter';
     }
 
+    public function handleElement($node)
+    {
+        $submission = parent::handleElement($node);
+        $deployment = $this->getDeployment();
+
+        if ($submission) {
+            for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+                if (
+                    is_a($childNode, 'DOMElement')
+                    && $childNode->tagName == 'id'
+                    && $childNode->getAttribute('type') == 'internal'
+                ) {
+                    $deployment->setSubmissionDBId($childNode->textContent, $submission->getId());
+                }
+            }
+        }
+    }
+
     public function handleChildElement($node, $submission)
     {
         if ($node->tagName === 'stage') {
