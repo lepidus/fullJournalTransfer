@@ -14,6 +14,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private $reviewRound;
     private $reviewAssignment;
     private $note;
+    private $currentIssue;
     private $navigationMenuItemDBIds;
     private $reviewFormDBIds;
     private $reviewFormElementDBIds;
@@ -127,6 +128,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getNote()
     {
         return $this->note;
+    }
+
+    public function setCurrentIssue($currentIssue)
+    {
+        $this->currentIssue = $currentIssue;
+    }
+
+    public function getCurrentIssue()
+    {
+        return $this->currentIssue;
     }
 
     public function getNavigationMenuItemDBIds()

@@ -36,6 +36,10 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
             }
         }
 
+        if ($issue && $issue->getCurrent()) {
+            $deployment->setCurrentIssue($issue);
+        }
+
         return $issue;
     }
 
