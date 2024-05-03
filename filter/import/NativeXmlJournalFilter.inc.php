@@ -461,7 +461,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
                         $record['assoc_id'] = $oldAssocId;
                         break;
                     case ASSOC_TYPE_ISSUE:
-                        $record['assoc_id'] = $oldAssocId;
+                        $record['assoc_id'] = $deployment->getIssueDBId($oldAssocId);
                         break;
                 }
                 $metricsDAO = DAORegistry::getDAO('MetricsDAO');
