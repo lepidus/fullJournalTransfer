@@ -10,7 +10,7 @@
 <version>
 	<application>fullJournalTransfer</application>
 	<type>plugins.importexport</type>
-	<release>2.0.11.1</release>
-	<date>2024-05-03</date>
+	<release>2.0.11.2</release>
+	<date>2024-05-04</date>
     <class>FullJournalImportExportPlugin</class>
 </version>
