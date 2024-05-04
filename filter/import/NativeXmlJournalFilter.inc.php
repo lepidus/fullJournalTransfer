@@ -383,11 +383,17 @@ class NativeXmlJournalFilter extends NativeImportFilter
     public function parseIssues($node, $journal)
     {
         $deployment = $this->getDeployment();
+
         echo __('plugins.importexport.fullJournal.importingIssues') . "\n";
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_issue') {
                 $this->parseIssue($n, $journal);
             }
+        }
+
+        if ($issue = $deployment->getCurrentIssue()) {
+            $issueDao = DAORegistry::getDAO('IssueDAO');
+            $issueDao->updateCurrent($journal->getId(), $issue);
         }
     }
 
