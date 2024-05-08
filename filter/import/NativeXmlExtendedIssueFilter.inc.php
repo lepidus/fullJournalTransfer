@@ -21,8 +21,9 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
 
     public function handleElement($node)
     {
-        $issue = parent::handleElement($node);
         $deployment = $this->getDeployment();
+        $journal = $deployment->getContext();
+        $issue = parent::handleElement($node);
 
         if ($issue) {
             for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
@@ -34,10 +35,15 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
                     $deployment->setIssueDBId($childNode->textContent, $issue->getId());
                 }
             }
-        }
 
-        if ($issue && $issue->getCurrent()) {
-            $deployment->setCurrentIssue($issue);
+            if ($issue->getCurrent()) {
+                $deployment->setCurrentIssue($issue);
+            }
+
+            if ($seq = $node->getAttribute('order')) {
+                $issueDao = DAORegistry::getDAO('IssueDAO');
+                $issueDao->insertCustomIssueOrder($journal->getId(), $issue->getId(), $seq);
+            }
         }
 
         return $issue;
