@@ -42,7 +42,7 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
 
             if ($seq = $node->getAttribute('order')) {
                 $issueDao = DAORegistry::getDAO('IssueDAO');
-                $issueDao->insertCustomIssueOrder($journal->getId(), $issue->getId(), $seq);
+                $issueDao->moveCustomIssueOrder($journal->getId(), $issue->getId(), $seq);
             }
         }
 
