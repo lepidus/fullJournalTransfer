@@ -130,6 +130,7 @@
 		<attribute name="current" type="int" use="optional" />
 		<attribute name="access_status" type="int" use="optional" />
 		<attribute name="url_path" type="string" use="optional" />
+		<attribute name="order" type="int" use="optional" />
 	</complexType>
 
     <element name="extended_issues">

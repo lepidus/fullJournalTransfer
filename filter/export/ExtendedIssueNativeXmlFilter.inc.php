@@ -35,6 +35,7 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
     {
         $deployment = $this->getDeployment();
         $deployment->setIssue($issue);
+        $journal = $deployment->getContext();
 
         $issueNode = $doc->createElementNS($deployment->getNamespace(), 'extended_issue');
         $this->addIdentifiers($doc, $issueNode, $issue);
@@ -43,6 +44,12 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
         $issueNode->setAttribute('current', $issue->getCurrent());
         $issueNode->setAttribute('access_status', $issue->getAccessStatus());
         $issueNode->setAttribute('url_path', $issue->getData('urlPath'));
+
+        $issueDAO = DAORegistry::getDAO('IssueDAO');
+        $issueOrder = $issueDAO->getCustomIssueOrder($journal->getId(), $issue->getId());
+        if ($issueOrder) {
+            $issueNode->setAttribute('order', $issueOrder);
+        }
 
         $this->createLocalizedNodes($doc, $issueNode, 'description', $issue->getDescription(null));
         import('plugins.importexport.native.filter.NativeFilterHelper');
