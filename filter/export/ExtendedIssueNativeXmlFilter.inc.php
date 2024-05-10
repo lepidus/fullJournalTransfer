@@ -15,6 +15,7 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
         $deployment = $this->getDeployment();
+        $journal = $deployment->getContext();
 
         if (count($issues) == 1) {
             $rootNode = $this->createIssueNode($doc, $issues[0]);
@@ -24,6 +25,14 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
                 $rootNode->appendChild($this->createIssueNode($doc, $issue));
             }
         }
+
+        $issueDao = DAORegistry::getDAO('IssueDAO');
+        if ($issueDao->customIssueOrderingExists($journal->getId())) {
+            foreach ($issues as $issue) {
+                $rootNode->appendChild($this->createCustomOrderNode($doc, $issue, $journal));
+            }
+        }
+
         $doc->appendChild($rootNode);
         $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
         $rootNode->setAttribute('xsi:schemaLocation', $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename());
@@ -44,12 +53,6 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
         $issueNode->setAttribute('current', $issue->getCurrent());
         $issueNode->setAttribute('access_status', $issue->getAccessStatus());
         $issueNode->setAttribute('url_path', $issue->getData('urlPath'));
-
-        $issueDAO = DAORegistry::getDAO('IssueDAO');
-        $issueOrder = $issueDAO->getCustomIssueOrder($journal->getId(), $issue->getId());
-        if ($issueOrder) {
-            $issueNode->setAttribute('order', $issueOrder);
-        }
 
         $this->createLocalizedNodes($doc, $issueNode, 'description', $issue->getDescription(null));
         import('plugins.importexport.native.filter.NativeFilterHelper');
@@ -99,5 +102,18 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
             $clone = $doc->importNode($articlesDoc->documentElement, true);
             $issueNode->appendChild($clone);
         }
+    }
+
+    public function createCustomOrderNode($doc, $issue, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $issueDao = DAORegistry::getDAO('IssueDAO');
+        $order = $issueDao->getCustomIssueOrder($journal->getId(), $issue->getId());
+
+        $customOrderNode = $doc->createElementNS($deployment->getNamespace(), 'custom_order', $order);
+        $customOrderNode->setAttribute('id', $issue->getId());
+
+        return $customOrderNode;
     }
 }

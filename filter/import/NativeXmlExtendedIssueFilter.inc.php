@@ -39,11 +39,6 @@ class NativeXmlExtendedIssueFilter extends NativeXmlIssueFilter
             if ($issue->getCurrent()) {
                 $deployment->setCurrentIssue($issue);
             }
-
-            if ($seq = $node->getAttribute('order')) {
-                $issueDao = DAORegistry::getDAO('IssueDAO');
-                $issueDao->moveCustomIssueOrder($journal->getId(), $issue->getId(), $seq);
-            }
         }
 
         return $issue;

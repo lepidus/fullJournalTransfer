@@ -386,8 +386,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
         echo __('plugins.importexport.fullJournal.importingIssues') . "\n";
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
-            if (is_a($n, 'DOMElement') && $n->tagName  === 'extended_issue') {
-                $this->parseIssue($n, $journal);
+            if (is_a($n, 'DOMElement')) {
+                if ($n->tagName  === 'extended_issue') {
+                    $this->parseIssue($n, $journal);
+                }
+                if ($n->tagName  === 'custom_order') {
+                    $this->parseIssueOrder($n, $journal);
+                }
             }
         }
 
@@ -408,6 +413,17 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $issueDoc->appendChild($issueDoc->importNode($node, true));
         $importedObjects = $importFilter->execute($issueDoc);
         return $importedObjects;
+    }
+
+    public function parseIssueOrder($node, $journal)
+    {
+        $deployment = $this->getDeployment();
+
+        $issueId = $deployment->getIssueDBId($node->getAttribute('id'));
+        $customOrder = $node->textContent;
+
+        $issueDAO = DAORegistry::getDAO('IssueDAO');
+        $issueDAO->moveCustomIssueOrder($journal->getId(), $issueId, $customOrder);
     }
 
     public function parseArticles($node, $journal)

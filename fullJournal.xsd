@@ -130,13 +130,17 @@
 		<attribute name="current" type="int" use="optional" />
 		<attribute name="access_status" type="int" use="optional" />
 		<attribute name="url_path" type="string" use="optional" />
-		<attribute name="order" type="int" use="optional" />
 	</complexType>
 
     <element name="extended_issues">
 		<complexType>
 			<sequence>
 				<element ref="pkp:extended_issue" minOccurs="0" maxOccurs="unbounded" />
+				<element name="custom_order" minOccurs="0" maxOccurs="unbounded">
+                    <complexType mixed="true">
+                        <attribute name="id" type="int" />
+                    </complexType>
+                </element>
 			</sequence>
 		</complexType>
 	</element>
