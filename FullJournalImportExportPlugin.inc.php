@@ -43,9 +43,11 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         $context = $request->getContext();
 
         switch (array_shift($args)) {
+            case '':
+            case 'index':
             case 'export':
-                break;
             case 'import':
+                $templateMgr->display($this->getTemplateResource('index.tpl'));
                 break;
             default:
                 $dispatcher = $request->getDispatcher();
