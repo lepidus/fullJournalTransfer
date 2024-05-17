@@ -9,7 +9,7 @@ describe('Full Journal Transfer - Graphical display', function () {
 		cy.contains('h1', 'Journal Export Plugin');
         cy.contains('Attention');
         cy.contains('This plugin should be used only by command line. The use via the graphical interface is not supported.');
-        cy.contains('For more information, check: ');
-        cy.contains('a', 'Instructions for use');
+        cy.contains('For more information, check ');
+        cy.contains('a', 'instructions for use');
     });
 });
