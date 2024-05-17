@@ -16,7 +16,7 @@ msgstr "Atenção"
 
 msgid "plugins.importexport.fullJournalTransfer.guiAttentionMessage"
 msgstr "Este plugin deve ser usado apenas por linha de comando. O uso via interface gráfica não é suportado.<br>"
-"Para mais informações, acesse: <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/lepidus/fullJournalTransfer#instructions-for-use\">Instruções para uso</a>"
+"Para mais informações, acesse <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/lepidus/fullJournalTransfer#instructions-for-use\">instruções para uso</a>."
 
 msgid "plugins.importexport.fullJournal.exportingJournal"
 msgstr "Exportando revista {$journalName}..."
