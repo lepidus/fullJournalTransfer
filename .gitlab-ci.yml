@@ -7,3 +7,4 @@ include:
     file:
       - 'templates/groups/pkp_plugin.yml'
       - 'templates/groups/ojs_plugins_unit_tests_model.yml'
+      - 'templates/groups/ojs_plugins_cypress_tests_model.yml'
