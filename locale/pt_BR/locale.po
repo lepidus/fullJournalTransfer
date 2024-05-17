@@ -11,6 +11,13 @@ msgstr ""
 "import [xmlFileName] [user_name]\n"
 "export [xmlFileName] [journal_path]\n"
 
+msgid "plugins.importexport.fullJournalTransfer.attention"
+msgstr "Atenção"
+
+msgid "plugins.importexport.fullJournalTransfer.guiAttentionMessage"
+msgstr "Este plugin deve ser usado apenas por linha de comando. O uso via interface gráfica não é suportado.<br>"
+"Para mais informações, acesse: <a href=\"https://github.com/lepidus/fullJournalTransfer#instructions-for-use\">Instruções para uso</a>"
+
 msgid "plugins.importexport.fullJournal.exportingJournal"
 msgstr "Exportando revista {$journalName}..."
 
