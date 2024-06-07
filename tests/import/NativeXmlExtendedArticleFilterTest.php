@@ -121,7 +121,6 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         $expectedReviewAssignment = new ReviewAssignment();
         $expectedReviewAssignment->setReviewerId($reviewer->getId());
         $expectedReviewAssignment->setSubmissionId($reviewRound->getSubmissionId());
-        $expectedReviewAssignment->setReviewFormId(35);
         $expectedReviewAssignment->setReviewRoundId($reviewRound->getId());
         $expectedReviewAssignment->setReviewerFullName($reviewer->getFullName());
         $expectedReviewAssignment->setRound($reviewRound->getRound());
