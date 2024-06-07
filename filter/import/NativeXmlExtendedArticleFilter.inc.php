@@ -277,7 +277,7 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         $reviewAssignment->setUnconsidered((int) $node->getAttribute('unconsidered'));
 
         if ($reviewFormId = $node->getAttribute('review_form_id')) {
-            $reviewAssignment->setReviewFormId($reviewFormId);
+            $reviewAssignment->setReviewFormId($deployment->getReviewFormDBId($reviewFormId));
         }
         if ($quality = $node->getAttribute('quality')) {
             $reviewAssignment->setQuality($quality);
