@@ -290,14 +290,14 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->getMock();
 
         $submissionComment = $mockDAO->newDataObject();
-		$submissionComment->setCommentType(COMMENT_TYPE_PEER_REVIEW);
-		$submissionComment->setRoleId(ROLE_ID_REVIEWER);
-		$submissionComment->setAuthorId(18);
-		$submissionComment->setCommentTitle('Test Comment');
-		$submissionComment->setComments('<p>Here are my review comments</p>');
-		$submissionComment->setDatePosted('2024-04-18 16:37:41');
-		$submissionComment->setDateModified('2024-04-18 16:41:26');
-		$submissionComment->setViewable(true);
+        $submissionComment->setCommentType(COMMENT_TYPE_PEER_REVIEW);
+        $submissionComment->setRoleId(ROLE_ID_REVIEWER);
+        $submissionComment->setAuthorId(18);
+        $submissionComment->setCommentTitle('Test Comment');
+        $submissionComment->setComments('<p>Here are my review comments</p>');
+        $submissionComment->setDatePosted('2024-04-18 16:37:41');
+        $submissionComment->setDateModified('2024-04-18 16:41:26');
+        $submissionComment->setViewable(true);
 
         $mockResult = $this->getMockBuilder(DAOResultFactory::class)
             ->setMethods(['next'])
