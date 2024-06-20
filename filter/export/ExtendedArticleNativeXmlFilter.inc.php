@@ -400,6 +400,36 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
         }
     }
 
+    public function addSubmissionComments($doc, $reviewAssignmentNode, $reviewAssignment)
+    {
+        $deployment = $this->getDeployment();
+        $submissionCommentDAO = DAORegistry::getDAO('SubmissionCommentDAO');
+        $comments = $submissionCommentDAO->getReviewerCommentsByReviewerId($reviewAssignment->getSubmissionId(), null, $reviewAssignment->getId());
+        while ($comment = $comments->next()) {
+            $userDAO = DAORegistry::getDAO('UserDAO');
+            $commentAuthor = $userDAO->getById($comment->getAuthorId());
+
+            $submissionCommentNode = $doc->createElementNS($deployment->getNamespace(), 'submission_comment');
+            $submissionCommentNode->setAttribute('comment_type', $comment->getCommentType());
+            $submissionCommentNode->setAttribute('role', $comment->getRoleId());
+            $submissionCommentNode->setAttribute('author', $commentAuthor->getEmail());
+            $submissionCommentNode->setAttribute('date_posted', $comment->getDatePosted());
+            $submissionCommentNode->setAttribute('date_modified', $comment->getDateModified());
+            $submissionCommentNode->setAttribute('viewable', $comment->getViewable());
+            $submissionCommentNode->appendChild($doc->createElementNS(
+                $deployment->getNamespace(),
+                'title',
+                htmlspecialchars($comment->getCommentTitle(), ENT_COMPAT, 'UTF-8')
+            ));
+            $submissionCommentNode->appendChild($doc->createElementNS(
+                $deployment->getNamespace(),
+                'comments',
+                htmlspecialchars($comment->getComments(), ENT_COMPAT, 'UTF-8')
+            ));
+            $reviewAssignmentNode->appendChild($submissionCommentNode);
+        }
+    }
+
     private function getStageMapping()
     {
         return [

@@ -719,6 +719,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         ));
 
         $this->registerMockSubmissionCommentDAO();
+        $this->registerMockUserDAO('review@mailinator.com');
 
         $reviewAssignment = new ReviewAssignment();
         $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
