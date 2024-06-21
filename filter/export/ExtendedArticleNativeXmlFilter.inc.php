@@ -341,6 +341,8 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
             if ($reviewAssignment->getReviewFormId()) {
                 $reviewAssignmentNode->setAttribute('review_form_id', $reviewAssignment->getReviewFormId());
                 $this->addReviewFormResponses($doc, $reviewAssignmentNode, $reviewAssignment);
+            } else {
+                $this->addSubmissionComments($doc, $reviewAssignmentNode, $reviewAssignment);
             }
 
             $roundNode->appendChild($reviewAssignmentNode);

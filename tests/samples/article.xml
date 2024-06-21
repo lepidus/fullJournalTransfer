@@ -43,6 +43,12 @@
                 <response form_element_id="15" type="int">2</response>
                 <response form_element_id="16" type="object">1:3:6</response>
             </review_assignment>
+            <review_assignment cancelled="0" date_acknowledged="2024-04-18 16:37:41" date_assigned="2024-04-18 16:37:41" date_completed="2024-04-18 11:32:37" date_confirmed="2024-04-18 11:32:37" date_due="2024-04-18 11:32:37" date_notified="2024-04-18 11:32:37" date_rated="2024-04-18 11:32:37" date_reminded="2024-04-18 11:32:37" date_response_due="2024-04-18 11:32:37" declined="0" last_modified="2024-04-18 11:32:37" method="3" quality="5" recommendation="1" reviewer_email="reviewer@email.com" unconsidered="0" was_automatic="0">
+                <submission_comment author="reviewer@email.com" comment_type="1" date_modified="2024-04-18 16:41:26" date_posted="2024-04-18 16:37:41" role="4096" viewable="1">
+                    <title>Test Comment</title>
+                    <comments>&lt;p&gt;Here are my review comments&lt;/p&gt;</comments>
+                </submission_comment>
+            </review_assignment>
             <decision date_decided="2015-03-10 12:00:00" decision="1" editor_email="editor@email.com" review_round_id="76" round="1"/>
         </review_round>
     </stage>
