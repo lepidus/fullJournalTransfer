@@ -56,6 +56,7 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 - Review Rounds
 - Review Files
 - Reviewer Files
+- Reviewer Comments
 - Revision Files
 - Stage Assignments
 - Editor Decisions
