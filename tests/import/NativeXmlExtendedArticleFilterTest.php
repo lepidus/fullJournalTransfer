@@ -25,7 +25,8 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
             'review_form_responses', 'review_assignments',
             'edit_decisions', 'review_rounds',
             'queries', 'query_participants', 'notes',
-            'stage_assignments', 'user_group_stage'
+            'stage_assignments', 'user_group_stage',
+            'submission_comments'
         ];
     }
 
@@ -63,6 +64,53 @@ class NativeXmlExtendedArticleFilterTest extends NativeImportExportFilterTestCas
         ];
 
         $this->assertEquals($expectedResponses, $reviewFormResponses);
+    }
+
+    public function testParseSubmissionComment()
+    {
+        $articleImportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleImportFilter->getDeployment();
+
+        $doc = $this->getSampleXml('article.xml');
+        $submissionCommentNodeList = $doc->getElementsByTagNameNS($deployment->getNamespace(), 'submission_comment');
+
+        $reviewAssignment = new ReviewAssignment();
+        $reviewAssignment->setId(52);
+        $reviewAssignment->setSubmissionId(47);
+
+        $submissionCommentDAO = DAORegistry::getDAO('SubmissionCommentDAO');
+        $expectedSubmissionComment = $submissionCommentDAO->newDataObject();
+        $expectedSubmissionComment->setCommentType(COMMENT_TYPE_PEER_REVIEW);
+        $expectedSubmissionComment->setRoleId(ROLE_ID_REVIEWER);
+        $expectedSubmissionComment->setSubmissionId($reviewAssignment->getSubmissionId());
+        $expectedSubmissionComment->setAssocId($reviewAssignment->getId());
+        $expectedSubmissionComment->setAuthorId(18);
+        $expectedSubmissionComment->setCommentTitle('Test Comment');
+        $expectedSubmissionComment->setComments('<p>Here are my review comments</p>');
+        $expectedSubmissionComment->setDatePosted('2024-04-18 16:37:41');
+        $expectedSubmissionComment->setDateModified('2024-04-18 16:41:26');
+        $expectedSubmissionComment->setViewable(1);
+
+        $mockUserDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getUserByEmail'])
+            ->getMock();
+
+        $commentAuthor = $mockUserDAO->newDataObject();
+        $commentAuthor->setId(18);
+
+        $mockUserDAO->expects($this->any())
+            ->method('getUserByEmail')
+            ->will($this->returnValue($commentAuthor));
+
+        DAORegistry::registerDAO('UserDAO', $mockUserDAO);
+
+        $submissionCommentNode = $submissionCommentNodeList->item(0);
+        $commentId = $articleImportFilter->parseSubmissionComment($submissionCommentNode, $reviewAssignment);
+
+        $submissionComment = $submissionCommentDAO->getById($commentId);
+        $expectedSubmissionComment->setId($submissionComment->getId());
+
+        $this->assertEquals($expectedSubmissionComment, $submissionComment);
     }
 
     public function testParseReviewAssignment()
