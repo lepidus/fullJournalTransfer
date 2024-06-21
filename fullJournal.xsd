@@ -326,6 +326,7 @@
             <element ref="pkp:workflow_file" minOccurs="0" maxOccurs="unbounded" />
 			<element name="review_files" type="string" minOccurs="0" maxOccurs="1" />
 			<element ref="pkp:response" minOccurs="0" maxOccurs="unbounded" />
+			<element ref="pkp:submission_comment" minOccurs="0" maxOccurs="unbounded" />
 		</sequence>
         <attribute name="reviewer_email" type="string" />
         <attribute name="method" type="string" />
@@ -362,6 +363,19 @@
     <complexType name="response" mixed="true">
         <attribute name="form_element_id" type="int" />
         <attribute name="type" type="string" />
+	</complexType>
+
+	<complexType name="submission_comment">
+		<sequence>
+			<element name="title" type="string" minOccurs="0" maxOccurs="1" />
+			<element name="comments" type="string" minOccurs="1" maxOccurs="1" />
+		</sequence>
+		<attribute name="comment_type" type="int" />
+		<attribute name="role" type="int" />
+		<attribute name="author" type="string" />
+        <attribute name="date_posted" type="string" />
+        <attribute name="date_modified" type="string" />
+		<attribute name="viewable" type="int" />
 	</complexType>
 
     <complexType name="decision">
@@ -460,6 +474,8 @@
     <element name="review_assignment" type="pkp:review_assignment" />
 
     <element name="response" type="pkp:response" />
+
+    <element name="submission_comment" type="pkp:submission_comment" />
 
     <element name="decision" type="pkp:decision" />
 	

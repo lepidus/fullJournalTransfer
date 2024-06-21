@@ -208,11 +208,13 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('ReviewRoundDAO', $mockDAO);
     }
 
-    private function registerMockReviewAssignmentDAO($hasResponse = false)
+    private function registerMockReviewAssignmentDAO($hasResponse = false, $withComment = false)
     {
         $mockDAO = $this->getMockBuilder(ReviewAssignmentDAO::class)
             ->setMethods(['getByReviewRoundId'])
             ->getMock();
+
+        $reviewAssignments = [];
 
         $reviewAssignment = $mockDAO->newDataObject();
         $reviewAssignment->setRecommendation(SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
@@ -234,13 +236,38 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewAssignment->setDateResponseDue('2023-10-23 21:52:08');
         $reviewAssignment->setLastModified('2023-10-22 21:52:08');
 
+        $reviewAssignmentWithComment = $mockDAO->newDataObject();
+        $reviewAssignmentWithComment->setRecommendation(SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT);
+        $reviewAssignmentWithComment->setQuality(SUBMISSION_REVIEWER_RATING_VERY_GOOD);
+        $reviewAssignmentWithComment->setReviewMethod(SUBMISSION_REVIEW_METHOD_OPEN);
+        $reviewAssignmentWithComment->setDeclined(false);
+        $reviewAssignmentWithComment->setCancelled(false);
+        $reviewAssignmentWithComment->setReminderWasAutomatic(false);
+        $reviewAssignmentWithComment->setUnconsidered(REVIEW_ASSIGNMENT_NOT_UNCONSIDERED);
+        $reviewAssignmentWithComment->setDateRated('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setDateReminded('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setDateAssigned('2024-04-18 16:37:41');
+        $reviewAssignmentWithComment->setDateNotified('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setDateConfirmed('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setDateCompleted('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setDateAcknowledged('2024-04-18 16:37:41');
+        $reviewAssignmentWithComment->setDateDue('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setDateResponseDue('2024-04-18 11:32:37');
+        $reviewAssignmentWithComment->setLastModified('2024-04-18 11:32:37');
+
         if ($hasResponse) {
             $reviewAssignment->setReviewFormId(35);
         }
 
+        $reviewAssignments[] = $reviewAssignment;
+
+        if ($withComment) {
+            $reviewAssignments[] = $reviewAssignmentWithComment;
+        }
+
         $mockDAO->expects($this->any())
             ->method('getByReviewRoundId')
-            ->will($this->returnValue(array($reviewAssignment)));
+            ->will($this->returnValue($reviewAssignments));
 
         DAORegistry::registerDAO('ReviewAssignmentDAO', $mockDAO);
     }
@@ -281,6 +308,38 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
             ->will($this->onConsecutiveCalls($responseString, $responseInt, $responseObject));
 
         DAORegistry::registerDAO('ReviewFormResponseDAO', $mockDAO);
+    }
+
+    private function registerMockSubmissionCommentDAO()
+    {
+        $mockDAO = $this->getMockBuilder(SubmissionCommentDAO::class)
+            ->setMethods(['getReviewerCommentsByReviewerId'])
+            ->getMock();
+
+        $submissionComment = $mockDAO->newDataObject();
+        $submissionComment->setCommentType(COMMENT_TYPE_PEER_REVIEW);
+        $submissionComment->setRoleId(ROLE_ID_REVIEWER);
+        $submissionComment->setAuthorId(18);
+        $submissionComment->setCommentTitle('Test Comment');
+        $submissionComment->setComments('<p>Here are my review comments</p>');
+        $submissionComment->setDatePosted('2024-04-18 16:37:41');
+        $submissionComment->setDateModified('2024-04-18 16:41:26');
+        $submissionComment->setViewable(true);
+
+        $mockResult = $this->getMockBuilder(DAOResultFactory::class)
+            ->setMethods(['next'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockResult->expects($this->any())
+            ->method('next')
+            ->will($this->onConsecutiveCalls($submissionComment, null));
+
+        $mockDAO->expects($this->any())
+            ->method('getReviewerCommentsByReviewerId')
+            ->will($this->returnValue($mockResult));
+
+        DAORegistry::registerDAO('SubmissionCommentDAO', $mockDAO);
     }
 
     private function registerMockSectionDAO()
@@ -659,6 +718,47 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         );
     }
 
+    public function testAddingSubmissionComment()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $expectedAssignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+        $expectedAssignmentNode->appendChild($submissionCommentNode = $this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'submission_comment'
+        ));
+        $submissionCommentNode->setAttribute('comment_type', COMMENT_TYPE_PEER_REVIEW);
+        $submissionCommentNode->setAttribute('role', ROLE_ID_REVIEWER);
+        $submissionCommentNode->setAttribute('author', 'reviewer@email.com');
+        $submissionCommentNode->setAttribute('date_posted', '2024-04-18 16:37:41');
+        $submissionCommentNode->setAttribute('date_modified', '2024-04-18 16:41:26');
+        $submissionCommentNode->setAttribute('viewable', 1);
+        $submissionCommentNode->appendChild($this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'title',
+            htmlspecialchars('Test Comment', ENT_COMPAT, 'UTF-8')
+        ));
+        $submissionCommentNode->appendChild($this->doc->createElementNS(
+            $deployment->getNamespace(),
+            'comments',
+            htmlspecialchars('<p>Here are my review comments</p>', ENT_COMPAT, 'UTF-8')
+        ));
+
+        $this->registerMockSubmissionCommentDAO();
+        $this->registerMockUserDAO('reviewer@email.com');
+
+        $reviewAssignment = new ReviewAssignment();
+        $assignmentNode = $this->doc->createElementNS($deployment->getNamespace(), 'review_assignment');
+        $articleExportFilter->addSubmissionComments($this->doc, $assignmentNode, $reviewAssignment);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedAssignmentNode),
+            $this->doc->saveXML($assignmentNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
     public function testParseArticleToXML()
     {
         $articleExportFilter = $this->getNativeImportExportFilter();
@@ -698,7 +798,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $this->registerApplicationMock();
         $this->registerMockReviewRoundDAO();
-        $this->registerMockReviewAssignmentDAO(true);
+        $this->registerMockReviewAssignmentDAO(true, true);
         $this->registerMockReviewFormResponseDAO();
         $this->registerMockSectionDAO();
 
@@ -713,7 +813,18 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $reviewerUser->setUsername('reviewer');
         $mockUserDAO->expects($this->any())
             ->method('getById')
-            ->will($this->onConsecutiveCalls($editorUser, $editorUser, $editorUser, $editorUser, $editorUser, $reviewerUser, $reviewerUser, $editorUser, $reviewerUser));
+            ->will($this->onConsecutiveCalls(
+                $editorUser,
+                $editorUser,
+                $editorUser,
+                $editorUser,
+                $editorUser,
+                $reviewerUser,
+                $reviewerUser,
+                $reviewerUser,
+                $reviewerUser,
+                $editorUser
+            ));
         DAORegistry::registerDAO('UserDAO', $mockUserDAO);
 
         $mockUserGroupDAO = $this->getMockBuilder(UserGroupDAO::class)
@@ -810,6 +921,8 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submissionFileDAO = DAORegistry::getDAO('SubmissionFileDAO');
         $submissionFileId = $submissionFileDAO->insertObject($submissionFile);
+
+        $this->registerMockSubmissionCommentDAO();
 
         $doc = $articleExportFilter->execute($submissions);
 

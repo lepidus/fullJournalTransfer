@@ -326,6 +326,9 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
                     case 'response':
                         $this->parseResponse($childNode, $reviewAssignment);
                         break;
+                    case 'submission_comment':
+                        $this->parseSubmissionComment($childNode, $reviewAssignment);
+                        break;
                     default:
                         break;
                 }
@@ -354,6 +357,55 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
         }
 
         $reviewFormResponseDAO->insertObject($reviewFormResponse);
+    }
+
+    public function parseSubmissionComment($node, $reviewAssignment)
+    {
+        $deployment = $this->getDeployment();
+
+        $userDAO = DAORegistry::getDAO('UserDAO');
+        $commentAuthor = $userDAO->getUserByEmail($node->getAttribute('author'));
+
+        if (is_null($commentAuthor)) {
+            $deployment->addWarning(
+                ASSOC_TYPE_SUBMISSION,
+                $reviewAssignment->getSubmissionId(),
+                __(
+                    'plugins.importexport.fullJournal.error.userNotFound',
+                    ['email' => $node->getAttribute('author')]
+                )
+            );
+
+            return null;
+        }
+
+        $submissionCommentDAO = DAORegistry::getDAO('SubmissionCommentDAO');
+        $comment = $submissionCommentDAO->newDataObject();
+        $comment->setCommentType($node->getAttribute('comment_type'));
+        $comment->setRoleId($node->getAttribute('role'));
+        $comment->setSubmissionId($reviewAssignment->getSubmissionId());
+        $comment->setAssocId($reviewAssignment->getId());
+        $comment->setAuthorId($commentAuthor->getId());
+        $comment->setDatePosted($node->getAttribute('date_posted'));
+        $comment->setDateModified($node->getAttribute('date_modified'));
+        $comment->setViewable($node->getAttribute('viewable'));
+
+        for ($childNode = $node->firstChild; $childNode !== null; $childNode = $childNode->nextSibling) {
+            if (is_a($childNode, 'DOMElement')) {
+                switch ($childNode->tagName) {
+                    case 'title':
+                        $comment->setCommentTitle($childNode->textContent);
+                        break;
+                    case 'comments':
+                        $comment->setComments($childNode->textContent);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        return $submissionCommentDAO->insertObject($comment);
     }
 
     public function parseArticleFile($node)
