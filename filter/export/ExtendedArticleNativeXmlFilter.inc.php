@@ -147,6 +147,9 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
 
         foreach ($participantIds as $participantId) {
             $participant = $userDAO->getById($participantId);
+            if (!$participant) {
+                continue;
+            }
             $participantNode = $doc->createElementNS(
                 $deployment->getNamespace(),
                 'participant',
