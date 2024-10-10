@@ -1,6 +1,7 @@
+**English** | [Português Brasileiro](/docs/README-pt_BR.md)
+
 # Full Journal Transfer
 This plugin allows you to import and export all the content of a journal.
-
 
 ## Compatibility
 The latest release of this plugin is compatible with the following PKP applications:
