@@ -43,6 +43,14 @@ php tools/importExport.php FullJournalImportExportPlugin import [nomeDoArquivoTa
 
 Este plugin utiliza recursos dos plugins de importação/exportação nativo e de usuários. Se a execução não funcionar como esperado, teste os plugins de importação/exportação do PKP para resolver quaisquer problemas antes de continuar com este.
 
+## Efeitos Colaterais
+
+Alguns comportamentos são esperados ao executar a importação da revista:
+
+- Todos os IDs no banco de dados serão modificados, invalidando referências externas.
+- Os logins dos usuários serão alterados.
+- Alguns registros de métricas podem ser perdidos.
+
 ## Conteúdo Importado/Exportado do Periódico
 
 **Usando a importação/exportação nativa da PKP**:
