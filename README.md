@@ -43,6 +43,14 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 
 This plugin uses features from the users and the native import/export plugin. If the execution does not work as expected, test with the PKP import/export plugins to resolve any problems before proceeding with this one.
 
+## Side Effects
+
+Some expected behaviors when importing the journal:
+
+- All database IDs will be modified, invalidating external references.
+- User logins will be changed.
+- Some metric records may be lost.
+
 ## Imported/Exported Journal Content
 
 **Using PKP native import/export**:
