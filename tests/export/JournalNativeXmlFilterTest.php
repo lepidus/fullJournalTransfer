@@ -665,7 +665,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $journalExportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -693,7 +693,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $journalExportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -717,7 +717,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $journalExportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -807,7 +807,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $deployment->setContext($journal);
         $journalExportFilter->setDeployment($deployment);
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -834,7 +834,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $journal = $this->createJournal();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -859,7 +859,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
 
         $journal = $this->createJournal();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -894,7 +894,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $journalExportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 

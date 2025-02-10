@@ -22,7 +22,7 @@ class AnnouncementNativeXmlFilter extends NativeExportFilter
 
     public function &process(&$announcements)
     {
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
         $deployment = $this->getDeployment();

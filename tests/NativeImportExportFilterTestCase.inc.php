@@ -12,7 +12,7 @@ abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
     {
         parent::setUp();
 
-        $this->doc = new DOMDocument('1.0');
+        $this->doc = new DOMDocument('1.0', 'utf-8');
         $this->doc->preserveWhiteSpace = false;
         $this->doc->formatOutput = true;
 
@@ -46,7 +46,7 @@ abstract class NativeImportExportFilterTestCase extends DatabaseTestCase
     protected function getSampleXml($sampleFile)
     {
         $fileContent = file_get_contents(__DIR__ . '/samples/' . $sampleFile);
-        $xml = new DOMDocument('1.0');
+        $xml = new DOMDocument('1.0', 'utf-8');
         $xml->loadXML($fileContent);
 
         return $xml;
