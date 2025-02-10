@@ -234,7 +234,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
         echo __('plugins.importexport.fullJournal.importingUsers') . "\n";
 
-        $usersDoc = new DOMDocument('1.0');
+        $usersDoc = new DOMDocument('1.0', 'utf-8');
         $usersDoc->preserveWhiteSpace = false;
         $usersDoc->formatOutput = true;
         $usersDoc->appendChild($usersDoc->importNode($node, true));

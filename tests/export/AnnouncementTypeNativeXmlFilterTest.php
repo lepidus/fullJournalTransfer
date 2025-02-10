@@ -21,7 +21,7 @@ class AnnouncementTypeNativeXmlFilterTest extends NativeImportExportFilterTestCa
         $announcementTypeExportFilter = $this->getNativeImportExportFilter();
         $deployment = $announcementTypeExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 

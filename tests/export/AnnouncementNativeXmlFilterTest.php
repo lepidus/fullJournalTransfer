@@ -73,7 +73,7 @@ class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         $deployment = $this->announcementExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -107,7 +107,7 @@ class AnnouncementNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         $deployment = $this->announcementExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 

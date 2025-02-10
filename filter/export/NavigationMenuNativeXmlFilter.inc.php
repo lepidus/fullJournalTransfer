@@ -22,7 +22,7 @@ class NavigationMenuNativeXmlFilter extends NativeExportFilter
 
     public function &process(&$navigationMenus)
     {
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
         $deployment = $this->getDeployment();

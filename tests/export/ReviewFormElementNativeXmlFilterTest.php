@@ -39,7 +39,7 @@ class ReviewFormElementNativeXmlFilterTest extends NativeImportExportFilterTestC
             'en_US' => ['option 1','option 2', 'option 3']
         ];
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
@@ -71,7 +71,7 @@ class ReviewFormElementNativeXmlFilterTest extends NativeImportExportFilterTestC
         $reviewFormElementExportFilter = $this->getNativeImportExportFilter();
         $deployment = $reviewFormElementExportFilter->getDeployment();
 
-        $doc = new DOMDocument('1.0');
+        $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = true;
 
