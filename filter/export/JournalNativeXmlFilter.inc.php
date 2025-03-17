@@ -296,8 +296,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
 
         $usersDoc = $exportFilter->execute($users);
-        $this->removeDuplicatedInterests($usersDoc);
         if ($usersDoc->documentElement instanceof DOMElement) {
+            $this->removeDuplicatedInterests($usersDoc);
             $clone = $doc->importNode($usersDoc->documentElement, true);
             $journalNode->appendChild($clone);
         }
