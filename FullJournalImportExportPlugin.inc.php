@@ -235,7 +235,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
 
         if (!empty($errors)) {
             try {
-                $this->displayXMLValidationErrors($errors, $xml);
+                $this->displayXMLValidationErrors($errors, '');
             } catch (Exception $e) {
                 echo $e->getMessage() . "\n";
             }
