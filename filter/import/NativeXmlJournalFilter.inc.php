@@ -139,6 +139,8 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 $this->$method($node, $journal);
             }
         }
+
+        $this->logIdRelation($journal);
     }
 
     public function parseSubmissionChecklist($node)
@@ -502,6 +504,25 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 }
             }
         }
+    }
+
+    public function logIdRelation($journal)
+    {
+        $deployment = $this->getDeployment();
+
+        import('lib.pkp.classes.file.ContextFileManager');
+        $contextFileManager = new ContextFileManager($journal->getId());
+        $journalFilesDir = $contextFileManager->getBasePath();
+
+        $filename = 'journal_' . $journal->getId() . '_id_relation.txt';
+        $filePath = $journalFilesDir . $filename;
+
+        $contents = "Original ID\tNew ID\n";
+        foreach ($deployment->getSubmissionDBIds() as $oldId => $newId) {
+            $contents .= "${oldId}\t${newId}\n";
+        }
+
+        $contextFileManager->writeFile($filePath, $contents);
     }
 
     private function getSimpleJournalNodeMapping()
