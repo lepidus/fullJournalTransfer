@@ -220,7 +220,7 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
     public function exportJournal($journal, $archivePath, $opts)
     {
         $journalPath = $journal->getPath();
-        $xmlPath = '/tmp/' . $journalPath . '.xml';
+        $xmlPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $journalPath . '.xml';
 
         $filter = $this->getJournalImportExportFilter($journal, null, false);
         $filter->setOpts($opts);
