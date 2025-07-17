@@ -51,6 +51,10 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - Os logins dos usuários serão alterados.
 - Alguns registros de métricas podem ser perdidos.
 
+## Importação e Exportações de DOIs
+
+Para a importação e exportação bem sucedida dos DOIs, tenha certeza de que o plugin DOI está instalado e configurado no OJS de origem e instalado no OJS de destino.
+
 ## Conteúdo Importado/Exportado do Periódico
 
 **Usando a importação/exportação nativa da PKP**:
