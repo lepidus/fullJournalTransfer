@@ -51,6 +51,10 @@ Some expected behaviors when importing the journal:
 - User logins will be changed.
 - Some metric records may be lost.
 
+## DOI Import/Export
+
+For the successful import and export of DOIs, make sure that the DOI plugin is installed and configured in the source OJS and installed in the target OJS.
+
 ## Imported/Exported Journal Content
 
 **Using PKP native import/export**:
