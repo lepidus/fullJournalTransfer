@@ -195,7 +195,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         $userGroupDao = \DAORegistry::getDAO('UserGroupDAO');
         $userGroup = $userGroupDao->newDataObject();
-        $userGroup->setRoleId(9234);
+        $userGroup->setRoleId(ROLE_ID_MANAGER);
         $userGroup->setContextId($journal->getId());
         $userGroup->setShowTitle(true);
         $userGroup->setPermitSelfRegistration(false);
@@ -210,7 +210,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $user->setUsername('siteadmin');
         $user->setGivenName('admin', 'en_US');
         $user->setFamilyName('Smith', 'en_US');
-        $user->setPassword('6f7303f0285dd527b2da3620ccaf25ee384ae7db');
+        $user->setPassword('$2y$10$7KfOrzOTzg7v9u9nCNUqQuLM80q.fc3QBNRQGGfi7Mn2X8vnkQGmy');
         $user->setEmail('john@admin-site.com');
         $user->setUrl('http://www.admin-site.com');
         $user->setBillingAddress('my billing address');
