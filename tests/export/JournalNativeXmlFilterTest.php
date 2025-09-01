@@ -469,15 +469,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     private function createPluginsNode($doc, $deployment, $parentNode, $pluginName)
     {
         $parentNode->appendChild($pluginsNode = $doc->createElementNS($deployment->getNamespace(), 'plugins'));
-        $pluginsNode->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:xsi',
-            'http://www.w3.org/2001/XMLSchema-instance'
-        );
-        $pluginsNode->setAttribute(
-            'xsi:schemaLocation',
-            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
-        );
         $pluginsNode->appendChild($pluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin'));
         $pluginNode->setAttribute('plugin_name', $pluginName);
         $pluginNode->appendChild($node = $doc->createElementNS(

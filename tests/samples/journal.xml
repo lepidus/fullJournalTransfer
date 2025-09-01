@@ -36,7 +36,7 @@
         <submission_checklist_item order="4">##default.contextSettings.checklist.submissionAppearance##</submission_checklist_item>
         <submission_checklist_item order="5">##default.contextSettings.checklist.bibliographicRequirements##</submission_checklist_item>
     </submission_checklist>
-    <plugins xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <plugins>
         <plugin plugin_name="testgenericplugin">
             <plugin_setting setting_name="someSetting">Test Value</plugin_setting>
         </plugin>

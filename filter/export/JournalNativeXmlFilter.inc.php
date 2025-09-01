@@ -219,18 +219,56 @@ class JournalNativeXmlFilter extends NativeExportFilter
 
     public function addPlugins($doc, $journalNode)
     {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $nativeExportFilters = $filterDao->getObjectsByGroup('plugin=>native-xml');
-        assert(count($nativeExportFilters) == 1);
-        $exportFilter = array_shift($nativeExportFilters);
-        $exportFilter->setDeployment($this->getDeployment());
-
+        $deployment = $this->getDeployment();
         $plugins = PluginRegistry::loadAllPlugins();
-        $pluginsDoc = $exportFilter->execute($plugins, true);
-        if ($pluginsDoc->documentElement instanceof DOMElement) {
-            $clone = $doc->importNode($pluginsDoc->documentElement, true);
-            $journalNode->appendChild($clone);
+        $pluginsNode = $doc->createElementNS($deployment->getNamespace(), 'plugins');
+        foreach ($plugins as $plugin) {
+            $pluginNode = $this->addPlugin($doc, $journalNode, $plugin);
+            if ($pluginNode) {
+                $pluginsNode->appendChild($pluginNode);
+            }
         }
+        $journalNode->appendChild($pluginsNode);
+    }
+
+    public function addPlugin($doc, $journalNode, $plugin)
+    {
+        $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
+
+        $pluginSettingsDAO = DAORegistry::getDAO('PluginSettingsDAO');
+        $settings = $pluginSettingsDAO->getPluginSettings($context->getId(), $plugin->getName());
+
+        if (empty($settings)) {
+            return;
+        }
+
+        $pluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin');
+        $pluginNode->setAttribute('plugin_name', $plugin->getName());
+        foreach ($settings as $name => $value) {
+            switch (gettype($value)) {
+                case 'string':
+                    $nodeValue = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
+                    break;
+                case 'boolean':
+                    $nodeValue = $value;
+                    break;
+                case 'array':
+                    $nodeValue = htmlspecialchars(join(':', $value), ENT_COMPAT, 'UTF-8');
+                    break;
+                default:
+                    $nodeValue = null;
+                    break;
+            }
+            $pluginNode->appendChild($node = $doc->createElementNS(
+                $deployment->getNamespace(),
+                'plugin_setting',
+                $nodeValue
+            ));
+            $node->setAttribute('setting_name', $name);
+        }
+
+        return $pluginNode;
     }
 
     public function addNavigationMenuItems($doc, $journalNode, $journal)
