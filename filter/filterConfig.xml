@@ -181,14 +181,6 @@
             class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlUserFilter"
             isTemplate="0" />
         <filter
-            inGroup="plugin=>native-xml"
-            class="plugins.importexport.fullJournalTransfer.filter.export.PluginNativeXmlFilter"
-            isTemplate="0" />
-        <filter
-            inGroup="native-xml=>plugin"
-            class="plugins.importexport.fullJournalTransfer.filter.import.NativeXmlPluginFilter"
-            isTemplate="0" />
-        <filter
             inGroup="navigation-menu-item=>native-xml"
             class="plugins.importexport.fullJournalTransfer.filter.export.NavigationMenuItemNativeXmlFilter"
             isTemplate="0" />
