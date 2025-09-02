@@ -23,7 +23,7 @@
                     <note date_created="2015-03-03 20:33:43" date_modified="2015-03-03 20:37:37" user_email="editor@email.com">
                         <title>Recommendation</title>
                         <contents>&lt;p&gt;The recommendation regarding this submission is: Accept Submission&lt;/p&gt;</contents>
-                        <workflow_file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="68" created_at="2023-11-18" date_created="" file_id="1" stage="query" assoc_type="520" updated_at="2023-11-26" viewable="true" genre="Article Text" uploader="editor" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+                        <workflow_file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="68" created_at="2023-11-18" date_created="" file_id="22" stage="query" assoc_type="520" updated_at="2023-11-26" viewable="true" genre="Article Text" uploader="editor" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
                             <name locale="en_US">dummy.pdf</name>
                             <file id="22" filesize="14572" extension="pdf">
                                 <href src="journals/1/articles/21/dummy.pdf" mime_type="application/pdf"/>
