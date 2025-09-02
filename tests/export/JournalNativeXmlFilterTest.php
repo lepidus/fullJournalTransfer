@@ -195,7 +195,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     {
         $userGroupDao = \DAORegistry::getDAO('UserGroupDAO');
         $userGroup = $userGroupDao->newDataObject();
-        $userGroup->setRoleId(9234);
+        $userGroup->setRoleId(ROLE_ID_MANAGER);
         $userGroup->setContextId($journal->getId());
         $userGroup->setShowTitle(true);
         $userGroup->setPermitSelfRegistration(false);
@@ -210,7 +210,7 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
         $user->setUsername('siteadmin');
         $user->setGivenName('admin', 'en_US');
         $user->setFamilyName('Smith', 'en_US');
-        $user->setPassword('6f7303f0285dd527b2da3620ccaf25ee384ae7db');
+        $user->setPassword('$2y$10$7KfOrzOTzg7v9u9nCNUqQuLM80q.fc3QBNRQGGfi7Mn2X8vnkQGmy');
         $user->setEmail('john@admin-site.com');
         $user->setUrl('http://www.admin-site.com');
         $user->setBillingAddress('my billing address');
@@ -469,15 +469,6 @@ class JournalNativeXmlFilterTest extends NativeImportExportFilterTestCase
     private function createPluginsNode($doc, $deployment, $parentNode, $pluginName)
     {
         $parentNode->appendChild($pluginsNode = $doc->createElementNS($deployment->getNamespace(), 'plugins'));
-        $pluginsNode->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:xsi',
-            'http://www.w3.org/2001/XMLSchema-instance'
-        );
-        $pluginsNode->setAttribute(
-            'xsi:schemaLocation',
-            $deployment->getNamespace() . ' ' . $deployment->getSchemaFilename()
-        );
         $pluginsNode->appendChild($pluginNode = $doc->createElementNS($deployment->getNamespace(), 'plugin'));
         $pluginNode->setAttribute('plugin_name', $pluginName);
         $pluginNode->appendChild($node = $doc->createElementNS(

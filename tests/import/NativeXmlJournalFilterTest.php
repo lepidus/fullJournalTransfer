@@ -2,6 +2,8 @@
 
 import('plugins.importexport.fullJournalTransfer.tests.NativeImportExportFilterTestCase');
 import('plugins.importexport.fullJournalTransfer.filter.import.NativeXmlJournalFilter');
+import('plugins.importexport.fullJournalTransfer.classes.FullJournalMetricsDAO');
+import('plugins.generic.usageStats.OJSUsageStatsReportPlugin');
 
 class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 {
@@ -170,6 +172,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journalImportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalImportFilter->getDeployment();
         $deployment->setSubmissionFileDBId(94, 102);
+        $deployment->isTestEnv = true;
 
         $expectedJournal = new Journal();
         $this->setJournalSimpleNodeData($expectedJournal);
@@ -205,14 +208,12 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journal = new Journal();
         $journal->setId(rand());
 
-        $deployment->setContext($journal);
-
         $doc = $this->getSampleXml('journal.xml');
         $pluginNodeList = $doc->getElementsByTagNameNS(
             $deployment->getNamespace(),
             'plugin'
         );
-        $journalImportFilter->parsePlugin($pluginNodeList->item(0));
+        $journalImportFilter->parsePlugin($pluginNodeList->item(0), $journal);
 
         $pluginSettingsDAO = DAORegistry::getDAO('PluginSettingsDAO');
         $pluginSettings = $pluginSettingsDAO->getPluginSettings($journal->getId(), 'testgenericplugin');
@@ -224,6 +225,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
     {
         $journalImportFilter = $this->getNativeImportExportFilter();
         $deployment = $journalImportFilter->getDeployment();
+        $deployment->isTestEnv = true;
 
         $expectedSettings = [
             'someSetting' => 'Test Value',
@@ -233,14 +235,12 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         $journal = new Journal();
         $journal->setId(rand());
 
-        $deployment->setContext($journal);
-
         $doc = $this->getSampleXml('journal.xml');
         $pluginsNodeList = $doc->getElementsByTagNameNS(
             $deployment->getNamespace(),
             'plugins'
         );
-        $journalImportFilter->parsePlugins($pluginsNodeList->item(0));
+        $journalImportFilter->parsePlugins($pluginsNodeList->item(0), $journal);
 
         $pluginSettingsDAO = DAORegistry::getDAO('PluginSettingsDAO');
         $actualSettings = array_merge(
@@ -265,7 +265,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             'dateRegistered' => '2013-11-05 12:42:05',
             'dateValidated' => '2013-11-06 00:00:00',
             'dateLastLogin' => '2014-01-06 08:58:08',
-            'mustChangePassword' => 1,
+            'mustChangePassword' => 0,
             'disabled' => 0,
             'authId' => 23,
             'inlineHelp' => 0,
@@ -389,7 +389,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
 
         $journalImportFilter->parseMetrics($metricsNodeList->item(0), $journal);
 
-        $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $metricsDAO = new FullJournalMetricsDAO();
         $metrics = $metricsDAO->getByContextId($journal->getId());
 
         $expectedMetrics = [

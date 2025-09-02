@@ -36,7 +36,7 @@
         <submission_checklist_item order="4">##default.contextSettings.checklist.submissionAppearance##</submission_checklist_item>
         <submission_checklist_item order="5">##default.contextSettings.checklist.bibliographicRequirements##</submission_checklist_item>
     </submission_checklist>
-    <plugins xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <plugins>
         <plugin plugin_name="testgenericplugin">
             <plugin_setting setting_name="someSetting">Test Value</plugin_setting>
         </plugin>
@@ -61,7 +61,7 @@
     <PKPUsers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
         <user_groups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pkp.sfu.ca pkp-users.xsd">
 			<user_group>
-				<role_id>9234</role_id>
+				<role_id>16</role_id>
                 <context_id>1483</context_id>
 				<is_default>true</is_default>
 				<show_title>true</show_title>
@@ -82,7 +82,7 @@
 				<username>siteadmin</username>
 				<password is_disabled="false" must_change="false"
 					encryption="sha1">
-					<value>6f7303f0285dd527b2da3620ccaf25ee384ae7db</value>
+					<value>$2y$10$7KfOrzOTzg7v9u9nCNUqQuLM80q.fc3QBNRQGGfi7Mn2X8vnkQGmy</value>
 				</password>
 				<date_registered>2013-11-05 12:42:05</date_registered>
 				<date_last_login>2014-01-06 08:58:08</date_last_login>

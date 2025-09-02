@@ -10,6 +10,13 @@ A versão mais recente deste plugin é compatível com as seguintes aplicações
 
 **Nota:** Este plugin é projetado para a exportação e importação de periódicos dentro da mesma versão do OJS. Exemplo: de `3.3.0-16` para `3.3.0-16`. Para melhores resultados, recomenda-se utilizar a versão OJS 3.3.0-16 ou mais recente.
 
+## Requisitos
+
+- PHP >= 7.4
+- php-mbstring
+- php-intl
+- php-xml
+
 ## Download do Plugin
 Para baixar o plugin, vá para a [página de Releases](https://github.com/lepidus/fullJournalTransfer/releases) e baixe o pacote tar.gz da versão mais recente compatível com o seu site.
 

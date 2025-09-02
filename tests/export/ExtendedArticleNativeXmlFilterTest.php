@@ -905,6 +905,17 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $note->setContents('<p>The recommendation regarding this submission is: Accept Submission</p>');
         $this->registerMockNoteDAO($note);
 
+        $submissionDir = Services::get('submissionFile')->getSubmissionDir(
+            1,
+            $submissionId
+        );
+
+        $fileDir = $submissionDir . '/dummy.pdf';
+        $fileId = Services::get('file')->add(
+            dirname(__DIR__) . '/samples/journals/5/articles/13/dummy.pdf',
+            $fileDir
+        );
+
         $submissionFile = new SubmissionFile();
         $submissionFile->setId(79);
         $submissionFile->setData('submissionId', $submission->getId());
@@ -913,7 +924,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         $submissionFile->setData('fileStage', SUBMISSION_FILE_QUERY);
         $submissionFile->setData('createdAt', '2023-11-18 15:47:38');
         $submissionFile->setData('updatedAt', '2023-11-26 15:47:49');
-        $submissionFile->setData('fileId', 1);
+        $submissionFile->setData('fileId', $fileId);
         $submissionFile->setData('genreId', 1);
         $submissionFile->setData('viewable', true);
         $submissionFile->setData('uploaderUserId', 123);
@@ -928,6 +939,8 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submissionFileDAO->deleteById($submissionFileId);
         $submissionDAO->deleteById($submissionId);
+
+        Services::get('file')->delete($fileId);
 
         $expectedDoc = $this->getSampleXml('article.xml');
         $submissionIdNode = $expectedDoc->getElementsByTagNameNS($deployment->getNamespace(), 'id')->item(0);

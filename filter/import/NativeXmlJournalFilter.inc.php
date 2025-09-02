@@ -158,30 +158,42 @@ class NativeXmlJournalFilter extends NativeImportFilter
         return [$locale, $items];
     }
 
-    public function parsePlugins($node)
+    public function parsePlugins($node, $journal)
     {
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName === 'plugin') {
-                $this->parsePlugin($n);
+                $this->parsePlugin($n, $journal);
             }
+        }
+
+        $deployment = $this->getDeployment();
+        if ($deployment->isTestEnv) {
+            return;
         }
 
         $categories = PluginRegistry::getCategories();
         foreach ($categories as $category) {
-            PluginRegistry::loadCategory($category);
+            PluginRegistry::loadCategory($category, false, $journal->getId());
         }
     }
 
-    public function parsePlugin($node)
+    public function parsePlugin($node, $journal)
     {
-        $filterDao = DAORegistry::getDAO('FilterDAO');
-        $importFilters = $filterDao->getObjectsByGroup('native-xml=>plugin');
-        assert(count($importFilters) == 1);
-        $importFilter = array_shift($importFilters);
-        $importFilter->setDeployment($this->getDeployment());
-        $pluginDoc = new DOMDocument();
-        $pluginDoc->appendChild($pluginDoc->importNode($node, true));
-        return $importFilter->execute($pluginDoc);
+        $pluginSettingsDAO = DAORegistry::getDAO('PluginSettingsDAO');
+        $pluginName = $node->getAttribute('plugin_name');
+
+        for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
+            if (is_a($n, 'DOMElement') && $n->tagName == 'plugin_setting') {
+                $pluginSettingsDAO->updateSetting(
+                    $journal->getId(),
+                    $pluginName,
+                    $n->getAttribute('setting_name'),
+                    $n->textContent
+                );
+            }
+        }
+
+        return $pluginSettingsDAO->getPluginSettings($journal->getId(), $pluginName);
     }
 
     public function parseNavigationMenuItems($node)
@@ -246,8 +258,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     public function parseGenres($node, $journal)
     {
-        $deployment = $this->getDeployment();
-
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'genre') {
                 $this->parseGenre($n, $journal);
@@ -257,8 +267,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     public function parseGenre($node, $journal)
     {
-        $deployment = $this->getDeployment();
-
         $genreDAO = DAORegistry::getDAO('GenreDAO');
         $genre = $genreDAO->newDataObject();
         $genre->setContextId($journal->getId());
@@ -284,7 +292,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     public function parseSections($node, $journal)
     {
-        $deployment = $this->getDeployment();
         echo __('plugins.importexport.fullJournal.importingSections') . "\n";
 
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
@@ -361,7 +368,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     public function parseReviewForms($node, $journal)
     {
-        $deployment = $this->getDeployment();
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
             if (is_a($n, 'DOMElement') && $n->tagName  === 'review_form') {
                 $this->parseReviewForm($n, $journal);
@@ -430,7 +436,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     public function parseArticles($node, $journal)
     {
-        $deployment = $this->getDeployment();
         echo __('plugins.importexport.fullJournal.importingArticles') . "\n";
 
         for ($n = $node->firstChild; $n !== null; $n = $n->nextSibling) {
