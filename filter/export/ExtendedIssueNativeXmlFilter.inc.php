@@ -89,6 +89,8 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
         $submissions = Services::get('submission')->getMany([
             'contextId' => $issue->getJournalId(),
             'issueIds' => $issue->getId(),
+            'orderBy' => 'seq',
+            'orderDirection' => 'ASC'
         ]);
 
         foreach ($submissions as $submission) {
