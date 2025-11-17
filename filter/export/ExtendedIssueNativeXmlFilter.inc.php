@@ -90,7 +90,7 @@ class ExtendedIssueNativeXmlFilter extends IssueNativeXmlFilter
             'contextId' => $issue->getJournalId(),
             'issueIds' => $issue->getId(),
             'orderBy' => 'seq',
-			'orderDirection' => 'ASC'
+            'orderDirection' => 'ASC'
         ]);
 
         foreach ($submissions as $submission) {
