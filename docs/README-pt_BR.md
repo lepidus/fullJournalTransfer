@@ -57,6 +57,8 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - Todos os IDs no banco de dados serão modificados, invalidando referências externas.
 - Os logins dos usuários serão alterados.
 - Alguns registros de métricas podem ser perdidos.
+- O histórico de atividades da submissão não é preservado; as datas e usuários são substituídos pela
+  data e usuário da execução do plugin.
 
 ## Conteúdo Importado/Exportado do Periódico
 
