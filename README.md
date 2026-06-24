@@ -57,6 +57,8 @@ Some expected behaviors when importing the journal:
 - All database IDs will be modified, invalidating external references.
 - User logins will be changed.
 - Some metric records may be lost.
+- Submission activity logs are not preserved; their dates and users are replaced by the plugin
+  execution date and user.
 
 ## Imported/Exported Journal Content
 
