@@ -7,12 +7,12 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\ReferenceDataTransfer;
+use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use InvalidArgumentException;
 use PKP\db\DAORegistry;
 use PKP\tests\DatabaseTestCase;
 
-class ReferenceDataTransferIntegrationTest extends DatabaseTestCase
+class ReferenceDataFilterIntegrationTest extends DatabaseTestCase
 {
     private array $contexts = [];
 
@@ -47,8 +47,8 @@ class ReferenceDataTransferIntegrationTest extends DatabaseTestCase
         $reviewForm->setAssocId($source->getId());
         $reviewForm->setSequence(4.5);
         $reviewForm->setActive(1);
-        $reviewForm->setTitle('H5 Review Form', 'en');
-        $reviewForm->setDescription('H5 Description', 'en');
+        $reviewForm->setTitle('Review Form', 'en');
+        $reviewForm->setDescription('Review form description', 'en');
         $reviewFormId = $reviewFormDao->insertObject($reviewForm);
         $element = $reviewFormElementDao->newDataObject();
         $element->setReviewFormId($reviewFormId);
@@ -62,21 +62,21 @@ class ReferenceDataTransferIntegrationTest extends DatabaseTestCase
         $elementId = $reviewFormElementDao->insertObject($element);
         $genre = $genreDao->newDataObject();
         $genre->setContextId($source->getId());
-        $genre->setKey('H5_GENRE_' . bin2hex(random_bytes(4)));
+        $genre->setKey('TRANSFER_GENRE_' . bin2hex(random_bytes(4)));
         $genre->setCategory(1);
         $genre->setDependent(false);
         $genre->setSupplementary(false);
         $genre->setRequired(true);
         $genre->setSequence(6);
         $genre->setEnabled(true);
-        $genre->setName('H5 Genre', 'en');
+        $genre->setName('Transfer Genre', 'en');
         $genreId = $genreDao->insertObject($genre);
         $section = Repo::section()->newDataObject();
         $section->setContextId((int) $source->getId());
         $section->setSequence(7);
-        $section->setTitle('H5 Section', 'en');
-        $section->setAbbrev('H5S', 'en');
-        $section->setPolicy('H5 Policy', 'en');
+        $section->setTitle('Transfer Section', 'en');
+        $section->setAbbrev('TS', 'en');
+        $section->setPolicy('Transfer policy', 'en');
         $section->setReviewFormId($reviewFormId);
         $section->setEditorRestricted(false);
         $section->setMetaIndexed(true);
@@ -88,8 +88,8 @@ class ReferenceDataTransferIntegrationTest extends DatabaseTestCase
         $section->setAbstractWordCount(250);
         $sectionId = Repo::section()->add($section);
 
-        $document = (new ReferenceDataTransfer())->export($source);
-        $maps = (new ReferenceDataTransfer())->import($document->documentElement, $destination);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportReferenceData();
+        $maps = (new FullJournalImportExportDeployment($destination, null))->importReferenceData($document->documentElement);
 
         $importedReviewForm = $reviewFormDao->getById(
             $maps['review_form_id_map'][(string) $reviewFormId],
@@ -141,7 +141,7 @@ class ReferenceDataTransferIntegrationTest extends DatabaseTestCase
         ));
 
         try {
-            (new ReferenceDataTransfer())->import($document->documentElement, $destination);
+            (new FullJournalImportExportDeployment($destination, null))->importReferenceData($document->documentElement);
             $this->fail('Unknown review form relation was accepted');
         } catch (InvalidArgumentException $exception) {
             $this->assertSame('Unknown review form reference in section', $exception->getMessage());
@@ -153,7 +153,7 @@ class ReferenceDataTransferIntegrationTest extends DatabaseTestCase
     private function createContext(string $label): Journal
     {
         $context = Application::get()->getContextDAO()->newDataObject();
-        $context->setPath('h5-' . substr($label, 0, 5) . '-' . bin2hex(random_bytes(4)));
+        $context->setPath('transfer-' . substr($label, 0, 5) . '-' . bin2hex(random_bytes(4)));
         $context->setPrimaryLocale('en');
         $context->setEnabled(false);
         Application::get()->getContextDAO()->insertObject($context);

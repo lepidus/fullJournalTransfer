@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace APP\plugins\importexport\fullJournalTransfer;
+namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\core\Application;
 use APP\journal\Journal;
@@ -10,7 +10,7 @@ use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
 
-class ContextDataTransfer
+class JournalXmlSupport
 {
     private const NAMESPACE = 'http://pkp.sfu.ca';
     private const SCALAR_SETTINGS = [

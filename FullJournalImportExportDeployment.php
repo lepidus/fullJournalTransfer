@@ -5,8 +5,18 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer;
 
 use APP\facades\Repo;
+use APP\plugins\importexport\fullJournalTransfer\filter\GenreNativeXmlFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlGenreFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlJournalFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReferenceDataFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewFormFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlSectionFilter;
 use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlUserGroupFilter;
 use APP\plugins\importexport\fullJournalTransfer\filter\PKPUserUserXmlFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\ReferenceDataNativeXmlFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\ReviewFormNativeXmlFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\SectionNativeXmlFilter;
 use APP\plugins\importexport\fullJournalTransfer\filter\UserXmlPKPUserFilter;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
 use DOMDocument;
@@ -69,17 +79,21 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function exportContextData(): DOMDocument
     {
-        return (new ContextDataTransfer())->export($this->getContext());
+        $filter = new JournalNativeXmlFilter($this->createEntityFilterGroup('journal=>xml'));
+        $context = $this->getContext();
+        return $filter->process($context);
     }
 
     public function importContextData(DOMElement $root): void
     {
-        (new ContextDataTransfer())->import($root, $this->getContext());
+        $filter = new NativeXmlJournalFilter($this->createEntityFilterGroup('xml=>journal'));
+        $filter->hydrate($root, $this->getContext());
     }
 
     public function createContextData(DOMElement $root): \APP\journal\Journal
     {
-        $context = (new ContextDataTransfer())->create($root);
+        $filter = new NativeXmlJournalFilter($this->createEntityFilterGroup('xml=>journal'));
+        $context = $filter->handleElement($root);
         $this->setContext($context);
         return $context;
     }
@@ -145,12 +159,27 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function exportReferenceData(): DOMDocument
     {
-        return (new ReferenceDataTransfer())->export($this->getContext());
+        $filter = new ReferenceDataNativeXmlFilter(
+            $this->createEntityFilterGroup('reference-data=>xml'),
+            new ReviewFormNativeXmlFilter($this->createEntityFilterGroup('review-form=>xml')),
+            new GenreNativeXmlFilter($this->createEntityFilterGroup('genre=>xml')),
+            new SectionNativeXmlFilter($this->createEntityFilterGroup('section=>xml'))
+        );
+        $context = $this->getContext();
+        return $filter->process($context);
     }
 
     public function importReferenceData(DOMElement $referenceDataNode): array
     {
-        return (new ReferenceDataTransfer())->import($referenceDataNode, $this->getContext());
+        $filter = new NativeXmlReferenceDataFilter(
+            $this->createEntityFilterGroup('xml=>reference-data'),
+            new NativeXmlReviewFormFilter($this->createEntityFilterGroup('xml=>review-form')),
+            new NativeXmlGenreFilter($this->createEntityFilterGroup('xml=>genre')),
+            new NativeXmlSectionFilter($this->createEntityFilterGroup('xml=>section')),
+            new PackageReferenceValidator(),
+            new DefaultContextDataCleaner()
+        );
+        return $filter->importAll($referenceDataNode, $this->getContext());
     }
 
     protected function runNativeImport($rootFilter, $importXml): void
@@ -175,6 +204,11 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         $group->setInputType($inputType);
         $group->setOutputType($outputType);
         return $group;
+    }
+
+    private function createEntityFilterGroup(string $symbolic): FilterGroup
+    {
+        return $this->createFilterGroup($symbolic, 'mixed', 'mixed');
     }
 
     private function getRequiredChild(DOMElement $parent, string $name): DOMElement

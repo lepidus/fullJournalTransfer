@@ -6,7 +6,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests;
 
 use APP\core\Application;
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\ContextDataTransfer;
+use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use InvalidArgumentException;
 use PKP\tests\DatabaseTestCase;
 
@@ -30,7 +30,7 @@ class ContextCreationIntegrationTest extends DatabaseTestCase
     public function testItCreatesTheImportedContextDisabledAndRejectsAConflictingPath(): void
     {
         $source = new Journal();
-        $source->setPath('h5-create-' . bin2hex(random_bytes(4)));
+        $source->setPath('created-journal-' . bin2hex(random_bytes(4)));
         $source->setSequence(3);
         $source->setEnabled(true);
         $source->setPrimaryLocale('en');
@@ -38,20 +38,21 @@ class ContextCreationIntegrationTest extends DatabaseTestCase
         $source->setData('supportedFormLocales', ['en']);
         $source->setData('supportedSubmissionLocales', ['en']);
         $source->setData('submissionChecklist', ['en' => '<ul><li>Ready</li></ul>']);
-        $source->setData('name', ['en' => 'H5 Created Journal']);
+        $source->setData('name', ['en' => 'Created Journal']);
         $source->setData('contactName', 'Editorial Team');
         $source->setData('contactEmail', 'editor@example.com');
-        $document = (new ContextDataTransfer())->export($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
 
-        $created = (new ContextDataTransfer())->create($document->documentElement);
+        $deployment = new FullJournalImportExportDeployment($source, null);
+        $created = $deployment->createContextData($document->documentElement);
         $this->createdContext = $created;
 
         $this->assertGreaterThan(0, (int) $created->getId());
         $this->assertFalse($created->getEnabled());
-        $this->assertSame('H5 Created Journal', $created->getData('name', 'en'));
+        $this->assertSame('Created Journal', $created->getData('name', 'en'));
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A context with this path already exists');
 
-        (new ContextDataTransfer())->create($document->documentElement);
+        $deployment->createContextData($document->documentElement);
     }
 }

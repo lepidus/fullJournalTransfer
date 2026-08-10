@@ -42,10 +42,10 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $context = Application::get()->getContextDAO()->getById(1);
         $this->assertNotNull($context);
         $suffix = bin2hex(random_bytes(6));
-        $destinationUsername = 'h5-destination-' . $suffix;
-        $sourceUsername = 'h5-source-' . $suffix;
+        $destinationUsername = 'destination-' . $suffix;
+        $sourceUsername = 'source-' . $suffix;
         $sourceReference = '987654';
-        $email = 'h5-' . $suffix . '@example.com';
+        $email = 'transfer-' . $suffix . '@example.com';
         $existingUser = Repo::user()->newDataObject();
         $existingUser->setUsername($destinationUsername);
         $existingUser->setEmail($email);
@@ -92,9 +92,9 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $context = Application::get()->getContextDAO()->getById(1);
         $this->assertNotNull($context);
         $suffix = bin2hex(random_bytes(6));
-        $email = 'h5-membership-' . $suffix . '@example.com';
+        $email = 'membership-' . $suffix . '@example.com';
         $user = Repo::user()->newDataObject();
-        $user->setUsername('h5-membership-' . $suffix);
+        $user->setUsername('membership-' . $suffix);
         $user->setEmail($email);
         $user->setPassword(password_hash('destination-password', PASSWORD_BCRYPT));
         $user->setGivenName('Membership', 'en');
@@ -112,8 +112,8 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $group->setShowTitle(false);
         $group->setPermitSelfRegistration(false);
         $group->setPermitMetadataEdit(false);
-        $group->setName('H5 Membership ' . $suffix, 'en');
-        $group->setAbbrev('H5M', 'en');
+        $group->setName('Imported Membership ' . $suffix, 'en');
+        $group->setAbbrev('IM', 'en');
         $groupId = Repo::userGroup()->add($group);
         $this->createdGroup = $group;
         $filter = $this->createFilter($context);
@@ -144,7 +144,7 @@ class UserImportIntegrationTest extends DatabaseTestCase
             $xpath->evaluate('string(//pkp:user[@source_ref="' . $userId . '"]/@source_ref)')
         );
         $this->assertSame((string) $groupId, $xpath->evaluate(
-            'string(//pkp:user_group[pkp:name="H5 Membership ' . $suffix . '"]/@source_ref)'
+            'string(//pkp:user_group[pkp:name="Imported Membership ' . $suffix . '"]/@source_ref)'
         ));
         $this->assertSame(
             (string) $groupId,

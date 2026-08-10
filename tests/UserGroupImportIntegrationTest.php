@@ -35,7 +35,7 @@ class UserGroupImportIntegrationTest extends DatabaseTestCase
     {
         $context = Application::get()->getContextDAO()->getById(1);
         $this->assertNotNull($context);
-        $name = 'H5 Group ' . bin2hex(random_bytes(6));
+        $name = 'Imported Group ' . bin2hex(random_bytes(6));
         $existingGroup = $this->createGroup($context->getId(), Role::ROLE_ID_AUTHOR, $name);
         $document = new DOMDocument();
         $this->assertTrue($document->loadXML(
@@ -47,7 +47,7 @@ class UserGroupImportIntegrationTest extends DatabaseTestCase
             . '<permit_self_registration>true</permit_self_registration>'
             . '<permit_metadata_edit>false</permit_metadata_edit>'
             . '<name locale="en">' . $name . '</name>'
-            . '<abbrev locale="en">H5R</abbrev>'
+            . '<abbrev locale="en">IG</abbrev>'
             . '<stage_assignments>3:4</stage_assignments>'
             . '</user_group>'
         ));
@@ -79,7 +79,7 @@ class UserGroupImportIntegrationTest extends DatabaseTestCase
         $userGroup->setPermitSelfRegistration(false);
         $userGroup->setPermitMetadataEdit(false);
         $userGroup->setName($name, 'en');
-        $userGroup->setAbbrev('H5', 'en');
+        $userGroup->setAbbrev('IG', 'en');
         Repo::userGroup()->add($userGroup);
         $this->createdGroups[] = $userGroup;
         return $userGroup;

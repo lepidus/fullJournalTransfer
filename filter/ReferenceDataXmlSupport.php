@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace APP\plugins\importexport\fullJournalTransfer;
+namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\core\Application;
 use APP\facades\Repo;
@@ -17,7 +17,7 @@ use PKP\reviewForm\ReviewFormElementDAO;
 use PKP\submission\Genre;
 use PKP\submission\GenreDAO;
 
-class ReferenceDataTransfer
+class ReferenceDataXmlSupport
 {
     private const NAMESPACE = 'http://pkp.sfu.ca';
 
@@ -52,7 +52,7 @@ class ReferenceDataTransfer
         ];
     }
 
-    private function validate(DOMElement $root): void
+    public function validate(DOMElement $root): void
     {
         if ($root->localName !== 'reference_data') {
             throw new InvalidArgumentException('Invalid reference data root');
@@ -124,7 +124,7 @@ class ReferenceDataTransfer
         }
     }
 
-    private function exportReviewForms(DOMDocument $document, DOMElement $root, Journal $context): void
+    public function exportReviewForms(DOMDocument $document, DOMElement $root, Journal $context): void
     {
         $reviewFormDao = $this->reviewFormDao();
         $elementDao = $this->reviewFormElementDao();
@@ -164,7 +164,7 @@ class ReferenceDataTransfer
         $root->appendChild($container);
     }
 
-    private function exportGenres(DOMDocument $document, DOMElement $root, Journal $context): void
+    public function exportGenres(DOMDocument $document, DOMElement $root, Journal $context): void
     {
         $container = $document->createElementNS(self::NAMESPACE, 'genres');
         foreach ($this->genreDao()->getByContextId($context->getId())->toArray() as $genre) {
@@ -183,7 +183,7 @@ class ReferenceDataTransfer
         $root->appendChild($container);
     }
 
-    private function exportSections(DOMDocument $document, DOMElement $root, Journal $context): void
+    public function exportSections(DOMDocument $document, DOMElement $root, Journal $context): void
     {
         $container = $document->createElementNS(self::NAMESPACE, 'sections');
         $sections = Repo::section()->getCollector()->filterByContextIds([(int) $context->getId()])->getMany();
@@ -210,7 +210,7 @@ class ReferenceDataTransfer
         $root->appendChild($container);
     }
 
-    private function importReviewForms(
+    public function importReviewForms(
         DOMElement $root,
         Journal $context,
         array &$reviewFormIdMap,
@@ -255,7 +255,7 @@ class ReferenceDataTransfer
         }
     }
 
-    private function importGenres(DOMElement $root, Journal $context, array &$genreIdMap): void
+    public function importGenres(DOMElement $root, Journal $context, array &$genreIdMap): void
     {
         $genreDao = $this->genreDao();
         foreach ($this->children($this->requiredContainer($root, 'genres'), 'genre') as $node) {
@@ -276,7 +276,7 @@ class ReferenceDataTransfer
         }
     }
 
-    private function importSections(
+    public function importSections(
         DOMElement $root,
         Journal $context,
         array $reviewFormIdMap,
