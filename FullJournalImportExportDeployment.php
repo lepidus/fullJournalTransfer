@@ -8,7 +8,6 @@ use APP\plugins\importexport\native\NativeImportExportDeployment;
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
-    /** @var list<string> */
     private array $createdFiles = [];
 
     public function importPackage(

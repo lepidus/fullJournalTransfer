@@ -13,7 +13,6 @@ class ArchiveManagerTest extends TestCase
 {
     private const RELEASE = '3.4.0.10';
 
-    /** @var list<string> */
     private array $temporaryPaths = [];
 
     protected function tearDown(): void
@@ -70,38 +69,24 @@ class ArchiveManagerTest extends TestCase
         $this->assertFalse($called);
     }
 
-    /**
-     * @dataProvider unsafeArchiveProvider
-     */
-    public function testItRejectsUnsafeEntriesBeforeCallingTheImporter(string $kind, string $message): void
+    public function testItRejectsAbsolutePathsBeforeCallingTheImporter(): void
     {
-        $archive = $this->createUnsafeArchive($kind);
-        $called = false;
-
-        try {
-            (new ArchiveManager())->withExtractedPackage(
-                $archive,
-                self::RELEASE,
-                function () use (&$called): void {
-                    $called = true;
-                }
-            );
-            $this->fail('An unsafe package was accepted');
-        } catch (InvalidArgumentException $exception) {
-            $this->assertStringContainsString($message, $exception->getMessage());
-        }
-
-        $this->assertFalse($called);
+        $this->assertUnsafeArchiveRejected('absolute', 'relative');
     }
 
-    public function unsafeArchiveProvider(): array
+    public function testItRejectsParentTraversalBeforeCallingTheImporter(): void
     {
-        return [
-            'absolute path' => ['absolute', 'relative'],
-            'parent traversal' => ['traversal', 'relative'],
-            'symbolic link' => ['symlink', 'link'],
-            'duplicate entry' => ['duplicate', 'duplicate'],
-        ];
+        $this->assertUnsafeArchiveRejected('traversal', 'relative');
+    }
+
+    public function testItRejectsSymbolicLinksBeforeCallingTheImporter(): void
+    {
+        $this->assertUnsafeArchiveRejected('symlink', 'link');
+    }
+
+    public function testItRejectsDuplicateEntriesBeforeCallingTheImporter(): void
+    {
+        $this->assertUnsafeArchiveRejected('duplicate', 'duplicate');
     }
 
     public function testItCleansTheStagingDirectoryWhenTheImporterFails(): void
@@ -162,7 +147,6 @@ class ArchiveManagerTest extends TestCase
         return $archive;
     }
 
-    /** @param list<string> $entries */
     private function createTar(string $source, array $entries): string
     {
         $archive = $this->newTemporaryPath('.tar.gz');
@@ -171,7 +155,6 @@ class ArchiveManagerTest extends TestCase
         return $archive;
     }
 
-    /** @param list<string> $arguments */
     private function runTar(string $archive, string $source, array $arguments): void
     {
         $command = array_merge(['/bin/tar', '-czf', $archive, '-C', $source], $arguments);
@@ -198,6 +181,27 @@ class ArchiveManagerTest extends TestCase
             . '<capabilities><capability name="journal"/></capabilities>'
             . '<files><file path="journal.xml" size="10" checksum="' . $checksum . '"/></files>'
             . '</full_journal_package>';
+    }
+
+    private function assertUnsafeArchiveRejected(string $kind, string $message): void
+    {
+        $archive = $this->createUnsafeArchive($kind);
+        $called = false;
+
+        try {
+            (new ArchiveManager())->withExtractedPackage(
+                $archive,
+                self::RELEASE,
+                function () use (&$called): void {
+                    $called = true;
+                }
+            );
+            $this->fail('An unsafe package was accepted');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertStringContainsString($message, $exception->getMessage());
+        }
+
+        $this->assertFalse($called);
     }
 
     private function createTemporaryDirectory(): string

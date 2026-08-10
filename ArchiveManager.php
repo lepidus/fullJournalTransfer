@@ -19,13 +19,6 @@ class ArchiveManager
     private const MAX_EXTRACTED_SIZE = 10737418240;
     private const MAX_ENTRIES = 100000;
 
-    /**
-     * @template T
-     *
-     * @param callable(string, PackageManifest): T $importer
-     *
-     * @return T
-     */
     public function withExtractedPackage(string $archivePath, string $applicationVersion, callable $importer)
     {
         $archive = $this->openAndValidateArchive($archivePath);
@@ -61,9 +54,6 @@ class ArchiveManager
         }
     }
 
-    /**
-     * @return array{PackageManifest, list<string>}
-     */
     private function validateContents(PharData $archive, string $archivePath, string $applicationVersion): array
     {
         $listedEntries = $this->listArchiveEntries($archivePath);
@@ -131,7 +121,6 @@ class ArchiveManager
         return [$manifest, $entries];
     }
 
-    /** @return list<string> */
     private function listArchiveEntries(string $archivePath): array
     {
         $stdout = $this->runTar(['/bin/tar', '-tzf', $archivePath]);
@@ -162,7 +151,6 @@ class ArchiveManager
         return $entries;
     }
 
-    /** @param list<string> $command */
     private function runTar(array $command): string
     {
         $process = new Process($command);
@@ -202,7 +190,6 @@ class ArchiveManager
         return $path;
     }
 
-    /** @param list<string> $entries */
     private function validateExtractedFiles(string $stagingPath, array $entries): void
     {
         $stagingRealPath = realpath($stagingPath);
