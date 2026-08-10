@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<full_journal_package application="ojs" application_version="3.4.0.10" format_version="1.0"
+    created_at="2026-08-10T15:00:00-04:00">
+    <capabilities>
+        <capability name="journal" />
+        <capability name="users" />
+        <capability name="workflow" />
+        <capability name="metrics" />
+    </capabilities>
+    <files>
+        <file path="journal.xml" size="608"
+            checksum="a4ef6a5950d7d6cfe1bd2ddcdc167aca47c7675b66022217cc1f67d0b07328e2" />
+    </files>
+</full_journal_package>
