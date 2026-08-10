@@ -21,13 +21,14 @@ class FullJournalImportExportPluginTest extends TestCase
         $this->assertSame('FullJournalImportExportPlugin', $plugin->getName());
     }
 
-    public function testDeploymentDefinesFullJournalSubmissionNodes(): void
+    public function testDeploymentUsesNativeOjsSubmissionNodes(): void
     {
         $plugin = new FullJournalImportExportPlugin();
         $deployment = $plugin->getAppSpecificDeployment(new Journal(), null);
 
         $this->assertInstanceOf(FullJournalImportExportDeployment::class, $deployment);
-        $this->assertSame('extended_article', $deployment->getSubmissionNodeName());
-        $this->assertSame('extended_articles', $deployment->getSubmissionsNodeName());
+        $this->assertSame('article', $deployment->getSubmissionNodeName());
+        $this->assertSame('articles', $deployment->getSubmissionsNodeName());
+        $this->assertSame('article_galley', $deployment->getRepresentationNodeName());
     }
 }
