@@ -31,6 +31,17 @@ class PackageManifestTest extends TestCase
         );
     }
 
+    public function testItAcceptsDifferentMaintenanceReleasesFromTheSameOjsLine(): void
+    {
+        $sourceRelease = '3.4.0.9';
+        $manifest = PackageManifest::fromXml(
+            str_replace(self::RELEASE, $sourceRelease, $this->validManifest()),
+            self::RELEASE
+        );
+
+        $this->assertSame($sourceRelease, $manifest->getApplicationVersion());
+    }
+
     public function testVersionedFixtureMatchesTheJournalPayload(): void
     {
         $directory = __DIR__ . '/samples/full-journal-1.0';
@@ -66,9 +77,13 @@ class PackageManifestTest extends TestCase
                 str_replace('application="ojs"', 'application="omp"', $this->validManifest()),
                 'application',
             ],
-            'release' => [
-                str_replace(self::RELEASE, '3.4.0.9', $this->validManifest()),
-                'application version',
+            'version line' => [
+                str_replace(self::RELEASE, '3.4.1.0', $this->validManifest()),
+                'application version line',
+            ],
+            'incomplete release' => [
+                str_replace(self::RELEASE, '3.4.0', $this->validManifest()),
+                'complete application version',
             ],
             'format' => [
                 str_replace('format_version="1.0"', 'format_version="2.0"', $this->validManifest()),

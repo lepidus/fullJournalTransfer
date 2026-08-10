@@ -67,8 +67,10 @@ class PackageManifest
         if ($application !== self::APPLICATION) {
             throw new InvalidArgumentException('The manifest application must be ojs');
         }
-        if ($applicationVersion !== $expectedApplicationVersion) {
-            throw new InvalidArgumentException('The manifest application version must match the target release');
+        $sourceVersionLine = self::getVersionLine($applicationVersion);
+        $targetVersionLine = self::getVersionLine($expectedApplicationVersion);
+        if ($sourceVersionLine !== $targetVersionLine) {
+            throw new InvalidArgumentException('The manifest application version line must match the target version line');
         }
         if ($formatVersion !== self::FORMAT_VERSION) {
             throw new InvalidArgumentException('The manifest format version is not supported');
@@ -153,5 +155,14 @@ class PackageManifest
             throw new InvalidArgumentException(sprintf('The %s attribute is required', $name));
         }
         return $value;
+    }
+
+    private static function getVersionLine(string $version): string
+    {
+        if (!preg_match('/\A(\d+\.\d+\.\d+)\.\d+\z/', $version, $matches)) {
+            throw new InvalidArgumentException('The manifest and target must declare a complete application version');
+        }
+
+        return $matches[1];
     }
 }
