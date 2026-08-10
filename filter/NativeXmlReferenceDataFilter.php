@@ -8,6 +8,7 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\DefaultContextDataCleaner;
 use APP\plugins\importexport\fullJournalTransfer\PackageReferenceValidator;
 use DOMElement;
+use Illuminate\Support\Facades\DB;
 use PKP\filter\FilterGroup;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
 
@@ -38,19 +39,21 @@ class NativeXmlReferenceDataFilter extends NativeImportFilter
     public function importAll(DOMElement $root, Journal $context): array
     {
         $this->validator->validateReferenceData($root);
-        $this->cleaner->cleanReferenceData($context);
-        $reviewFormMap = [];
-        $elementMap = [];
-        $genreMap = [];
-        $sectionMap = [];
-        $this->reviewForms->importAll($root, $context, $reviewFormMap, $elementMap);
-        $this->genres->importAll($root, $context, $genreMap);
-        $this->sections->importAll($root, $context, $reviewFormMap, $sectionMap);
-        return [
-            'review_form_id_map' => $reviewFormMap,
-            'review_form_element_id_map' => $elementMap,
-            'genre_id_map' => $genreMap,
-            'section_id_map' => $sectionMap,
-        ];
+        return DB::transaction(function () use ($root, $context): array {
+            $this->cleaner->cleanReferenceData($context);
+            $reviewFormMap = [];
+            $elementMap = [];
+            $genreMap = [];
+            $sectionMap = [];
+            $this->reviewForms->importAll($root, $context, $reviewFormMap, $elementMap);
+            $this->genres->importAll($root, $context, $genreMap);
+            $this->sections->importAll($root, $context, $reviewFormMap, $sectionMap);
+            return [
+                'review_form_id_map' => $reviewFormMap,
+                'review_form_element_id_map' => $elementMap,
+                'genre_id_map' => $genreMap,
+                'section_id_map' => $sectionMap,
+            ];
+        });
     }
 }
