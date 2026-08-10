@@ -44,6 +44,7 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $suffix = bin2hex(random_bytes(6));
         $destinationUsername = 'h5-destination-' . $suffix;
         $sourceUsername = 'h5-source-' . $suffix;
+        $sourceReference = '987654';
         $email = 'h5-' . $suffix . '@example.com';
         $existingUser = Repo::user()->newDataObject();
         $existingUser->setUsername($destinationUsername);
@@ -67,7 +68,7 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $document = new DOMDocument();
         $password = password_hash('source-password', PASSWORD_BCRYPT);
         $this->assertTrue($document->loadXML(
-            '<user xmlns="http://pkp.sfu.ca">'
+            '<user xmlns="http://pkp.sfu.ca" source_ref="' . $sourceReference . '">'
             . '<givenname locale="en">Source</givenname>'
             . '<familyname locale="en">Profile</familyname>'
             . '<email> ' . mb_strtoupper($email) . ' </email>'
@@ -82,7 +83,7 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $this->assertSame($existingUserId, $importedUser->getId());
         $this->assertSame('Destination', $persistedUser->getGivenName('en'));
         $this->assertSame($destinationUsername, $persistedUser->getUsername());
-        $this->assertSame([$sourceUsername => $existingUserId], $filter->getUserIdMap());
+        $this->assertSame([$sourceReference => $existingUserId], $filter->getUserIdMap());
         $this->assertSame('email_match', $filter->getConflicts()[0]['type']);
     }
 

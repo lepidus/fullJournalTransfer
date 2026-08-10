@@ -86,6 +86,10 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
 
     private function getSourceReference(DOMElement $node, string $fallback): string
     {
+        $sourceReference = trim($node->getAttribute('source_ref'));
+        if ($sourceReference !== '') {
+            return $sourceReference;
+        }
         $idNode = $this->getDirectChild($node, 'id');
         return $idNode && trim($idNode->textContent) !== '' ? trim($idNode->textContent) : $fallback;
     }
