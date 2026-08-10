@@ -1,22 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--
-  Full Journal Transfer format 1.0 for OJS 3.4.0.
-
-  The contract was aligned with OJS 3.4.0-10 at core SHA
-  2f798713f2d253a77b815a530924ff24631e2db2. Native submission, publication,
-  galley and file documents are validated by the OJS Native XML deployment
-  against plugins/importexport/native/native.xsd. User documents are validated
-  against lib/pkp/plugins/importexport/users/pkp-users.xsd. This schema owns the
-  Full Journal root and the complementary workflow and metrics structures.
--->
-
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
     xmlns:pkp="http://pkp.sfu.ca"
     targetNamespace="http://pkp.sfu.ca"
     elementFormDefault="qualified">
 
-    <simpleType name="localeCode">
+    <simpleType name="locale_code">
         <restriction base="string">
             <pattern value="[a-z]{2}(_[A-Z]{2})?" />
         </restriction>
@@ -26,13 +15,13 @@
         <complexType>
             <sequence>
                 <element name="locales" type="pkp:locales" />
-                <element name="submission_checklist" type="pkp:submissionChecklist" minOccurs="0" />
-                <element name="native_data" type="pkp:nativeData" minOccurs="0" />
-                <element name="users" type="pkp:nativeData" minOccurs="0" />
-                <element name="workflow_history" type="pkp:workflowHistory" minOccurs="0" />
+                <element name="submission_checklist" type="pkp:submission_checklist" minOccurs="0" />
+                <element name="native_data" type="pkp:native_data" minOccurs="0" />
+                <element name="users" type="pkp:native_data" minOccurs="0" />
+                <element name="workflow_history" type="pkp:workflow_history" minOccurs="0" />
                 <element name="metrics" type="pkp:metrics" minOccurs="0" />
             </sequence>
-            <attribute name="primary_locale" type="pkp:localeCode" use="required" />
+            <attribute name="primary_locale" type="pkp:locale_code" use="required" />
         </complexType>
     </element>
 
@@ -40,30 +29,30 @@
         <sequence>
             <element name="locale" minOccurs="1" maxOccurs="unbounded">
                 <complexType>
-                    <attribute name="code" type="pkp:localeCode" use="required" />
+                    <attribute name="code" type="pkp:locale_code" use="required" />
                 </complexType>
             </element>
         </sequence>
     </complexType>
 
-    <complexType name="submissionChecklist">
+    <complexType name="submission_checklist">
         <sequence>
             <element name="item" minOccurs="1" maxOccurs="unbounded">
                 <complexType mixed="true">
-                    <attribute name="locale" type="pkp:localeCode" use="required" />
+                    <attribute name="locale" type="pkp:locale_code" use="required" />
                     <attribute name="order" type="positiveInteger" use="required" />
                 </complexType>
             </element>
         </sequence>
     </complexType>
 
-    <complexType name="nativeData">
+    <complexType name="native_data">
         <sequence>
             <any namespace="http://pkp.sfu.ca" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
         </sequence>
     </complexType>
 
-    <complexType name="workflowHistory">
+    <complexType name="workflow_history">
         <sequence>
             <any namespace="http://pkp.sfu.ca" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
         </sequence>
