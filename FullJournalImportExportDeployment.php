@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer;
 
+use APP\facades\Repo;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlUserGroupFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\PKPUserUserXmlFilter;
 use APP\plugins\importexport\fullJournalTransfer\filter\UserXmlPKPUserFilter;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
 use DOMDocument;
 use DOMElement;
+use InvalidArgumentException;
 use PKP\filter\FilterGroup;
 use PKP\plugins\importexport\users\PKPUserImportExportDeployment;
 
@@ -73,21 +77,80 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         (new ContextDataTransfer())->import($root, $this->getContext());
     }
 
+    public function createContextData(DOMElement $root): \APP\journal\Journal
+    {
+        $context = (new ContextDataTransfer())->create($root);
+        $this->setContext($context);
+        return $context;
+    }
+
+    public function exportUsers(): DOMDocument
+    {
+        $filter = new PKPUserUserXmlFilter($this->createFilterGroup(
+            'user=>full-journal-user-xml',
+            'class::lib.pkp.classes.user.User[]',
+            'xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)'
+        ));
+        $filter->setDeployment(new PKPUserImportExportDeployment($this->getContext(), $this->getUser()));
+        $users = Repo::user()->getCollector()
+            ->filterByContextIds([$this->getContext()->getId()])
+            ->getMany()
+            ->toArray();
+        $nativeDocument = $filter->process($users);
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $root = $document->createElementNS($this->getNamespace(), 'users');
+        $document->appendChild($root);
+        foreach ($nativeDocument->documentElement->childNodes as $child) {
+            if ($child instanceof DOMElement) {
+                $root->appendChild($document->importNode($child, true));
+            }
+        }
+        return $document;
+    }
+
     public function importUsers(DOMElement $usersNode): array
     {
-        $group = new FilterGroup();
-        $group->setSymbolic('full-journal-user-xml=>user');
-        $group->setInputType('xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)');
-        $group->setOutputType('class::classes.users.User[]');
-        $filter = new UserXmlPKPUserFilter($group);
-        $filter->setDeployment(new PKPUserImportExportDeployment($this->getContext(), $this->getUser()));
-        $document = new DOMDocument('1.0', 'UTF-8');
-        $document->appendChild($document->importNode($usersNode, true));
-        $filter->execute($document);
+        $userGroupsNode = $this->getRequiredChild($usersNode, 'user_groups');
+        $userListNode = $this->getRequiredChild($usersNode, 'users');
+        $userDeployment = new PKPUserImportExportDeployment($this->getContext(), $this->getUser());
+        $userGroupFilter = new NativeXmlUserGroupFilter($this->createFilterGroup(
+            'full-journal-user-group-xml=>user-group',
+            'xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)',
+            'class::lib.pkp.classes.security.UserGroup[]'
+        ));
+        $userGroupFilter->setDeployment($userDeployment);
+        foreach ($userGroupsNode->childNodes as $userGroupNode) {
+            if ($userGroupNode instanceof DOMElement && $userGroupNode->localName === 'user_group') {
+                $userGroupFilter->handleElement($userGroupNode);
+            }
+        }
+        $userFilter = new UserXmlPKPUserFilter($this->createFilterGroup(
+            'full-journal-user-xml=>user',
+            'xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)',
+            'class::classes.users.User[]'
+        ));
+        $userFilter->setDeployment($userDeployment);
+        $userFilter->setUserGroupIdMap($userGroupFilter->getUserGroupIdMap());
+        foreach ($userListNode->childNodes as $userNode) {
+            if ($userNode instanceof DOMElement && $userNode->localName === 'user') {
+                $userFilter->parseUser($userNode);
+            }
+        }
         return [
-            'user_id_map' => $filter->getUserIdMap(),
-            'conflicts' => $filter->getConflicts(),
+            'user_id_map' => $userFilter->getUserIdMap(),
+            'user_group_id_map' => $userGroupFilter->getUserGroupIdMap(),
+            'conflicts' => $userFilter->getConflicts(),
         ];
+    }
+
+    public function exportReferenceData(): DOMDocument
+    {
+        return (new ReferenceDataTransfer())->export($this->getContext());
+    }
+
+    public function importReferenceData(DOMElement $referenceDataNode): array
+    {
+        return (new ReferenceDataTransfer())->import($referenceDataNode, $this->getContext());
     }
 
     protected function runNativeImport($rootFilter, $importXml): void
@@ -103,5 +166,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             }
         }
         $this->createdFiles = [];
+    }
+
+    private function createFilterGroup(string $symbolic, string $inputType, string $outputType): FilterGroup
+    {
+        $group = new FilterGroup();
+        $group->setSymbolic($symbolic);
+        $group->setInputType($inputType);
+        $group->setOutputType($outputType);
+        return $group;
+    }
+
+    private function getRequiredChild(DOMElement $parent, string $name): DOMElement
+    {
+        $matches = [];
+        foreach ($parent->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === $name) {
+                $matches[] = $child;
+            }
+        }
+        if (count($matches) !== 1) {
+            throw new InvalidArgumentException('Expected exactly one ' . $name . ' element');
+        }
+        return $matches[0];
     }
 }

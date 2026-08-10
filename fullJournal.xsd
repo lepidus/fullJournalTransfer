@@ -16,12 +16,17 @@
             <sequence>
                 <element name="locales" type="pkp:locales" />
                 <element name="submission_checklist" type="pkp:submission_checklist" minOccurs="0" />
+                <element name="context_settings" type="pkp:context_settings" />
                 <element name="native_data" type="pkp:native_data" minOccurs="0" />
                 <element name="users" type="pkp:native_data" minOccurs="0" />
+                <element name="reference_data" type="pkp:native_data" minOccurs="0" />
                 <element name="workflow_history" type="pkp:workflow_history" minOccurs="0" />
                 <element name="metrics" type="pkp:metrics" minOccurs="0" />
             </sequence>
             <attribute name="primary_locale" type="pkp:locale_code" use="required" />
+            <attribute name="url_path" type="string" use="required" />
+            <attribute name="sequence" type="decimal" use="required" />
+            <attribute name="source_enabled" type="boolean" use="required" />
         </complexType>
     </element>
 
@@ -34,6 +39,26 @@
                     <attribute name="form_order" type="positiveInteger" use="optional" />
                     <attribute name="enabled_for_submissions" type="boolean" use="required" />
                     <attribute name="submission_order" type="positiveInteger" use="optional" />
+                </complexType>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="context_settings">
+        <sequence>
+            <element name="setting" minOccurs="3" maxOccurs="unbounded">
+                <complexType mixed="true">
+                    <attribute name="name" type="string" use="required" />
+                    <attribute name="type" use="required">
+                        <simpleType>
+                            <restriction base="string">
+                                <enumeration value="string" />
+                                <enumeration value="integer" />
+                                <enumeration value="boolean" />
+                            </restriction>
+                        </simpleType>
+                    </attribute>
+                    <attribute name="locale" type="pkp:locale_code" use="optional" />
                 </complexType>
             </element>
         </sequence>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer;
 
+use APP\core\Application;
 use APP\journal\Journal;
 use DOMDocument;
 use DOMElement;
@@ -12,6 +13,39 @@ use InvalidArgumentException;
 class ContextDataTransfer
 {
     private const NAMESPACE = 'http://pkp.sfu.ca';
+    private const SCALAR_SETTINGS = [
+        'contactEmail' => 'string',
+        'contactName' => 'string',
+        'contactPhone' => 'string',
+        'mailingAddress' => 'string',
+        'onlineIssn' => 'string',
+        'printIssn' => 'string',
+        'publisherInstitution' => 'string',
+        'supportEmail' => 'string',
+        'supportName' => 'string',
+        'supportPhone' => 'string',
+        'copyrightYearBasis' => 'string',
+        'defaultReviewMode' => 'integer',
+        'enableOai' => 'boolean',
+        'itemsPerPage' => 'integer',
+        'numPageLinks' => 'integer',
+        'numWeeksPerResponse' => 'integer',
+        'numWeeksPerReview' => 'integer',
+    ];
+    private const LOCALIZED_SETTINGS = [
+        'name',
+        'acronym',
+        'abbreviation',
+        'about',
+        'authorInformation',
+        'librarianInformation',
+        'readerInformation',
+        'privacyStatement',
+        'openAccessPolicy',
+        'contactAffiliation',
+        'description',
+        'editorialTeam',
+    ];
 
     public function export(Journal $journal): DOMDocument
     {
@@ -33,6 +67,13 @@ class ContextDataTransfer
         $document->formatOutput = true;
         $root = $document->createElementNS(self::NAMESPACE, 'journal');
         $root->setAttribute('primary_locale', $primaryLocale);
+        $path = $journal->getPath();
+        if (!is_string($path) || preg_match('/^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$/', $path) !== 1) {
+            throw new InvalidArgumentException('The context path is invalid');
+        }
+        $root->setAttribute('url_path', $path);
+        $root->setAttribute('sequence', (string) $journal->getSequence());
+        $root->setAttribute('source_enabled', $journal->getEnabled() ? 'true' : 'false');
         $document->appendChild($root);
 
         $localesNode = $document->createElementNS(self::NAMESPACE, 'locales');
@@ -82,11 +123,41 @@ class ContextDataTransfer
             $root->appendChild($checklistNode);
         }
 
+        $settingsNode = $document->createElementNS(self::NAMESPACE, 'context_settings');
+        foreach (self::SCALAR_SETTINGS as $property => $type) {
+            $value = $journal->getData($property);
+            if ($value === null) {
+                continue;
+            }
+            $this->appendSetting($document, $settingsNode, $property, $type, $value);
+        }
+        foreach (self::LOCALIZED_SETTINGS as $property) {
+            foreach ((array) $journal->getData($property, null) as $locale => $value) {
+                if ($value === null) {
+                    continue;
+                }
+                $this->appendSetting($document, $settingsNode, $property, 'string', $value, (string) $locale);
+            }
+        }
+        $root->appendChild($settingsNode);
+        $this->validateRequiredSettings($journal);
+
         return $document;
     }
 
     public function import(DOMElement $root, Journal $journal): void
     {
+        $path = $root->getAttribute('url_path');
+        if (preg_match('/^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$/', $path) !== 1) {
+            throw new InvalidArgumentException('The context path is invalid');
+        }
+        $sequence = $root->getAttribute('sequence');
+        if (!is_numeric($sequence)) {
+            throw new InvalidArgumentException('The context sequence is invalid');
+        }
+        $journal->setPath($path);
+        $journal->setSequence((float) $sequence);
+        $journal->setEnabled(false);
         $journal->setPrimaryLocale($root->getAttribute('primary_locale'));
         $supportedLocales = [];
         $supportedFormLocales = [];
@@ -112,6 +183,55 @@ class ContextDataTransfer
             $checklist[$contentNode->getAttribute('locale')] = $contentNode->textContent;
         }
         $journal->setData('submissionChecklist', $checklist);
+
+        $settingsContainers = $root->getElementsByTagNameNS(self::NAMESPACE, 'context_settings');
+        if ($settingsContainers->length !== 1) {
+            throw new InvalidArgumentException('Expected exactly one context_settings element');
+        }
+        $seenSettings = [];
+        foreach ($settingsContainers->item(0)->childNodes as $settingNode) {
+            if (!$settingNode instanceof DOMElement || $settingNode->localName !== 'setting') {
+                continue;
+            }
+            $property = $settingNode->getAttribute('name');
+            $locale = trim($settingNode->getAttribute('locale'));
+            $key = $property . ':' . $locale;
+            if (isset($seenSettings[$key])) {
+                throw new InvalidArgumentException('Duplicated context setting: ' . $property);
+            }
+            $seenSettings[$key] = true;
+            if ($locale === '') {
+                if (!isset(self::SCALAR_SETTINGS[$property])) {
+                    throw new InvalidArgumentException('Context setting is not allowed: ' . $property);
+                }
+                $journal->setData(
+                    $property,
+                    $this->decodeSetting($settingNode->textContent, self::SCALAR_SETTINGS[$property])
+                );
+            } else {
+                if (!in_array($property, self::LOCALIZED_SETTINGS, true)) {
+                    throw new InvalidArgumentException('Localized context setting is not allowed: ' . $property);
+                }
+                $journal->setData($property, $settingNode->textContent, $locale);
+            }
+        }
+        $this->validateRequiredSettings($journal);
+    }
+
+    public function create(DOMElement $root): Journal
+    {
+        $contextDao = Application::get()->getContextDAO();
+        $journal = $contextDao->newDataObject();
+        $this->import($root, $journal);
+        if ($contextDao->getByPath($journal->getPath())) {
+            throw new InvalidArgumentException('A context with this path already exists');
+        }
+        $contextId = $contextDao->insertObject($journal);
+        $createdJournal = $contextDao->getById($contextId);
+        if (!$createdJournal instanceof Journal) {
+            throw new InvalidArgumentException('The imported context could not be persisted');
+        }
+        return $createdJournal;
     }
 
     private function requireLocales($locales, string $property): array
@@ -125,5 +245,58 @@ class ContextDataTransfer
             }
         }
         return array_values(array_unique($locales));
+    }
+
+    private function appendSetting(
+        DOMDocument $document,
+        DOMElement $parent,
+        string $property,
+        string $type,
+        $value,
+        ?string $locale = null
+    ): void {
+        $node = $document->createElementNS(self::NAMESPACE, 'setting');
+        $node->setAttribute('name', $property);
+        $node->setAttribute('type', $type);
+        if ($locale !== null) {
+            $node->setAttribute('locale', $locale);
+        }
+        if ($type === 'boolean') {
+            $value = $value ? 'true' : 'false';
+        }
+        $node->appendChild($document->createTextNode((string) $value));
+        $parent->appendChild($node);
+    }
+
+    private function decodeSetting(string $value, string $type)
+    {
+        if ($type === 'boolean') {
+            if (!in_array($value, ['true', 'false'], true)) {
+                throw new InvalidArgumentException('Invalid boolean context setting');
+            }
+            return $value === 'true';
+        }
+        if ($type === 'integer') {
+            if (filter_var($value, FILTER_VALIDATE_INT) === false) {
+                throw new InvalidArgumentException('Invalid integer context setting');
+            }
+            return (int) $value;
+        }
+        return $value;
+    }
+
+    private function validateRequiredSettings(Journal $journal): void
+    {
+        $names = $journal->getData('name', null);
+        if (!is_array($names) || array_filter($names, 'is_string') === []) {
+            throw new InvalidArgumentException('The context must have a localized name');
+        }
+        if (!is_string($journal->getData('contactName')) || trim($journal->getData('contactName')) === '') {
+            throw new InvalidArgumentException('The context must have a contact name');
+        }
+        $contactEmail = $journal->getData('contactEmail');
+        if (!is_string($contactEmail) || filter_var($contactEmail, FILTER_VALIDATE_EMAIL) === false) {
+            throw new InvalidArgumentException('The context must have a valid contact email');
+        }
     }
 }

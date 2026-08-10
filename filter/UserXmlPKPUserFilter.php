@@ -7,12 +7,14 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 use APP\facades\Repo;
 use APP\plugins\importexport\fullJournalTransfer\UserIdentityPolicy;
 use DOMElement;
+use InvalidArgumentException;
 use PKP\plugins\importexport\users\filter\UserXmlPKPUserFilter as BaseUserXmlPKPUserFilter;
 
 class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
 {
     private array $userIdMap = [];
     private array $conflicts = [];
+    private array $userGroupIdMap = [];
 
     public function parseUser($node)
     {
@@ -24,6 +26,7 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
 
         $sourceUsername = $usernameNode->textContent;
         $sourceReference = $this->getSourceReference($node, $sourceUsername);
+        $userGroupIds = $this->resolveUserGroupIds($node);
         $decision = (new UserIdentityPolicy())->resolve(
             $emailNode->textContent,
             $sourceUsername,
@@ -39,6 +42,11 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
         $user = parent::parseUser($node);
         if ($user && $user->getId()) {
             $this->userIdMap[$sourceReference] = $user->getId();
+            foreach ($userGroupIds as $userGroupId) {
+                if (!Repo::userGroup()->userInGroup($user->getId(), $userGroupId)) {
+                    Repo::userGroup()->assignUserToGroup($user->getId(), $userGroupId);
+                }
+            }
         }
         if ($decision['conflict'] !== null) {
             $this->conflicts[] = [
@@ -61,6 +69,11 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
         return $this->conflicts;
     }
 
+    public function setUserGroupIdMap(array $userGroupIdMap): void
+    {
+        $this->userGroupIdMap = $userGroupIdMap;
+    }
+
     private function getDirectChild(DOMElement $node, string $name): ?DOMElement
     {
         foreach ($node->childNodes as $child) {
@@ -75,5 +88,30 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
     {
         $idNode = $this->getDirectChild($node, 'id');
         return $idNode && trim($idNode->textContent) !== '' ? trim($idNode->textContent) : $fallback;
+    }
+
+    private function resolveUserGroupIds(DOMElement $node): array
+    {
+        $contextId = $this->getDeployment()->getContext()->getId();
+        $userGroupIds = [];
+        $references = [];
+        foreach ($node->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === 'user_group_ref') {
+                $references[] = $child;
+            }
+        }
+        foreach ($references as $reference) {
+            $sourceReference = trim($reference->getAttribute('source_ref'));
+            if ($sourceReference === '' || !isset($this->userGroupIdMap[$sourceReference])) {
+                throw new InvalidArgumentException('Unknown imported user group reference');
+            }
+            $userGroupId = (int) $this->userGroupIdMap[$sourceReference];
+            if (!Repo::userGroup()->contextHasGroup($contextId, $userGroupId)) {
+                throw new InvalidArgumentException('Imported user group reference is outside the destination context');
+            }
+            $userGroupIds[] = $userGroupId;
+            $node->removeChild($reference);
+        }
+        return array_values(array_unique($userGroupIds));
     }
 }
