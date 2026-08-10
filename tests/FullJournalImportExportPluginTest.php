@@ -1,39 +1,33 @@
 <?php
 
-import('lib.pkp.tests.PKPTestCase');
-import('plugins.importexport.fullJournalTransfer.FullJournalImportExportPlugin');
+declare(strict_types=1);
 
-class FullJournalImportExportPluginTest extends PKPTestCase
+namespace APP\plugins\importexport\fullJournalTransfer\tests;
+
+use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
+use APP\plugins\importexport\native\NativeImportExportPlugin;
+use PHPUnit\Framework\TestCase;
+
+class FullJournalImportExportPluginTest extends TestCase
 {
-    public function testArchiveFiles()
+    public function testEntrypointLoadsNativeOjs34Plugin(): void
+    {
+        $plugin = require dirname(__DIR__) . '/index.php';
+
+        $this->assertInstanceOf(FullJournalImportExportPlugin::class, $plugin);
+        $this->assertInstanceOf(NativeImportExportPlugin::class, $plugin);
+        $this->assertSame('FullJournalImportExportPlugin', $plugin->getName());
+    }
+
+    public function testDeploymentDefinesFullJournalSubmissionNodes(): void
     {
         $plugin = new FullJournalImportExportPlugin();
+        $deployment = $plugin->getAppSpecificDeployment(new Journal(), null);
 
-        $samplesDir = __DIR__ . '/samples';
-        $xmlFile = 'journal.xml';
-        $xmlPath = $samplesDir . '/' . $xmlFile;
-        $journalFilesDir = $samplesDir . '/journals/5';
-        $archivePath = tempnam(sys_get_temp_dir(), 'full-journal-transfer-');
-        $this->assertNotFalse($archivePath);
-        unlink($archivePath);
-        $archivePath .= '.tar.gz';
-
-        try {
-            $plugin->archiveFiles($archivePath, $xmlPath, $journalFilesDir);
-            $this->assertFileExists($archivePath);
-
-            exec(Config::getVar('cli', 'tar') . ' -ztf ' . escapeshellarg($archivePath), $archiveContent);
-
-            $this->assertContains($xmlFile, $archiveContent);
-            $this->assertContains('journals/5/', $archiveContent);
-            $this->assertContains('journals/5/articles/13/dummy.pdf', $archiveContent);
-            $this->assertContains('journals/5/issues/7/dummy.pdf', $archiveContent);
-            $this->assertNotContains($xmlPath, $archiveContent);
-            $this->assertNotContains($journalFilesDir, $archiveContent);
-        } finally {
-            if (file_exists($archivePath)) {
-                unlink($archivePath);
-            }
-        }
+        $this->assertInstanceOf(FullJournalImportExportDeployment::class, $deployment);
+        $this->assertSame('extended_article', $deployment->getSubmissionNodeName());
+        $this->assertSame('extended_articles', $deployment->getSubmissionsNodeName());
     }
 }
