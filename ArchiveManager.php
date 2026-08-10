@@ -10,6 +10,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 class ArchiveManager
@@ -164,17 +165,11 @@ class ArchiveManager
     /** @param list<string> $command */
     private function runTar(array $command): string
     {
-        $process = proc_open($command, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes);
-        if (!is_resource($process)) {
-            throw new RuntimeException('The package archive could not be inspected');
-        }
-        fclose($pipes[0]);
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($process);
-        if ($exitCode !== 0) {
+        $process = new Process($command);
+        $process->run();
+        $stdout = $process->getOutput();
+        $stderr = $process->getErrorOutput();
+        if (!$process->isSuccessful()) {
             throw new InvalidArgumentException('The package archive could not be listed: ' . trim($stderr));
         }
         if (trim($stderr) !== '') {
