@@ -32,8 +32,6 @@
                 <element name="workflow_history" type="pkp:workflowHistory" minOccurs="0" />
                 <element name="metrics" type="pkp:metrics" minOccurs="0" />
             </sequence>
-            <attribute name="application_version" type="string" use="required" fixed="3.4.0.10" />
-            <attribute name="format_version" type="string" use="required" fixed="1.0" />
             <attribute name="primary_locale" type="pkp:localeCode" use="required" />
         </complexType>
     </element>

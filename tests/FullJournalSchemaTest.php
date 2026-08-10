@@ -13,8 +13,7 @@ class FullJournalSchemaTest extends TestCase
     {
         $document = $this->loadXml(
             '<?xml version="1.0" encoding="UTF-8"?>'
-            . '<journal xmlns="http://pkp.sfu.ca" application_version="3.4.0.10" format_version="1.0" '
-            . 'primary_locale="pt_BR">'
+            . '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
             . '<locales><locale code="pt_BR"/><locale code="en"/></locales>'
             . '<submission_checklist>'
             . '<item locale="pt_BR" order="1">O arquivo está no formato aceito.</item>'
@@ -49,22 +48,26 @@ class FullJournalSchemaTest extends TestCase
     {
         return [
             'root' => [
-                '<package xmlns="http://pkp.sfu.ca" application_version="3.4.0.10" format_version="1.0" '
-                . 'primary_locale="pt_BR"><locales><locale code="pt_BR"/></locales></package>',
+                '<package xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
+                . '<locales><locale code="pt_BR"/></locales></package>',
             ],
             'missing locales' => [
-                '<journal xmlns="http://pkp.sfu.ca" application_version="3.4.0.10" format_version="1.0" '
-                . 'primary_locale="pt_BR"/>',
+                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR"/>',
             ],
             'duplicate singleton' => [
-                '<journal xmlns="http://pkp.sfu.ca" application_version="3.4.0.10" format_version="1.0" '
-                . 'primary_locale="pt_BR"><locales><locale code="pt_BR"/></locales>'
+                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
+                . '<locales><locale code="pt_BR"/></locales>'
                 . '<locales><locale code="en"/></locales></journal>',
             ],
             'invalid metric' => [
-                '<journal xmlns="http://pkp.sfu.ca" application_version="3.4.0.10" format_version="1.0" '
-                . 'primary_locale="pt_BR"><locales><locale code="pt_BR"/></locales>'
+                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
+                . '<locales><locale code="pt_BR"/></locales>'
                 . '<metrics><metric family="context" value="-1"/></metrics></journal>',
+            ],
+            'duplicated package metadata' => [
+                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR" '
+                . 'application_version="3.4.0.10" format_version="1.0">'
+                . '<locales><locale code="pt_BR"/></locales></journal>',
             ],
         ];
     }
