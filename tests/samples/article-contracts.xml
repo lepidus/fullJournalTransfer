@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<extended_article xmlns="http://pkp.sfu.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" current_publication_id="1024" date_submitted="2020-01-01" locale="en_US" stage="externalReview" status="3" submission_progress="0" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+    <id advice="ignore" type="internal">27</id>
+    <publication access_status="0" locale="" section_ref="" seq="0" status="1" url_path="" version="1" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <id advice="ignore" type="internal">1023</id>
+        <title locale="en_US">Test article</title>
+        <authors xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+            <author id="679" seq="1" user_group_ref="Author">
+                <givenname locale="en_US">Author</givenname>
+                <email>test@mail.com</email>
+            </author>
+        </authors>
+    </publication>
+    <publication access_status="0" locale="en_US" section_ref="Articles" seq="0" status="1" url_path="test-article-v2" version="2" xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+        <id advice="ignore" type="internal">1024</id>
+        <title locale="en_US">Test article, revised version</title>
+        <authors xsi:schemaLocation="http://pkp.sfu.ca fullJournal.xsd">
+            <author id="679" seq="1" user_group_ref="Author">
+                <givenname locale="en_US">Author</givenname>
+                <email>test@mail.com</email>
+            </author>
+        </authors>
+    </publication>
+    <stage path="submission">
+        <participant can_change_metadata="0" recommend_only="0" user_email="editor@email.com" user_group_ref="Editor"/>
+        <decision date_decided="2015-03-04 13:39:11" decision="8" editor_email="editor@email.com" review_round_id="0" round="0"/>
+        <queries>
+            <query closed="0" seq="1">
+                <participants>
+                    <participant>editor@email.com</participant>
+                </participants>
+                <replies>
+                    <note date_created="2015-03-03 20:33:43" date_modified="2015-03-03 20:37:37" user_email="editor@email.com">
+                        <title>Recommendation</title>
+                        <contents>&lt;p&gt;The recommendation regarding this submission is: Accept Submission&lt;/p&gt;</contents>
+                        <workflow_file id="68" created_at="2023-11-18" file_id="22" stage="query" assoc_type="520" updated_at="2023-11-26" viewable="true" genre="Article Text" uploader="editor">
+                            <name locale="en_US">dummy.pdf</name>
+                            <file id="22" filesize="14572" extension="pdf">
+                                <href src="journals/1/articles/21/dummy.pdf" mime_type="application/pdf"/>
+                            </file>
+                        </workflow_file>
+                    </note>
+                </replies>
+            </query>
+        </queries>
+    </stage>
+    <stage path="externalReview">
+        <participant can_change_metadata="0" recommend_only="0" user_email="reviewer@email.com" user_group_ref="External Reviewer"/>
+        <review_round round="1" status="9">
+            <review_assignment cancelled="0" method="3" recommendation="1" reviewer_email="reviewer@email.com" unconsidered="0" was_automatic="0"/>
+            <decision date_decided="2015-03-10 12:00:00" decision="1" editor_email="editor@email.com" review_round_id="76" round="1"/>
+        </review_round>
+        <review_round round="2" status="9">
+            <review_assignment cancelled="0" method="3" recommendation="1" reviewer_email="reviewer@email.com" unconsidered="0" was_automatic="0"/>
+            <decision date_decided="2024-05-10 12:00:00" decision="1" editor_email="editor@email.com" review_round_id="77" round="2"/>
+        </review_round>
+    </stage>
+</extended_article>

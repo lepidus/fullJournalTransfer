@@ -49,7 +49,7 @@ As fixtures em `tests/samples` usam IDs locais somente para expressar relações
 não consultam objetos preexistentes por esses IDs. Os arquivos de artigo e edição permitem
 caracterizar a estrutura do pacote sem depender do diretório de arquivos de uma instalação real.
 
-`article.xml` representa uma submissão fora de edição com duas versões de publicação, duas rodadas
+`article-contracts.xml` representa uma submissão fora de edição com duas versões de publicação, duas rodadas
 de avaliação, decisões e uma discussão com anexo. `journal.xml` representa uma edição não publicada
 e uma métrica com dimensões geográficas e de tipo de arquivo. O teste de contrato lê essas fixtures
 como XML e protege somente essas propriedades observáveis; não referencia filtros, DAOs ou métodos

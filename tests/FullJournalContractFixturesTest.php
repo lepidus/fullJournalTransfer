@@ -6,7 +6,7 @@ class FullJournalContractFixturesTest extends PKPTestCase
 {
     public function testWorkflowFixtureCoversAcceptedTransferContracts()
     {
-        $article = $this->loadFixture('article.xml');
+        $article = $this->loadFixture('article-contracts.xml');
         $xpath = $this->createXpath($article);
 
         $this->assertSame(
