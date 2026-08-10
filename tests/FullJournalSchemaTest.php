@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\tests;
 
 use DOMDocument;
+use DOMXPath;
 use PHPUnit\Framework\TestCase;
 
 class FullJournalSchemaTest extends TestCase
@@ -27,49 +28,61 @@ class FullJournalSchemaTest extends TestCase
         $this->assertTrue($document->schemaValidate($this->schemaPath()));
     }
 
-    /**
-     * @dataProvider invalidDocumentProvider
-     */
-    public function testItRejectsInvalidFullJournalDocuments(string $xml): void
+    public function testPluginSchemaTypeNamesUseSnakeCase(): void
     {
-        $document = $this->loadXml($xml);
+        $document = $this->loadXml((string) file_get_contents($this->schemaPath()));
+        $xpath = new DOMXPath($document);
+        $xpath->registerNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
+        $camelCaseNames = [];
 
-        $previous = libxml_use_internal_errors(true);
-        $valid = $document->schemaValidate($this->schemaPath());
-        $errors = libxml_get_errors();
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
+        foreach ($xpath->query('//xs:simpleType[@name] | //xs:complexType[@name]') ?: [] as $type) {
+            $name = $type->attributes?->getNamedItem('name')?->nodeValue;
+            if (is_string($name) && preg_match('/[A-Z]/', $name)) {
+                $camelCaseNames[] = $name;
+            }
+        }
 
-        $this->assertFalse($valid);
-        $this->assertNotEmpty($errors);
+        $this->assertSame([], $camelCaseNames);
     }
 
-    public function invalidDocumentProvider(): array
+    public function testItRejectsAnInvalidRoot(): void
     {
-        return [
-            'root' => [
-                '<package xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
-                . '<locales><locale code="pt_BR"/></locales></package>',
-            ],
-            'missing locales' => [
-                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR"/>',
-            ],
-            'duplicate singleton' => [
-                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
-                . '<locales><locale code="pt_BR"/></locales>'
-                . '<locales><locale code="en"/></locales></journal>',
-            ],
-            'invalid metric' => [
-                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
-                . '<locales><locale code="pt_BR"/></locales>'
-                . '<metrics><metric family="context" value="-1"/></metrics></journal>',
-            ],
-            'duplicated package metadata' => [
-                '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR" '
-                . 'application_version="3.4.0.10" format_version="1.0">'
-                . '<locales><locale code="pt_BR"/></locales></journal>',
-            ],
-        ];
+        $this->assertInvalidDocument(
+            '<package xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
+            . '<locales><locale code="pt_BR"/></locales></package>'
+        );
+    }
+
+    public function testItRejectsMissingLocales(): void
+    {
+        $this->assertInvalidDocument('<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR"/>');
+    }
+
+    public function testItRejectsDuplicateSingletons(): void
+    {
+        $this->assertInvalidDocument(
+            '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
+            . '<locales><locale code="pt_BR"/></locales>'
+            . '<locales><locale code="en"/></locales></journal>'
+        );
+    }
+
+    public function testItRejectsAnInvalidMetric(): void
+    {
+        $this->assertInvalidDocument(
+            '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">'
+            . '<locales><locale code="pt_BR"/></locales>'
+            . '<metrics><metric family="context" value="-1"/></metrics></journal>'
+        );
+    }
+
+    public function testItRejectsDuplicatedPackageMetadata(): void
+    {
+        $this->assertInvalidDocument(
+            '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR" '
+            . 'application_version="3.4.0.10" format_version="1.0">'
+            . '<locales><locale code="pt_BR"/></locales></journal>'
+        );
     }
 
     private function loadXml(string $xml): DOMDocument
@@ -82,5 +95,19 @@ class FullJournalSchemaTest extends TestCase
     private function schemaPath(): string
     {
         return dirname(__DIR__) . '/fullJournal.xsd';
+    }
+
+    private function assertInvalidDocument(string $xml): void
+    {
+        $document = $this->loadXml($xml);
+
+        $previous = libxml_use_internal_errors(true);
+        $valid = $document->schemaValidate($this->schemaPath());
+        $errors = libxml_get_errors();
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $this->assertFalse($valid);
+        $this->assertNotEmpty($errors);
     }
 }
