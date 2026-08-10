@@ -30,6 +30,10 @@
             <element name="locale" minOccurs="1" maxOccurs="unbounded">
                 <complexType>
                     <attribute name="code" type="pkp:locale_code" use="required" />
+                    <attribute name="enabled_for_forms" type="boolean" use="required" />
+                    <attribute name="form_order" type="positiveInteger" use="optional" />
+                    <attribute name="enabled_for_submissions" type="boolean" use="required" />
+                    <attribute name="submission_order" type="positiveInteger" use="optional" />
                 </complexType>
             </element>
         </sequence>
@@ -37,10 +41,9 @@
 
     <complexType name="submission_checklist">
         <sequence>
-            <element name="item" minOccurs="1" maxOccurs="unbounded">
+            <element name="content" minOccurs="1" maxOccurs="unbounded">
                 <complexType mixed="true">
                     <attribute name="locale" type="pkp:locale_code" use="required" />
-                    <attribute name="order" type="positiveInteger" use="required" />
                 </complexType>
             </element>
         </sequence>

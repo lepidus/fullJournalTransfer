@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR">
     <locales>
-        <locale code="pt_BR" />
-        <locale code="en" />
+        <locale code="pt_BR" enabled_for_forms="true" form_order="1"
+            enabled_for_submissions="true" submission_order="1" />
+        <locale code="en" enabled_for_forms="false" enabled_for_submissions="false" />
     </locales>
     <submission_checklist>
-        <item locale="pt_BR" order="1">O arquivo está no formato aceito.</item>
+        <content locale="pt_BR">&lt;ul&gt;&lt;li&gt;O arquivo está no formato aceito.&lt;/li&gt;&lt;/ul&gt;</content>
     </submission_checklist>
     <workflow_history>
         <review_round submission_ref="submission-1" round="1" />

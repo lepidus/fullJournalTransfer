@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer;
 
+use APP\plugins\importexport\fullJournalTransfer\filter\UserXmlPKPUserFilter;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
+use DOMDocument;
+use DOMElement;
+use PKP\filter\FilterGroup;
+use PKP\plugins\importexport\users\PKPUserImportExportDeployment;
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
@@ -56,6 +61,33 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             throw new \InvalidArgumentException('A created file journal entry must use an absolute path');
         }
         $this->createdFiles[] = $path;
+    }
+
+    public function exportContextData(): DOMDocument
+    {
+        return (new ContextDataTransfer())->export($this->getContext());
+    }
+
+    public function importContextData(DOMElement $root): void
+    {
+        (new ContextDataTransfer())->import($root, $this->getContext());
+    }
+
+    public function importUsers(DOMElement $usersNode): array
+    {
+        $group = new FilterGroup();
+        $group->setSymbolic('full-journal-user-xml=>user');
+        $group->setInputType('xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)');
+        $group->setOutputType('class::classes.users.User[]');
+        $filter = new UserXmlPKPUserFilter($group);
+        $filter->setDeployment(new PKPUserImportExportDeployment($this->getContext(), $this->getUser()));
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $document->appendChild($document->importNode($usersNode, true));
+        $filter->execute($document);
+        return [
+            'user_id_map' => $filter->getUserIdMap(),
+            'conflicts' => $filter->getConflicts(),
+        ];
     }
 
     protected function runNativeImport($rootFilter, $importXml): void
