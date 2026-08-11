@@ -23,7 +23,11 @@ class NativeXmlIssueGalleyFilter extends \APP\plugins\importexport\native\filter
                 $manager = new IssueFileManager($galley->getIssueId());
                 $path = $manager->getFilesDir() . $manager->contentTypeToPath($file->getContentType())
                     . DIRECTORY_SEPARATOR . $file->getServerFileName();
-                $this->getDeployment()->recordCreatedFile($path);
+                $absolutePath = realpath($path);
+                if ($absolutePath === false) {
+                    throw new InvalidArgumentException('Imported issue galley file path could not be resolved');
+                }
+                $this->getDeployment()->recordCreatedFile($absolutePath);
             }
         }
         return $galley;
