@@ -77,6 +77,7 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
             ]);
         }
         $this->userGroupIdMap[$sourceReference] = $userGroup->getId();
+        $this->getDeployment()->mapReference('user_group', $sourceReference, $userGroup->getId());
         return $userGroup;
     }
 

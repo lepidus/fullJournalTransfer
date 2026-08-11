@@ -6,12 +6,10 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests;
 
 use APP\core\Application;
 use APP\facades\Repo;
-use APP\plugins\importexport\fullJournalTransfer\filter\UserXmlPKPUserFilter;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use DOMDocument;
 use DOMXPath;
-use PKP\filter\FilterGroup;
-use PKP\plugins\importexport\users\PKPUserImportExportDeployment;
+use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\tests\DatabaseTestCase;
 use PKP\user\User;
 use PKP\userGroup\UserGroup;
@@ -59,12 +57,8 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $existingUserId = Repo::user()->add($existingUser);
         $this->createdUser = $existingUser;
 
-        $group = new FilterGroup();
-        $group->setSymbolic('full-journal-user-xml=>user');
-        $group->setInputType('xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)');
-        $group->setOutputType('class::classes.users.User[]');
-        $filter = new UserXmlPKPUserFilter($group);
-        $filter->setDeployment(new PKPUserImportExportDeployment($context, null));
+        $deployment = new FullJournalImportExportDeployment($context, null);
+        $filter = PKPImportExportFilter::getFilter('full-journal-user-xml=>user', $deployment);
         $document = new DOMDocument();
         $password = password_hash('source-password', PASSWORD_BCRYPT);
         $this->assertTrue($document->loadXML(
@@ -77,14 +71,15 @@ class UserImportIntegrationTest extends DatabaseTestCase
             . '</user>'
         ));
 
-        $importedUser = $filter->parseUser($document->documentElement);
+        $users = $filter->execute($document);
+        $importedUser = $users[0];
         $persistedUser = Repo::user()->get($existingUserId, true);
 
         $this->assertSame($existingUserId, $importedUser->getId());
         $this->assertSame('Destination', $persistedUser->getGivenName('en'));
         $this->assertSame($destinationUsername, $persistedUser->getUsername());
-        $this->assertSame([$sourceReference => $existingUserId], $filter->getUserIdMap());
-        $this->assertSame('email_match', $filter->getConflicts()[0]['type']);
+        $this->assertSame([$sourceReference => $existingUserId], $deployment->getReferenceMap('user'));
+        $this->assertSame('email_match', $deployment->getUserConflicts()[0]['type']);
     }
 
     public function testItAssignsTheEffectiveUserByRemappedGroupReference(): void
@@ -116,8 +111,9 @@ class UserImportIntegrationTest extends DatabaseTestCase
         $group->setAbbrev('IM', 'en');
         $groupId = Repo::userGroup()->add($group);
         $this->createdGroup = $group;
-        $filter = $this->createFilter($context);
-        $filter->setUserGroupIdMap(['group-source-9' => $groupId]);
+        $deployment = new FullJournalImportExportDeployment($context, null);
+        $deployment->mapReference('user_group', 'group-source-9', $groupId);
+        $filter = PKPImportExportFilter::getFilter('full-journal-user-xml=>user', $deployment);
         $document = new DOMDocument();
         $password = password_hash('source-password', PASSWORD_BCRYPT);
         $this->assertTrue($document->loadXML(
@@ -131,7 +127,8 @@ class UserImportIntegrationTest extends DatabaseTestCase
             . '</user>'
         ));
 
-        $importedUser = $filter->parseUser($document->documentElement);
+        $users = $filter->execute($document);
+        $importedUser = $users[0];
 
         $this->assertSame($userId, $importedUser->getId());
         $this->assertTrue(Repo::userGroup()->userInGroup($userId, $groupId));
@@ -152,14 +149,4 @@ class UserImportIntegrationTest extends DatabaseTestCase
         );
     }
 
-    private function createFilter($context): UserXmlPKPUserFilter
-    {
-        $group = new FilterGroup();
-        $group->setSymbolic('full-journal-user-xml=>user');
-        $group->setInputType('xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)');
-        $group->setOutputType('class::classes.users.User[]');
-        $filter = new UserXmlPKPUserFilter($group);
-        $filter->setDeployment(new PKPUserImportExportDeployment($context, null));
-        return $filter;
-    }
 }

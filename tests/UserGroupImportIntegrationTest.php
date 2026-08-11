@@ -6,10 +6,9 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests;
 
 use APP\core\Application;
 use APP\facades\Repo;
-use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlUserGroupFilter;
+use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use DOMDocument;
-use PKP\filter\FilterGroup;
-use PKP\plugins\importexport\users\PKPUserImportExportDeployment;
+use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\security\Role;
 use PKP\tests\DatabaseTestCase;
 use PKP\userGroup\UserGroup;
@@ -51,9 +50,11 @@ class UserGroupImportIntegrationTest extends DatabaseTestCase
             . '<stage_assignments>3:4</stage_assignments>'
             . '</user_group>'
         ));
-        $filter = $this->createFilter($context);
+        $deployment = new FullJournalImportExportDeployment($context, null);
+        $filter = PKPImportExportFilter::getFilter('full-journal-user-xml=>user-group', $deployment);
 
-        $importedGroup = $filter->handleElement($document->documentElement);
+        $groups = $filter->execute($document);
+        $importedGroup = $groups[0];
         $this->createdGroups[] = $importedGroup;
 
         $this->assertNotSame($existingGroup->getId(), $importedGroup->getId());
@@ -66,7 +67,7 @@ class UserGroupImportIntegrationTest extends DatabaseTestCase
             $context->getId(),
             $importedGroup->getId()
         )->values()->toArray());
-        $this->assertSame(['group-77' => $importedGroup->getId()], $filter->getUserGroupIdMap());
+        $this->assertSame(['group-77' => $importedGroup->getId()], $deployment->getReferenceMap('user_group'));
     }
 
     private function createGroup(int $contextId, int $roleId, string $name): UserGroup
@@ -85,14 +86,4 @@ class UserGroupImportIntegrationTest extends DatabaseTestCase
         return $userGroup;
     }
 
-    private function createFilter($context): NativeXmlUserGroupFilter
-    {
-        $group = new FilterGroup();
-        $group->setSymbolic('full-journal-user-group-xml=>user-group');
-        $group->setInputType('xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)');
-        $group->setOutputType('class::lib.pkp.classes.security.UserGroup[]');
-        $filter = new NativeXmlUserGroupFilter($group);
-        $filter->setDeployment(new PKPUserImportExportDeployment($context, null));
-        return $filter;
-    }
 }

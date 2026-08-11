@@ -6,7 +6,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
 use DOMElement;
-use PKP\filter\FilterGroup;
+use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\plugins\importexport\users\filter\PKPUserUserXmlFilter as BasePKPUserUserXmlFilter;
 
 class PKPUserUserXmlFilter extends BasePKPUserUserXmlFilter
@@ -48,13 +48,8 @@ class PKPUserUserXmlFilter extends BasePKPUserUserXmlFilter
             ->filterByContextIds([$context->getId()])
             ->getMany()
             ->toArray();
-        $group = new FilterGroup();
-        $group->setSymbolic('user-group=>full-journal-user-xml');
-        $group->setInputType('class::lib.pkp.classes.security.UserGroup[]');
-        $group->setOutputType('xml::schema(lib/pkp/plugins/importexport/users/pkp-users.xsd)');
-        $filter = new UserGroupNativeXmlFilter($group);
-        $filter->setDeployment($this->getDeployment());
-        $document = $filter->process($userGroups);
+        $filter = PKPImportExportFilter::getFilter('user-group=>full-journal-user-xml', $this->getDeployment());
+        $document = $filter->execute($userGroups);
         $rootNode->appendChild($doc->importNode($document->documentElement, true));
     }
 }

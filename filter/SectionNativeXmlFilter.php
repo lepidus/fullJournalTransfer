@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
-use APP\facades\Repo;
-use APP\journal\Journal;
 use DOMDocument;
-use DOMElement;
 use PKP\plugins\importexport\native\filter\NativeExportFilter;
 
 class SectionNativeXmlFilter extends NativeExportFilter
 {
     use NativeXmlReferenceDataFilterTrait;
 
-    public function append(DOMDocument $document, DOMElement $root, Journal $context): void
+    public function &process(&$sections)
     {
+        $document = new DOMDocument('1.0', 'UTF-8');
         $container = $document->createElementNS('http://pkp.sfu.ca', 'sections');
-        $sections = Repo::section()->getCollector()->filterByContextIds([(int) $context->getId()])->getMany();
+        $document->appendChild($container);
         foreach ($sections as $section) {
             $node = $document->createElementNS('http://pkp.sfu.ca', 'section');
             $node->setAttribute('source_ref', (string) $section->getId());
@@ -38,6 +36,6 @@ class SectionNativeXmlFilter extends NativeExportFilter
             $this->appendLocalized($document, $node, 'policy', $section->getPolicy(null));
             $container->appendChild($node);
         }
-        $root->appendChild($container);
+        return $document;
     }
 }

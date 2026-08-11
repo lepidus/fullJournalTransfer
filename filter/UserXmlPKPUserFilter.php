@@ -14,7 +14,21 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
 {
     private array $userIdMap = [];
     private array $conflicts = [];
-    private array $userGroupIdMap = [];
+
+    public function getPluralElementName()
+    {
+        return 'users';
+    }
+
+    public function getSingularElementName()
+    {
+        return 'user';
+    }
+
+    public function handleElement($node)
+    {
+        return $this->parseUser($node);
+    }
 
     public function parseUser($node)
     {
@@ -42,6 +56,7 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
         $user = parent::parseUser($node);
         if ($user && $user->getId()) {
             $this->userIdMap[$sourceReference] = $user->getId();
+            $this->getDeployment()->mapReference('user', $sourceReference, $user->getId());
             foreach ($userGroupIds as $userGroupId) {
                 if (!Repo::userGroup()->userInGroup($user->getId(), $userGroupId)) {
                     Repo::userGroup()->assignUserToGroup($user->getId(), $userGroupId);
@@ -55,6 +70,7 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
                 'effective_user_id' => $user?->getId(),
                 'effective_username' => $user?->getUsername(),
             ];
+            $this->getDeployment()->addUserConflict($this->conflicts[array_key_last($this->conflicts)]);
         }
         return $user;
     }
@@ -67,11 +83,6 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
     public function getConflicts(): array
     {
         return $this->conflicts;
-    }
-
-    public function setUserGroupIdMap(array $userGroupIdMap): void
-    {
-        $this->userGroupIdMap = $userGroupIdMap;
     }
 
     private function getDirectChild(DOMElement $node, string $name): ?DOMElement
@@ -106,10 +117,11 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
         }
         foreach ($references as $reference) {
             $sourceReference = trim($reference->getAttribute('source_ref'));
-            if ($sourceReference === '' || !isset($this->userGroupIdMap[$sourceReference])) {
+            $userGroupIdMap = $this->getDeployment()->getReferenceMap('user_group');
+            if ($sourceReference === '' || !isset($userGroupIdMap[$sourceReference])) {
                 throw new InvalidArgumentException('Unknown imported user group reference');
             }
-            $userGroupId = (int) $this->userGroupIdMap[$sourceReference];
+            $userGroupId = (int) $userGroupIdMap[$sourceReference];
             if (!Repo::userGroup()->contextHasGroup($contextId, $userGroupId)) {
                 throw new InvalidArgumentException('Imported user group reference is outside the destination context');
             }

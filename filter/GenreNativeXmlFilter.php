@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
-use APP\journal\Journal;
 use DOMDocument;
-use DOMElement;
-use PKP\db\DAORegistry;
 use PKP\plugins\importexport\native\filter\NativeExportFilter;
 
 class GenreNativeXmlFilter extends NativeExportFilter
 {
     use NativeXmlReferenceDataFilterTrait;
 
-    public function append(DOMDocument $document, DOMElement $root, Journal $context): void
+    public function &process(&$genres)
     {
+        $document = new DOMDocument('1.0', 'UTF-8');
         $container = $document->createElementNS('http://pkp.sfu.ca', 'genres');
-        $genreDao = DAORegistry::getDAO('GenreDAO');
-        foreach ($genreDao->getByContextId($context->getId())->toArray() as $genre) {
+        $document->appendChild($container);
+        foreach ($genres as $genre) {
             $node = $document->createElementNS('http://pkp.sfu.ca', 'genre');
             $node->setAttribute('source_ref', (string) $genre->getId());
             $node->setAttribute('key', (string) $genre->getKey());
@@ -31,6 +29,6 @@ class GenreNativeXmlFilter extends NativeExportFilter
             $this->appendLocalized($document, $node, 'name', $genre->getName(null));
             $container->appendChild($node);
         }
-        $root->appendChild($container);
+        return $document;
     }
 }
