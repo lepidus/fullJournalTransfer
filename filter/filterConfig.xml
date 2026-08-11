@@ -18,6 +18,19 @@
 		<filterGroup symbolic="user-group=>full-journal-user-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\userGroup\UserGroup[]" outputType="class::DOMDocument" />
 		<filterGroup symbolic="full-journal-user-xml=>user-group" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\userGroup\UserGroup[]" />
 		<filterGroup symbolic="full-journal-user-xml=>user" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\user\User[]" />
+		<filterGroup symbolic="native-data=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\journal\Journal" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>native-data" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\journal\Journal[]" />
+		<filterGroup symbolic="article=>full-journal-native-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\submission\Submission[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="issue=>full-journal-native-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\issue\Issue[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-native-xml=>issue" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\issue\Issue[]" />
+		<filterGroup symbolic="full-journal-native-xml=>mapped-issue" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\issue\Issue[]" />
+		<filterGroup symbolic="issue-galley=>full-journal-native-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\issue\IssueGalley[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-native-xml=>issue-galley" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\issue\IssueGalley[]" />
+		<filterGroup symbolic="full-journal-native-xml=>article" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\submission\Submission[]" />
+		<filterGroup symbolic="full-journal-native-xml=>publication" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\publication\Publication[]" />
+		<filterGroup symbolic="submission-file=>full-journal-native-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\submissionFile\SubmissionFile" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-native-xml=>submission-file" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
+		<filterGroup symbolic="full-journal-native-xml=>article-galley" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\galley\Galley[]" />
 	</filterGroups>
 	<filters>
 		<filter inGroup="journal=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter" isTemplate="0" />
@@ -36,5 +49,18 @@
 		<filter inGroup="user-group=>full-journal-user-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\UserGroupNativeXmlFilter" isTemplate="0" />
 		<filter inGroup="full-journal-user-xml=>user-group" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlUserGroupFilter" isTemplate="0" />
 		<filter inGroup="full-journal-user-xml=>user" class="APP\plugins\importexport\fullJournalTransfer\filter\UserXmlPKPUserFilter" isTemplate="0" />
+		<filter inGroup="native-data=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeDataNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>native-data" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlNativeDataFilter" isTemplate="0" />
+		<filter inGroup="article=>full-journal-native-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ArticleNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="issue=>full-journal-native-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\IssueNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>issue" class="APP\plugins\importexport\native\filter\NativeXmlIssueFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>mapped-issue" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlIssueFilter" isTemplate="0" />
+		<filter inGroup="issue-galley=>full-journal-native-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\IssueGalleyNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>issue-galley" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlIssueGalleyFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>article" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlArticleFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>publication" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlPublicationFilter" isTemplate="0" />
+		<filter inGroup="submission-file=>full-journal-native-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\SubmissionFileNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>submission-file" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlSubmissionFileFilter" isTemplate="0" />
+		<filter inGroup="full-journal-native-xml=>article-galley" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlArticleGalleyFilter" isTemplate="0" />
 	</filters>
 </filterConfig>

@@ -11,6 +11,7 @@ use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
+use Throwable;
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
@@ -50,7 +51,12 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function import($rootFilter, $importXml)
     {
         $this->createdFiles = [];
-        $this->runNativeImport($rootFilter, $importXml);
+        try {
+            $this->runNativeImport($rootFilter, $importXml);
+        } catch (Throwable $exception) {
+            $this->compensateCreatedFiles();
+            throw $exception;
+        }
 
         if ($this->isProcessFailed()) {
             $this->compensateCreatedFiles();
@@ -148,6 +154,30 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         ];
     }
 
+    public function exportNativeData(): DOMDocument
+    {
+        $filter = PKPImportExportFilter::getFilter('native-data=>full-journal-xml', $this);
+        $context = $this->getContext();
+        return $filter->execute($context);
+    }
+
+    public function importNativeData(DOMElement $nativeDataNode): array
+    {
+        $filter = PKPImportExportFilter::getFilter('full-journal-xml=>native-data', $this);
+        $document = $this->documentFor($nativeDataNode);
+        $filter->execute($document);
+        return [
+            'issue_id_map' => $this->getReferenceMap('issue'),
+            'submission_id_map' => $this->getReferenceMap('submission'),
+            'publication_id_map' => $this->getReferenceMap('publication'),
+            'author_id_map' => $this->getReferenceMap('author'),
+            'issue_galley_id_map' => $this->getReferenceMap('issue_galley'),
+            'article_galley_id_map' => $this->getReferenceMap('article_galley'),
+            'submission_file_id_map' => $this->getReferenceMap('submission_file'),
+            'file_id_map' => $this->getReferenceMap('file'),
+        ];
+    }
+
     public function mapReference(string $entity, string $sourceReference, int $destinationId): void
     {
         $this->referenceMaps[$entity][$sourceReference] = $destinationId;
@@ -156,6 +186,20 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getReferenceMap(string $entity): array
     {
         return $this->referenceMaps[$entity] ?? [];
+    }
+
+    public function resetReferenceMap(string $entity): void
+    {
+        $this->referenceMaps[$entity] = [];
+    }
+
+    public function requireReference(string $entity, string $sourceReference): int
+    {
+        $destinationId = $this->referenceMaps[$entity][$sourceReference] ?? null;
+        if (!is_int($destinationId)) {
+            throw new InvalidArgumentException('Missing mapped ' . $entity . ' reference');
+        }
+        return $destinationId;
     }
 
     public function addUserConflict(array $conflict): void

@@ -89,6 +89,12 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addSubmissionChecklist($document, $root, $journal, $supportedFormLocales);
         $this->addSettings($document, $root, $journal);
         $this->validateRequiredSettings($journal);
+        if ((int) $journal->getId() > 0) {
+            foreach (['exportUsers', 'exportReferenceData', 'exportNativeData'] as $method) {
+                $childDocument = $this->getDeployment()->{$method}();
+                $root->appendChild($document->importNode($childDocument->documentElement, true));
+            }
+        }
         return $root;
     }
 

@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 use APP\core\Application;
 use APP\journal\Journal;
 use DOMElement;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
 
@@ -91,18 +92,33 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     public function handleElement($node)
     {
-        $contextDao = Application::get()->getContextDAO();
-        $journal = $contextDao->newDataObject();
-        $this->hydrate($node, $journal);
-        if ($contextDao->getByPath($journal->getPath())) {
-            throw new InvalidArgumentException('A context with this path already exists');
-        }
-        $contextId = $contextDao->insertObject($journal);
-        $createdJournal = $contextDao->getById($contextId);
-        if (!$createdJournal instanceof Journal) {
-            throw new InvalidArgumentException('The imported context could not be persisted');
-        }
-        return $createdJournal;
+        return DB::transaction(function () use ($node): Journal {
+            $contextDao = Application::get()->getContextDAO();
+            $journal = $contextDao->newDataObject();
+            $this->hydrate($node, $journal);
+            if ($contextDao->getByPath($journal->getPath())) {
+                throw new InvalidArgumentException('A context with this path already exists');
+            }
+            $contextId = $contextDao->insertObject($journal);
+            $createdJournal = $contextDao->getById($contextId);
+            if (!$createdJournal instanceof Journal) {
+                throw new InvalidArgumentException('The imported context could not be persisted');
+            }
+            $deployment = $this->getDeployment();
+            $deployment->setContext($createdJournal);
+            $operations = [
+                'users' => 'importUsers',
+                'reference_data' => 'importReferenceData',
+                'native_data' => 'importNativeData',
+            ];
+            foreach ($operations as $element => $method) {
+                $child = $this->optionalChild($node, $element);
+                if ($child) {
+                    $deployment->{$method}($child);
+                }
+            }
+            return $createdJournal;
+        });
     }
 
     public function getPluralElementName()
@@ -148,6 +164,20 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
             $journal->setData($property, $settingNode->textContent, $locale);
         }
+    }
+
+    private function optionalChild(DOMElement $parent, string $name): ?DOMElement
+    {
+        $matches = [];
+        foreach ($parent->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === $name) {
+                $matches[] = $child;
+            }
+        }
+        if (count($matches) > 1) {
+            throw new InvalidArgumentException('Expected at most one ' . $name . ' element');
+        }
+        return $matches[0] ?? null;
     }
 
     private function decodeSetting(string $value, string $type)
