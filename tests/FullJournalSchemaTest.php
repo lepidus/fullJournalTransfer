@@ -86,6 +86,21 @@ class FullJournalSchemaTest extends TestCase
         );
     }
 
+    public function testItRejectsNativeDataWithoutTypedSourceReferences(): void
+    {
+        $this->assertInvalidDocument(
+            '<journal xmlns="http://pkp.sfu.ca" primary_locale="en" url_path="journal" '
+            . 'sequence="1" source_enabled="false">'
+            . '<locales><locale code="en" enabled_for_forms="true" form_order="1" '
+            . 'enabled_for_submissions="true" submission_order="1"/></locales>'
+            . '<context_settings><setting name="name" type="string" locale="en">Journal</setting>'
+            . '<setting name="contactName" type="string">Editor</setting>'
+            . '<setting name="contactEmail" type="string">editor@example.com</setting></context_settings>'
+            . '<native_data><issues><issue_record><issue/></issue_record></issues>'
+            . '<submissions/></native_data></journal>'
+        );
+    }
+
     public function testItRejectsDuplicatedPackageMetadata(): void
     {
         $this->assertInvalidDocument(
