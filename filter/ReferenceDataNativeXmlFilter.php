@@ -22,8 +22,20 @@ class ReferenceDataNativeXmlFilter extends NativeExportFilter
         }
         $document = new DOMDocument('1.0', 'UTF-8');
         $document->formatOutput = true;
-        $root = $document->createElementNS('http://pkp.sfu.ca', 'reference_data');
+        $root = $this->createReferenceDataNode($document, $context);
         $document->appendChild($root);
+        return $document;
+    }
+
+    public function createReferenceDataNode(DOMDocument $document, Journal $context): DOMElement
+    {
+        $root = $document->createElementNS('http://pkp.sfu.ca', 'reference_data');
+        $this->addReferenceData($document, $root, $context);
+        return $root;
+    }
+
+    public function addReferenceData(DOMDocument $document, DOMElement $root, Journal $context): void
+    {
         $formDao = DAORegistry::getDAO('ReviewFormDAO');
         $genreDao = DAORegistry::getDAO('GenreDAO');
         $entities = [
@@ -40,6 +52,5 @@ class ReferenceDataNativeXmlFilter extends NativeExportFilter
                 $root->appendChild($document->importNode($childDocument->documentElement, true));
             }
         }
-        return $document;
     }
 }

@@ -10,7 +10,7 @@ use InvalidArgumentException;
 
 trait NativeXmlReferenceDataFilterTrait
 {
-    private function appendLocalized(DOMDocument $document, DOMElement $parent, string $name, $values): void
+    private function addLocalized(DOMDocument $document, DOMElement $parent, string $name, $values): void
     {
         foreach ((array) $values as $locale => $value) {
             if ($value === null) {

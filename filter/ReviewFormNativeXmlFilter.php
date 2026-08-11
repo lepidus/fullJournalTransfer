@@ -17,27 +17,37 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
     public function &process(&$forms)
     {
         $document = new DOMDocument('1.0', 'UTF-8');
-        $elementDao = DAORegistry::getDAO('ReviewFormElementDAO');
         $container = $document->createElementNS('http://pkp.sfu.ca', 'review_forms');
         $document->appendChild($container);
         foreach ($forms as $form) {
-            $formNode = $document->createElementNS('http://pkp.sfu.ca', 'review_form');
-            $formNode->setAttribute('source_ref', (string) $form->getId());
-            $formNode->setAttribute('sequence', (string) $form->getSequence());
-            $formNode->setAttribute('active', $form->getActive() ? 'true' : 'false');
-            $this->appendLocalized($document, $formNode, 'title', $form->getTitle(null));
-            $this->appendLocalized($document, $formNode, 'description', $form->getDescription(null));
-            $filter = PKPImportExportFilter::getFilter(
-                'review-form-element=>full-journal-xml',
-                $this->getDeployment()
-            );
-            $elements = $elementDao->getByReviewFormId($form->getId())->toArray();
-            $elementsDocument = $filter->execute($elements);
-            if ($elementsDocument->documentElement instanceof DOMElement) {
-                $formNode->appendChild($document->importNode($elementsDocument->documentElement, true));
-            }
-            $container->appendChild($formNode);
+            $container->appendChild($this->createReviewFormNode($document, $form));
         }
         return $document;
+    }
+
+    public function createReviewFormNode(DOMDocument $document, $form): DOMElement
+    {
+        $formNode = $document->createElementNS('http://pkp.sfu.ca', 'review_form');
+        $formNode->setAttribute('source_ref', (string) $form->getId());
+        $formNode->setAttribute('sequence', (string) $form->getSequence());
+        $formNode->setAttribute('active', $form->getActive() ? 'true' : 'false');
+        $this->addLocalized($document, $formNode, 'title', $form->getTitle(null));
+        $this->addLocalized($document, $formNode, 'description', $form->getDescription(null));
+        $this->addReviewFormElements($document, $formNode, $form);
+        return $formNode;
+    }
+
+    public function addReviewFormElements(DOMDocument $document, DOMElement $formNode, $form): void
+    {
+        $elementDao = DAORegistry::getDAO('ReviewFormElementDAO');
+        $filter = PKPImportExportFilter::getFilter(
+            'review-form-element=>full-journal-xml',
+            $this->getDeployment()
+        );
+        $elements = $elementDao->getByReviewFormId($form->getId())->toArray();
+        $elementsDocument = $filter->execute($elements);
+        if ($elementsDocument->documentElement instanceof DOMElement) {
+            $formNode->appendChild($document->importNode($elementsDocument->documentElement, true));
+        }
     }
 }

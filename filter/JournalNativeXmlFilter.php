@@ -52,6 +52,15 @@ class JournalNativeXmlFilter extends NativeExportFilter
         if (!$journal instanceof Journal) {
             throw new InvalidArgumentException('Expected a journal for export');
         }
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $document->formatOutput = true;
+        $root = $this->createJournalNode($document, $journal);
+        $document->appendChild($root);
+        return $document;
+    }
+
+    public function createJournalNode(DOMDocument $document, Journal $journal): DOMElement
+    {
         $supportedLocales = $this->requireLocales($journal->getData('supportedLocales'), 'supportedLocales');
         $supportedFormLocales = $this->requireLocales(
             $journal->getData('supportedFormLocales'),
@@ -66,8 +75,6 @@ class JournalNativeXmlFilter extends NativeExportFilter
             throw new InvalidArgumentException('The primary locale must be included in the supported locales');
         }
 
-        $document = new DOMDocument('1.0', 'UTF-8');
-        $document->formatOutput = true;
         $root = $document->createElementNS(self::NAMESPACE, 'journal');
         $root->setAttribute('primary_locale', $primaryLocale);
         $path = $journal->getPath();
@@ -77,8 +84,21 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $root->setAttribute('url_path', $path);
         $root->setAttribute('sequence', (string) $journal->getSequence());
         $root->setAttribute('source_enabled', $journal->getEnabled() ? 'true' : 'false');
-        $document->appendChild($root);
 
+        $this->addLocales($document, $root, $supportedLocales, $supportedFormLocales, $supportedSubmissionLocales);
+        $this->addSubmissionChecklist($document, $root, $journal, $supportedFormLocales);
+        $this->addSettings($document, $root, $journal);
+        $this->validateRequiredSettings($journal);
+        return $root;
+    }
+
+    public function addLocales(
+        DOMDocument $document,
+        DOMElement $root,
+        array $supportedLocales,
+        array $supportedFormLocales,
+        array $supportedSubmissionLocales
+    ): void {
         $localesNode = $document->createElementNS(self::NAMESPACE, 'locales');
         foreach ($supportedLocales as $locale) {
             $localeNode = $document->createElementNS(self::NAMESPACE, 'locale');
@@ -102,7 +122,14 @@ class JournalNativeXmlFilter extends NativeExportFilter
             $localesNode->appendChild($localeNode);
         }
         $root->appendChild($localesNode);
+    }
 
+    public function addSubmissionChecklist(
+        DOMDocument $document,
+        DOMElement $root,
+        Journal $journal,
+        array $supportedFormLocales
+    ): void {
         $checklist = $journal->getData('submissionChecklist') ?? [];
         if (!is_array($checklist)) {
             throw new InvalidArgumentException('Submission checklist must be localized');
@@ -125,27 +152,34 @@ class JournalNativeXmlFilter extends NativeExportFilter
             }
             $root->appendChild($checklistNode);
         }
+    }
 
+    public function addSettings(DOMDocument $document, DOMElement $root, Journal $journal): void
+    {
         $settingsNode = $document->createElementNS(self::NAMESPACE, 'context_settings');
         foreach (self::SCALAR_SETTINGS as $property => $type) {
             $value = $journal->getData($property);
             if ($value === null) {
                 continue;
             }
-            $this->appendSetting($document, $settingsNode, $property, $type, $value);
+            $this->addContextSetting($document, $settingsNode, $property, $type, $value);
         }
         foreach (self::LOCALIZED_SETTINGS as $property) {
             foreach ((array) $journal->getData($property, null) as $locale => $value) {
                 if ($value === null) {
                     continue;
                 }
-                $this->appendSetting($document, $settingsNode, $property, 'string', $value, (string) $locale);
+                $this->addContextSetting(
+                    $document,
+                    $settingsNode,
+                    $property,
+                    'string',
+                    $value,
+                    (string) $locale
+                );
             }
         }
         $root->appendChild($settingsNode);
-        $this->validateRequiredSettings($journal);
-
-        return $document;
     }
 
     private function requireLocales($locales, string $property): array
@@ -161,7 +195,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         return array_values(array_unique($locales));
     }
 
-    private function appendSetting(
+    private function addContextSetting(
         DOMDocument $document,
         DOMElement $parent,
         string $property,

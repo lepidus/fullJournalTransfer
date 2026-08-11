@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use DOMDocument;
+use DOMElement;
 use PKP\plugins\importexport\native\filter\NativeExportFilter;
 
 class GenreNativeXmlFilter extends NativeExportFilter
@@ -17,18 +18,23 @@ class GenreNativeXmlFilter extends NativeExportFilter
         $container = $document->createElementNS('http://pkp.sfu.ca', 'genres');
         $document->appendChild($container);
         foreach ($genres as $genre) {
-            $node = $document->createElementNS('http://pkp.sfu.ca', 'genre');
-            $node->setAttribute('source_ref', (string) $genre->getId());
-            $node->setAttribute('key', (string) $genre->getKey());
-            $node->setAttribute('category', (string) $genre->getCategory());
-            $node->setAttribute('dependent', $genre->getDependent() ? 'true' : 'false');
-            $node->setAttribute('supplementary', $genre->getSupplementary() ? 'true' : 'false');
-            $node->setAttribute('required', $genre->getRequired() ? 'true' : 'false');
-            $node->setAttribute('sequence', (string) $genre->getSequence());
-            $node->setAttribute('enabled', $genre->getEnabled() ? 'true' : 'false');
-            $this->appendLocalized($document, $node, 'name', $genre->getName(null));
-            $container->appendChild($node);
+            $container->appendChild($this->createGenreNode($document, $genre));
         }
         return $document;
+    }
+
+    public function createGenreNode(DOMDocument $document, $genre): DOMElement
+    {
+        $node = $document->createElementNS('http://pkp.sfu.ca', 'genre');
+        $node->setAttribute('source_ref', (string) $genre->getId());
+        $node->setAttribute('key', (string) $genre->getKey());
+        $node->setAttribute('category', (string) $genre->getCategory());
+        $node->setAttribute('dependent', $genre->getDependent() ? 'true' : 'false');
+        $node->setAttribute('supplementary', $genre->getSupplementary() ? 'true' : 'false');
+        $node->setAttribute('required', $genre->getRequired() ? 'true' : 'false');
+        $node->setAttribute('sequence', (string) $genre->getSequence());
+        $node->setAttribute('enabled', $genre->getEnabled() ? 'true' : 'false');
+        $this->addLocalized($document, $node, 'name', $genre->getName(null));
+        return $node;
     }
 }
