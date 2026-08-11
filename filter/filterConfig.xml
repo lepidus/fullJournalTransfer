@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filterConfig SYSTEM "../../../../lib/pkp/dtd/filterConfig.dtd">
+<filterConfig>
+	<filterGroups>
+		<filterGroup symbolic="journal=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\journal\Journal" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>journal" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\journal\Journal[]" />
+		<filterGroup symbolic="reference-data=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\journal\Journal" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>reference-data" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\journal\Journal[]" />
+		<filterGroup symbolic="review-form=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\reviewForm\ReviewForm[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>review-form" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\reviewForm\ReviewForm[]" />
+		<filterGroup symbolic="review-form-element=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\reviewForm\ReviewFormElement[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>review-form-element" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\reviewForm\ReviewFormElement[]" />
+		<filterGroup symbolic="genre=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\submission\Genre[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>genre" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submission\Genre[]" />
+		<filterGroup symbolic="section=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\section\Section[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>section" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\section\Section[]" />
+		<filterGroup symbolic="user=>full-journal-user-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\user\User[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="user-group=>full-journal-user-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\userGroup\UserGroup[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-user-xml=>user-group" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\userGroup\UserGroup[]" />
+		<filterGroup symbolic="full-journal-user-xml=>user" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\user\User[]" />
+	</filterGroups>
+	<filters>
+		<filter inGroup="journal=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>journal" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlJournalFilter" isTemplate="0" />
+		<filter inGroup="reference-data=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReferenceDataNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>reference-data" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReferenceDataFilter" isTemplate="0" />
+		<filter inGroup="review-form=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewFormNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>review-form" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewFormFilter" isTemplate="0" />
+		<filter inGroup="review-form-element=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewFormElementNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>review-form-element" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewFormElementFilter" isTemplate="0" />
+		<filter inGroup="genre=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\GenreNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>genre" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlGenreFilter" isTemplate="0" />
+		<filter inGroup="section=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\SectionNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>section" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlSectionFilter" isTemplate="0" />
+		<filter inGroup="user=>full-journal-user-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\PKPUserUserXmlFilter" isTemplate="0" />
+		<filter inGroup="user-group=>full-journal-user-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\UserGroupNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-user-xml=>user-group" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlUserGroupFilter" isTemplate="0" />
+		<filter inGroup="full-journal-user-xml=>user" class="APP\plugins\importexport\fullJournalTransfer\filter\UserXmlPKPUserFilter" isTemplate="0" />
+	</filters>
+</filterConfig>

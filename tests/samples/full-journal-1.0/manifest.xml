@@ -8,7 +8,7 @@
         <capability name="metrics" />
     </capabilities>
     <files>
-        <file path="journal.xml" size="608"
-            checksum="a4ef6a5950d7d6cfe1bd2ddcdc167aca47c7675b66022217cc1f67d0b07328e2" />
+        <file path="journal.xml" size="1162"
+            checksum="fc5fd6107263bbb59dcfaee33994bdf293d0075afc3342af7ea7e7c0dc74972f" />
     </files>
 </full_journal_package>
