@@ -31,8 +31,8 @@ class ReviewFormNativeXmlFilter extends NativeExportFilter
         $formNode->setAttribute('source_ref', (string) $form->getId());
         $formNode->setAttribute('sequence', (string) $form->getSequence());
         $formNode->setAttribute('active', $form->getActive() ? 'true' : 'false');
-        $this->addLocalized($document, $formNode, 'title', $form->getTitle(null));
-        $this->addLocalized($document, $formNode, 'description', $form->getDescription(null));
+        $this->createLocalizedNodes($document, $formNode, 'title', $form->getTitle(null));
+        $this->createLocalizedNodes($document, $formNode, 'description', $form->getDescription(null));
         $this->addReviewFormElements($document, $formNode, $form);
         return $formNode;
     }

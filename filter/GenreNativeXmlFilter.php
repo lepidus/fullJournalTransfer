@@ -34,7 +34,7 @@ class GenreNativeXmlFilter extends NativeExportFilter
         $node->setAttribute('required', $genre->getRequired() ? 'true' : 'false');
         $node->setAttribute('sequence', (string) $genre->getSequence());
         $node->setAttribute('enabled', $genre->getEnabled() ? 'true' : 'false');
-        $this->addLocalized($document, $node, 'name', $genre->getName(null));
+        $this->createLocalizedNodes($document, $node, 'name', $genre->getName(null));
         return $node;
     }
 }

@@ -4,25 +4,11 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
-use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
 
 trait NativeXmlReferenceDataFilterTrait
 {
-    private function addLocalized(DOMDocument $document, DOMElement $parent, string $name, $values): void
-    {
-        foreach ((array) $values as $locale => $value) {
-            if ($value === null) {
-                continue;
-            }
-            $node = $document->createElementNS('http://pkp.sfu.ca', $name);
-            $node->setAttribute('locale', (string) $locale);
-            $node->appendChild($document->createTextNode((string) $value));
-            $parent->appendChild($node);
-        }
-    }
-
     private function applyLocalized(DOMElement $parent, string $name, callable $setter, bool $required): void
     {
         $nodes = $this->children($parent, $name);

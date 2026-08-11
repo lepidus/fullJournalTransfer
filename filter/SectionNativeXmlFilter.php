@@ -39,9 +39,9 @@ class SectionNativeXmlFilter extends NativeExportFilter
         if ($section->getReviewFormId()) {
             $node->setAttribute('review_form_ref', (string) $section->getReviewFormId());
         }
-        $this->addLocalized($document, $node, 'title', $section->getTitle(null));
-        $this->addLocalized($document, $node, 'abbrev', $section->getAbbrev(null));
-        $this->addLocalized($document, $node, 'policy', $section->getPolicy(null));
+        $this->createLocalizedNodes($document, $node, 'title', $section->getTitle(null));
+        $this->createLocalizedNodes($document, $node, 'abbrev', $section->getAbbrev(null));
+        $this->createLocalizedNodes($document, $node, 'policy', $section->getPolicy(null));
         return $node;
     }
 }

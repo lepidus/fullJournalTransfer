@@ -150,6 +150,30 @@ class ReferenceDataFilterIntegrationTest extends DatabaseTestCase
         $this->assertNotNull(Repo::section()->get($sectionId, (int) $destination->getId()));
     }
 
+    public function testItOmitsEmptyLocalizedValuesFromReferenceData(): void
+    {
+        $source = $this->createContext('empty-localized');
+        $genreDao = DAORegistry::getDAO('GenreDAO');
+        $genre = $genreDao->newDataObject();
+        $genre->setContextId($source->getId());
+        $genre->setKey('EMPTY_LOCALIZED_' . bin2hex(random_bytes(4)));
+        $genre->setCategory(1);
+        $genre->setDependent(false);
+        $genre->setSupplementary(false);
+        $genre->setRequired(false);
+        $genre->setSequence(1);
+        $genre->setEnabled(true);
+        $genre->setName('Transfer Genre', 'en');
+        $genre->setName('', 'fr_CA');
+        $genreDao->insertObject($genre);
+
+        $document = (new FullJournalImportExportDeployment($source, null))->exportReferenceData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+
+        $this->assertSame(0, $xpath->query('//pkp:genre/pkp:name[@locale="fr_CA"]')->length);
+    }
+
     private function createContext(string $label): Journal
     {
         $context = Application::get()->getContextDAO()->newDataObject();

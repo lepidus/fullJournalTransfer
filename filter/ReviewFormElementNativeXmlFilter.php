@@ -31,8 +31,8 @@ class ReviewFormElementNativeXmlFilter extends NativeExportFilter
         $node->setAttribute('element_type', (string) $element->getElementType());
         $node->setAttribute('required', $element->getRequired() ? 'true' : 'false');
         $node->setAttribute('included', $element->getIncluded() ? 'true' : 'false');
-        $this->addLocalized($document, $node, 'question', $element->getQuestion(null));
-        $this->addLocalized($document, $node, 'description', $element->getDescription(null));
+        $this->createLocalizedNodes($document, $node, 'question', $element->getQuestion(null));
+        $this->createLocalizedNodes($document, $node, 'description', $element->getDescription(null));
         $this->addPossibleResponses($document, $node, $element);
         return $node;
     }
