@@ -90,7 +90,8 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addSettings($document, $root, $journal);
         $this->validateRequiredSettings($journal);
         if ((int) $journal->getId() > 0) {
-            foreach (['exportUsers', 'exportReferenceData', 'exportNativeData', 'exportWorkflow'] as $method) {
+            foreach (['exportUsers', 'exportReferenceData', 'exportNativeData', 'exportWorkflow',
+                'exportMetrics'] as $method) {
                 $childDocument = $this->getDeployment()->{$method}();
                 $root->appendChild($document->importNode($childDocument->documentElement, true));
             }
