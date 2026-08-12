@@ -107,30 +107,137 @@
 
     <complexType name="metrics">
         <sequence>
-            <element name="metric" type="pkp:metric" minOccurs="0" maxOccurs="unbounded" />
+            <element name="context_metrics" type="pkp:context_metrics" />
+            <element name="submission_metrics" type="pkp:submission_metrics" />
+            <element name="issue_metrics" type="pkp:issue_metrics" />
+            <element name="geo_metrics" type="pkp:geo_metrics" />
+            <element name="counter_metrics" type="pkp:counter_metrics" />
+            <element name="institution_metrics" type="pkp:institution_metrics" />
         </sequence>
     </complexType>
 
-    <complexType name="metric">
+    <simpleType name="load_id">
+        <restriction base="string">
+            <minLength value="1" />
+            <maxLength value="50" />
+        </restriction>
+    </simpleType>
+
+    <simpleType name="metric_granularity">
+        <restriction base="string">
+            <enumeration value="daily" />
+            <enumeration value="monthly" />
+        </restriction>
+    </simpleType>
+
+    <simpleType name="country_code">
+        <restriction base="string">
+            <pattern value="([A-Z]{2})?" />
+        </restriction>
+    </simpleType>
+
+    <complexType name="context_metrics">
         <sequence>
-            <element name="dimension" minOccurs="0" maxOccurs="unbounded">
-                <complexType>
-                    <attribute name="name" type="string" use="required" />
-                    <attribute name="value" type="string" use="required" />
-                </complexType>
-            </element>
+            <element name="context_metric" type="pkp:context_metric" minOccurs="0" maxOccurs="unbounded" />
         </sequence>
-        <attribute name="family" use="required">
-            <simpleType>
-                <restriction base="string">
-                    <enumeration value="context" />
-                    <enumeration value="submission" />
-                    <enumeration value="issue" />
-                    <enumeration value="counter" />
-                </restriction>
-            </simpleType>
-        </attribute>
-        <attribute name="value" type="nonNegativeInteger" use="required" />
+    </complexType>
+
+    <complexType name="context_metric">
+        <attribute name="load_id" type="pkp:load_id" use="required" />
+        <attribute name="date" type="date" use="required" />
+        <attribute name="metric" type="nonNegativeInteger" use="required" />
+    </complexType>
+
+    <complexType name="submission_metrics">
+        <sequence>
+            <element name="submission_metric" type="pkp:submission_metric" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="submission_metric">
+        <attribute name="load_id" type="pkp:load_id" use="required" />
+        <attribute name="submission_ref" type="string" use="required" />
+        <attribute name="representation_ref" type="string" use="optional" />
+        <attribute name="submission_file_ref" type="string" use="optional" />
+        <attribute name="file_type" type="nonNegativeInteger" use="optional" />
+        <attribute name="assoc_type" type="nonNegativeInteger" use="required" />
+        <attribute name="date" type="date" use="required" />
+        <attribute name="metric" type="nonNegativeInteger" use="required" />
+    </complexType>
+
+    <complexType name="issue_metrics">
+        <sequence>
+            <element name="issue_metric" type="pkp:issue_metric" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="issue_metric">
+        <attribute name="load_id" type="pkp:load_id" use="required" />
+        <attribute name="issue_ref" type="string" use="required" />
+        <attribute name="issue_galley_ref" type="string" use="optional" />
+        <attribute name="date" type="date" use="required" />
+        <attribute name="metric" type="nonNegativeInteger" use="required" />
+    </complexType>
+
+    <complexType name="geo_metrics">
+        <sequence>
+            <element name="geo_metric" type="pkp:geo_metric" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="geo_metric">
+        <attribute name="granularity" type="pkp:metric_granularity" use="required" />
+        <attribute name="load_id" type="pkp:load_id" use="optional" />
         <attribute name="date" type="date" use="optional" />
+        <attribute name="month" type="positiveInteger" use="optional" />
+        <attribute name="submission_ref" type="string" use="required" />
+        <attribute name="country" type="pkp:country_code" use="required" />
+        <attribute name="region" use="required">
+            <simpleType><restriction base="string"><maxLength value="3" /></restriction></simpleType>
+        </attribute>
+        <attribute name="city" use="required">
+            <simpleType><restriction base="string"><maxLength value="255" /></restriction></simpleType>
+        </attribute>
+        <attribute name="metric" type="nonNegativeInteger" use="required" />
+        <attribute name="metric_unique" type="nonNegativeInteger" use="required" />
+    </complexType>
+
+    <attributeGroup name="counter_values">
+        <attribute name="metric_investigations" type="nonNegativeInteger" use="required" />
+        <attribute name="metric_investigations_unique" type="nonNegativeInteger" use="required" />
+        <attribute name="metric_requests" type="nonNegativeInteger" use="required" />
+        <attribute name="metric_requests_unique" type="nonNegativeInteger" use="required" />
+    </attributeGroup>
+
+    <complexType name="counter_metrics">
+        <sequence>
+            <element name="counter_metric" type="pkp:counter_metric" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="counter_metric">
+        <attribute name="granularity" type="pkp:metric_granularity" use="required" />
+        <attribute name="load_id" type="pkp:load_id" use="optional" />
+        <attribute name="date" type="date" use="optional" />
+        <attribute name="month" type="positiveInteger" use="optional" />
+        <attribute name="submission_ref" type="string" use="required" />
+        <attributeGroup ref="pkp:counter_values" />
+    </complexType>
+
+    <complexType name="institution_metrics">
+        <sequence>
+            <element name="institution_metric" type="pkp:institution_metric" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="institution_metric">
+        <attribute name="granularity" type="pkp:metric_granularity" use="required" />
+        <attribute name="load_id" type="pkp:load_id" use="optional" />
+        <attribute name="date" type="date" use="optional" />
+        <attribute name="month" type="positiveInteger" use="optional" />
+        <attribute name="submission_ref" type="string" use="required" />
+        <attribute name="source_institution_ref" type="string" use="required" />
+        <attribute name="institution_ror" type="anyURI" use="optional" />
+        <attributeGroup ref="pkp:counter_values" />
     </complexType>
 </schema>
