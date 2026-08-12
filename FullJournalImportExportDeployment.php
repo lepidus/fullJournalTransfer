@@ -291,6 +291,12 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     protected function runNativeImport($rootFilter, $importXml): void
     {
+        if (is_string($importXml)) {
+            $document = new DOMDocument('1.0', 'UTF-8');
+            libxml_use_internal_errors(true);
+            $document->loadXML($importXml);
+            $importXml = $document;
+        }
         parent::import($rootFilter, $importXml);
     }
 
