@@ -1,0 +1,115 @@
+<?php
+
+declare(strict_types=1);
+
+namespace APP\plugins\importexport\fullJournalTransfer\filter;
+
+use APP\facades\Repo;
+use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\NativeDataReferenceValidator;
+use DOMDocument;
+use DOMElement;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+use PKP\plugins\importexport\native\filter\NativeImportFilter;
+use PKP\plugins\importexport\PKPImportExportFilter;
+
+class NativeXmlNativeDataFilter extends NativeImportFilter
+{
+    public function getPluralElementName()
+    {
+        return 'native_data_collection';
+    }
+
+    public function getSingularElementName()
+    {
+        return 'native_data';
+    }
+
+    public function handleElement($root)
+    {
+        (new NativeDataReferenceValidator())->validate($root);
+        $deployment = $this->getDeployment();
+        return DB::transaction(function () use ($root, $deployment): Journal {
+            foreach (['issue', 'issue_galley', 'submission', 'publication', 'author', 'article_galley',
+                'submission_file', 'file'] as $entity) {
+                $deployment->resetReferenceMap($entity);
+            }
+            $deployment->setAuthorDBIds([]);
+            $deployment->setSubmissionFileDBIds([]);
+            $deployment->setFileDBIds([]);
+
+            $issueFilter = PKPImportExportFilter::getFilter(
+                'full-journal-native-xml=>mapped-issue',
+                $deployment
+            );
+            $articleNodes = [];
+            foreach ($this->children($this->requiredChild($root, 'issues'), 'issue') as $issueNode) {
+                $issueDocument = $this->documentFor($issueNode);
+                $articles = $this->requiredChild($issueDocument->documentElement, 'articles');
+                foreach ($this->children($articles, 'article') as $articleNode) {
+                    $articleNodes[] = $articleNode->cloneNode(true);
+                    $articles->removeChild($articleNode);
+                }
+                $issueFilter->execute($issueDocument);
+            }
+            foreach ($this->children($this->requiredChild($root, 'issue_orders'), 'issue_order') as $order) {
+                Repo::issue()->dao->insertCustomIssueOrder(
+                    (int) $deployment->getContext()->getId(),
+                    $deployment->requireReference('issue', trim($order->getAttribute('issue_ref'))),
+                    (int) $order->getAttribute('position')
+                );
+            }
+
+            $deployment->setIssue(null);
+            $articleFilter = PKPImportExportFilter::getFilter(
+                'full-journal-native-xml=>article',
+                $deployment
+            );
+            foreach ($this->children($this->requiredChild($root, 'articles'), 'article') as $articleNode) {
+                $articleNodes[] = $articleNode;
+            }
+            foreach ($articleNodes as $articleNode) {
+                $articleDocument = $this->documentFor($articleNode);
+                $articleFilter->execute($articleDocument);
+            }
+            foreach ((array) $deployment->getAuthorDBIds() as $sourceId => $destinationId) {
+                $deployment->mapReference('author', (string) $sourceId, (int) $destinationId);
+            }
+            foreach ((array) $deployment->getSubmissionFileDBIds() as $sourceId => $destinationId) {
+                $deployment->mapReference('submission_file', (string) $sourceId, (int) $destinationId);
+            }
+            foreach ((array) $deployment->getFileDBIds() as $sourceId => $destinationId) {
+                $deployment->mapReference('file', (string) $sourceId, (int) $destinationId);
+            }
+            return $deployment->getContext();
+        });
+    }
+
+    private function requiredChild(DOMElement $parent, string $name): DOMElement
+    {
+        $matches = $this->children($parent, $name);
+        if (count($matches) !== 1) {
+            throw new InvalidArgumentException('Expected exactly one native data element: ' . $name);
+        }
+        return $matches[0];
+    }
+
+    private function children(DOMElement $parent, string $name): array
+    {
+        $children = [];
+        foreach ($parent->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === $name) {
+                $children[] = $child;
+            }
+        }
+        return $children;
+    }
+
+    private function documentFor(DOMElement $element): DOMDocument
+    {
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $document->appendChild($document->importNode($element, true));
+        return $document;
+    }
+}

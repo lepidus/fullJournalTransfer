@@ -17,9 +17,9 @@
                 <element name="locales" type="pkp:locales" />
                 <element name="submission_checklist" type="pkp:submission_checklist" minOccurs="0" />
                 <element name="context_settings" type="pkp:context_settings" />
+                <element name="users" type="pkp:open_data" minOccurs="0" />
+                <element name="reference_data" type="pkp:open_data" minOccurs="0" />
                 <element name="native_data" type="pkp:native_data" minOccurs="0" />
-                <element name="users" type="pkp:native_data" minOccurs="0" />
-                <element name="reference_data" type="pkp:native_data" minOccurs="0" />
                 <element name="workflow_history" type="pkp:workflow_history" minOccurs="0" />
                 <element name="metrics" type="pkp:metrics" minOccurs="0" />
             </sequence>
@@ -75,6 +75,25 @@
     </complexType>
 
     <complexType name="native_data">
+        <sequence>
+            <element name="issue_orders" type="pkp:issue_orders" />
+            <element name="issues" type="pkp:open_data" />
+            <element name="articles" type="pkp:open_data" />
+        </sequence>
+    </complexType>
+
+    <complexType name="issue_orders">
+        <sequence>
+            <element name="issue_order" type="pkp:issue_order" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="issue_order">
+        <attribute name="issue_ref" type="string" use="required" />
+        <attribute name="position" type="positiveInteger" use="required" />
+    </complexType>
+
+    <complexType name="open_data">
         <sequence>
             <any namespace="http://pkp.sfu.ca" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
         </sequence>
