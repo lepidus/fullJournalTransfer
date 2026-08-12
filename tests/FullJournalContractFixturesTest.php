@@ -27,11 +27,11 @@ class FullJournalContractFixturesTest extends PKPTestCase
         $this->assertSame(1, $xpath->query('//pkp:extended_issue[@published="0"]')->length);
         $this->assertSame(1, $xpath->query('/pkp:journal/pkp:extended_articles')->length);
 
-        $metric = $xpath->query('/pkp:journal/pkp:metrics/pkp:metric')->item(0);
+        $metric = $xpath->query('/pkp:journal/pkp:metrics/pkp:geo_metrics/pkp:geo_metric')->item(0);
         $this->assertInstanceOf(DOMElement::class, $metric);
-        $this->assertSame('BR', $metric->getAttribute('country_id'));
+        $this->assertSame('BR', $metric->getAttribute('country'));
         $this->assertSame('27', $metric->getAttribute('region'));
-        $this->assertSame('2', $metric->getAttribute('file_type'));
+        $this->assertSame('daily', $metric->getAttribute('granularity'));
     }
 
     private function loadFixture($filename)

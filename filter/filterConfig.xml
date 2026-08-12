@@ -57,6 +57,20 @@
 		<filterGroup symbolic="full-journal-workflow-xml=>discussion-note" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\note\Note[]" />
 		<filterGroup symbolic="discussion-attachment=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\submissionFile\SubmissionFile[]" outputType="class::DOMDocument" />
 		<filterGroup symbolic="full-journal-workflow-xml=>discussion-attachment" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
+		<filterGroup symbolic="metrics=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\journal\Journal" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>metrics" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\journal\Journal[]" />
+		<filterGroup symbolic="context-metric=>full-journal-metrics-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-metrics-xml=>context-metric" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
+		<filterGroup symbolic="submission-metric=>full-journal-metrics-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-metrics-xml=>submission-metric" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
+		<filterGroup symbolic="issue-metric=>full-journal-metrics-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-metrics-xml=>issue-metric" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
+		<filterGroup symbolic="geo-metric-family=>full-journal-metrics-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-metrics-xml=>geo-metric" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
+		<filterGroup symbolic="counter-metric-family=>full-journal-metrics-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-metrics-xml=>counter-metric" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
+		<filterGroup symbolic="institution-metric-family=>full-journal-metrics-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-metrics-xml=>institution-metric" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
 	</filterGroups>
 	<filters>
 		<filter inGroup="journal=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter" isTemplate="0" />
@@ -114,5 +128,19 @@
 		<filter inGroup="full-journal-workflow-xml=>discussion-note" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlDiscussionNoteFilter" isTemplate="0" />
 		<filter inGroup="discussion-attachment=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\DiscussionAttachmentNativeXmlFilter" isTemplate="0" />
 		<filter inGroup="full-journal-workflow-xml=>discussion-attachment" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlDiscussionAttachmentFilter" isTemplate="0" />
+		<filter inGroup="metrics=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\MetricsNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>metrics" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlMetricsFilter" isTemplate="0" />
+		<filter inGroup="context-metric=>full-journal-metrics-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ContextMetricNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-metrics-xml=>context-metric" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlContextMetricFilter" isTemplate="0" />
+		<filter inGroup="submission-metric=>full-journal-metrics-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\SubmissionMetricNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-metrics-xml=>submission-metric" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlSubmissionMetricFilter" isTemplate="0" />
+		<filter inGroup="issue-metric=>full-journal-metrics-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\IssueMetricNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-metrics-xml=>issue-metric" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlIssueMetricFilter" isTemplate="0" />
+		<filter inGroup="geo-metric-family=>full-journal-metrics-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\GeoMetricNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-metrics-xml=>geo-metric" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlGeoMetricFilter" isTemplate="0" />
+		<filter inGroup="counter-metric-family=>full-journal-metrics-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\CounterMetricNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-metrics-xml=>counter-metric" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlCounterMetricFilter" isTemplate="0" />
+		<filter inGroup="institution-metric-family=>full-journal-metrics-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\InstitutionMetricNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-metrics-xml=>institution-metric" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlInstitutionMetricFilter" isTemplate="0" />
 	</filters>
 </filterConfig>

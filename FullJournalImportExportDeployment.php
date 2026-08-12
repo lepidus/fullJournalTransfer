@@ -20,6 +20,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private array $userConflicts = [];
     private ?int $currentReviewFormId = null;
     private array $submissionsByIssue = [];
+    private array $metricRejections = [];
 
     public function importPackage(
         string $archivePath,
@@ -202,6 +203,31 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             'discussion_attachment_id_map' => $this->getReferenceMap('discussion_attachment'),
             'editorial_decision_id_map' => $this->getReferenceMap('editorial_decision'),
         ];
+    }
+
+    public function exportMetrics(): DOMDocument
+    {
+        $filter = PKPImportExportFilter::getFilter('metrics=>full-journal-xml', $this);
+        $context = $this->getContext();
+        return $filter->execute($context);
+    }
+
+    public function importMetrics(DOMElement $metricsNode): void
+    {
+        $this->metricRejections = [];
+        $filter = PKPImportExportFilter::getFilter('full-journal-xml=>metrics', $this);
+        $document = $this->documentFor($metricsNode);
+        $filter->execute($document);
+    }
+
+    public function addMetricRejection(array $rejection): void
+    {
+        $this->metricRejections[] = $rejection;
+    }
+
+    public function getMetricRejections(): array
+    {
+        return $this->metricRejections;
     }
 
     public function mapReference(string $entity, string $sourceReference, int $destinationId): void
