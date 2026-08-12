@@ -30,9 +30,15 @@ class NativeXmlWorkflowFilter extends NativeImportFilter
             $deployment->resetReferenceMap('stage_assignment');
             $deployment->resetReferenceMap('review_round');
             $deployment->resetReferenceMap('review_assignment');
+            $deployment->resetReferenceMap('discussion');
+            $deployment->resetReferenceMap('discussion_note');
+            $deployment->resetReferenceMap('discussion_attachment');
+            $deployment->resetReferenceMap('editorial_decision');
             foreach ([
                 'stage_assignments' => 'full-journal-workflow-xml=>stage-assignment',
                 'review_rounds' => 'full-journal-workflow-xml=>review-round',
+                'discussions' => 'full-journal-workflow-xml=>discussion',
+                'editorial_decisions' => 'full-journal-workflow-xml=>editorial-decision',
             ] as $element => $group) {
                 $filter = PKPImportExportFilter::getFilter($group, $deployment);
                 $document = $this->documentFor($this->requiredChild($root, $element));

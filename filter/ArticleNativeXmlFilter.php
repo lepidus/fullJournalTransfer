@@ -38,8 +38,6 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
     public function addFiles(DOMDocument $document, DOMElement $submissionNode, Submission $submission): void
     {
         $excludedStages = [
-            SubmissionFile::SUBMISSION_FILE_QUERY,
-            SubmissionFile::SUBMISSION_FILE_NOTE,
             SubmissionFile::SUBMISSION_FILE_REVIEW_ATTACHMENT,
             SubmissionFile::SUBMISSION_FILE_REVIEW_FILE,
             SubmissionFile::SUBMISSION_FILE_REVIEW_REVISION,

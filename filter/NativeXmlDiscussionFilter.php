@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+namespace APP\plugins\importexport\fullJournalTransfer\filter;
+
+use APP\plugins\importexport\fullJournalTransfer\HistoricalDiscussionPersistenceAdapter;
+use DOMDocument;
+use DOMElement;
+use InvalidArgumentException;
+use PKP\plugins\importexport\native\filter\NativeImportFilter;
+use PKP\plugins\importexport\PKPImportExportFilter;
+
+class NativeXmlDiscussionFilter extends NativeImportFilter
+{
+    public function getPluralElementName()
+    {
+        return 'discussions';
+    }
+
+    public function getSingularElementName()
+    {
+        return 'discussion';
+    }
+
+    public function handleElement($node)
+    {
+        $deployment = $this->getDeployment();
+        $sourceReference = $this->required($node, 'source_ref');
+        $discussion = (new HistoricalDiscussionPersistenceAdapter())->insertDiscussion([
+            'submission_id' => $deployment->requireReference(
+                'submission',
+                $this->required($node, 'submission_ref')
+            ),
+            'stage_id' => $this->positiveInteger($node, 'stage_id'),
+            'closed' => $this->boolean($node, 'closed'),
+            'sequence' => $this->number($node, 'sequence'),
+        ]);
+        $deployment->mapReference('discussion', $sourceReference, (int) $discussion->getId());
+        foreach ([
+            'discussion_participant' => [
+                'discussion_participants',
+                'full-journal-workflow-xml=>discussion-participant',
+            ],
+            'discussion_note' => ['discussion_notes', 'full-journal-workflow-xml=>discussion-note'],
+        ] as $element => [$container, $group]) {
+            $children = $this->childrenDocument($node, $element, $container);
+            if ($children) {
+                PKPImportExportFilter::getFilter($group, $deployment)->execute($children);
+            }
+        }
+        return $discussion;
+    }
+
+    private function required($node, string $attribute): string
+    {
+        $value = trim($node->getAttribute($attribute));
+        if ($value === '') {
+            throw new InvalidArgumentException('Missing discussion value: ' . $attribute);
+        }
+        return $value;
+    }
+
+    private function positiveInteger($node, string $attribute): int
+    {
+        $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
+        if ($value === false || $value < 1) {
+            throw new InvalidArgumentException('Invalid discussion integer: ' . $attribute);
+        }
+        return $value;
+    }
+
+    private function boolean($node, string $attribute): int
+    {
+        $value = $node->getAttribute($attribute);
+        if (!in_array($value, ['true', 'false'], true)) {
+            throw new InvalidArgumentException('Invalid discussion boolean');
+        }
+        return $value === 'true' ? 1 : 0;
+    }
+
+    private function number($node, string $attribute): float
+    {
+        $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_FLOAT);
+        if ($value === false || $value < 0) {
+            throw new InvalidArgumentException('Invalid discussion sequence');
+        }
+        return (float) $value;
+    }
+
+    private function childrenDocument(DOMElement $parent, string $element, string $container): ?DOMDocument
+    {
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $root = $document->createElementNS('http://pkp.sfu.ca', $container);
+        foreach ($parent->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === $element) {
+                $root->appendChild($document->importNode($child, true));
+            }
+        }
+        if (!$root->hasChildNodes()) {
+            return null;
+        }
+        $document->appendChild($root);
+        return $document;
+    }
+}

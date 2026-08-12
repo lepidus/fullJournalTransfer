@@ -197,6 +197,10 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             'stage_assignment_id_map' => $this->getReferenceMap('stage_assignment'),
             'review_round_id_map' => $this->getReferenceMap('review_round'),
             'review_assignment_id_map' => $this->getReferenceMap('review_assignment'),
+            'discussion_id_map' => $this->getReferenceMap('discussion'),
+            'discussion_note_id_map' => $this->getReferenceMap('discussion_note'),
+            'discussion_attachment_id_map' => $this->getReferenceMap('discussion_attachment'),
+            'editorial_decision_id_map' => $this->getReferenceMap('editorial_decision'),
         ];
     }
 
