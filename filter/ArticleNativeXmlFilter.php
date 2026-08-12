@@ -14,6 +14,27 @@ use PKP\submissionFile\SubmissionFile;
 
 class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\ArticleNativeXmlFilter
 {
+    public function addPublications($document, $submissionNode, $submission)
+    {
+        $filter = PKPImportExportFilter::getFilter(
+            'publication=>native-xml',
+            $this->getDeployment()
+        );
+        foreach ($submission->getData('publications') as $publication) {
+            $deployment = $this->getDeployment();
+            $issue = $deployment->getIssue();
+            $deployment->setIssue(null);
+            try {
+                $publicationDocument = $filter->execute($publication);
+            } finally {
+                $deployment->setIssue($issue);
+            }
+            if ($publicationDocument && $publicationDocument->documentElement instanceof DOMElement) {
+                $submissionNode->appendChild($document->importNode($publicationDocument->documentElement, true));
+            }
+        }
+    }
+
     public function addFiles(DOMDocument $document, DOMElement $submissionNode, Submission $submission): void
     {
         $excludedStages = [
@@ -40,7 +61,7 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
             $filter = PKPImportExportFilter::getFilter(
                 'submission-file=>full-journal-native-xml',
                 $this->getDeployment(),
-                $this->opts
+                array_merge($this->opts, ['no-embed' => true])
             );
             $fileDocument = $filter->execute($submissionFile, true);
             if ($fileDocument && $fileDocument->documentElement instanceof DOMElement) {

@@ -19,6 +19,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private array $referenceMaps = [];
     private array $userConflicts = [];
     private ?int $currentReviewFormId = null;
+    private array $submissionsByIssue = [];
 
     public function importPackage(
         string $archivePath,
@@ -225,6 +226,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getCurrentReviewFormId(): ?int
     {
         return $this->currentReviewFormId;
+    }
+
+    public function setSubmissionsByIssue(array $submissionsByIssue): void
+    {
+        $this->submissionsByIssue = $submissionsByIssue;
+    }
+
+    public function getSubmissionsForIssue(int $issueId): array
+    {
+        return $this->submissionsByIssue[$issueId] ?? [];
     }
 
     protected function runNativeImport($rootFilter, $importXml): void

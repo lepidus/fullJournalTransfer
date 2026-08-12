@@ -23,78 +23,71 @@ class NativeDataNativeXmlFilter extends NativeExportFilter
         $document->formatOutput = true;
         $root = $document->createElementNS('http://pkp.sfu.ca', 'native_data');
         $document->appendChild($root);
-        $currentIssue = Repo::issue()->getCurrent((int) $context->getId());
-        if ($currentIssue) {
-            $root->setAttribute('current_issue_ref', (string) $currentIssue->getId());
+
+        $issues = Repo::issue()->getCollector()
+            ->filterByContextIds([(int) $context->getId()])
+            ->getMany()
+            ->values()
+            ->toArray();
+        $submissions = Repo::submission()->getCollector()
+            ->filterByContextIds([(int) $context->getId()])
+            ->getMany()
+            ->values()
+            ->toArray();
+        $assignments = [];
+        $submissionsByIssue = [];
+        foreach ($submissions as $submission) {
+            $issueId = $submission->getCurrentPublication()?->getData('issueId');
+            if (!$issueId) {
+                foreach ($submission->getData('publications') as $publication) {
+                    if ($publication->getData('issueId')) {
+                        $issueId = $publication->getData('issueId');
+                        break;
+                    }
+                }
+            }
+            if ($issueId) {
+                $assignments[(int) $submission->getId()] = (int) $issueId;
+                $submissionsByIssue[(int) $issueId][] = $submission;
+            }
         }
-        $issuesNode = $document->createElementNS('http://pkp.sfu.ca', 'issues');
-        $issueFilter = PKPImportExportFilter::getFilter(
-            'issue=>full-journal-native-xml',
-            $this->getDeployment()
-        );
-        foreach (Repo::issue()->getCollector()->filterByContextIds([(int) $context->getId()])->getMany() as $issue) {
-            $record = $document->createElementNS('http://pkp.sfu.ca', 'issue_record');
-            $record->setAttribute('source_ref', (string) $issue->getId());
+        $this->getDeployment()->setSubmissionsByIssue($submissionsByIssue);
+
+        $orders = $document->createElementNS('http://pkp.sfu.ca', 'issue_orders');
+        foreach ($issues as $issue) {
             $customOrder = Repo::issue()->dao->getCustomIssueOrder((int) $context->getId(), (int) $issue->getId());
             if ($customOrder !== null) {
-                $record->setAttribute('custom_order', (string) $customOrder);
+                $order = $document->createElementNS('http://pkp.sfu.ca', 'issue_order');
+                $order->setAttribute('issue_ref', (string) $issue->getId());
+                $order->setAttribute('position', (string) $customOrder);
+                $orders->appendChild($order);
             }
+        }
+        $root->appendChild($orders);
+
+        $issuesNode = $document->createElementNS('http://pkp.sfu.ca', 'issues');
+        $issueFilter = PKPImportExportFilter::getFilter('issue=>full-journal-native-xml', $this->getDeployment());
+        foreach ($issues as $issue) {
             $issueInput = [$issue];
             $issueDocument = $issueFilter->execute($issueInput);
-            $record->appendChild($document->importNode($issueDocument->documentElement, true));
-            $issuesNode->appendChild($record);
+            $issuesNode->appendChild($document->importNode($issueDocument->documentElement, true));
         }
         $root->appendChild($issuesNode);
-        $submissionsNode = $document->createElementNS('http://pkp.sfu.ca', 'submissions');
-        $submissionFilter = PKPImportExportFilter::getFilter(
+
+        $standalone = array_values(array_filter(
+            $submissions,
+            fn ($submission) => !isset($assignments[(int) $submission->getId()])
+        ));
+        $articleFilter = PKPImportExportFilter::getFilter(
             'article=>full-journal-native-xml',
-            $this->getDeployment()
+            $this->getDeployment(),
+            ['no-embed' => true]
         );
-        foreach (Repo::submission()->getCollector()
-            ->filterByContextIds([(int) $context->getId()])
-            ->getMany() as $submission) {
-            $record = $document->createElementNS('http://pkp.sfu.ca', 'submission_record');
-            $record->setAttribute('source_ref', (string) $submission->getId());
-            $submissionInput = [$submission];
-            $submissionDocument = $submissionFilter->execute($submissionInput);
-            $article = $document->importNode($submissionDocument->documentElement, true);
-            $this->addIssueReferences($article, $submission);
-            $record->appendChild($article);
-            $submissionsNode->appendChild($record);
+        $articleFilter->setIncludeSubmissionsNode(true);
+        $articlesDocument = $articleFilter->execute($standalone);
+        if ($articlesDocument->documentElement instanceof DOMElement) {
+            $root->appendChild($document->importNode($articlesDocument->documentElement, true));
         }
-        $root->appendChild($submissionsNode);
         return $document;
-    }
-
-    private function addIssueReferences(DOMElement $article, $submission): void
-    {
-        $issueReferences = [];
-        foreach ($submission->getData('publications') as $publication) {
-            if ($publication->getData('issueId')) {
-                $issueReferences[(string) $publication->getId()] = (string) $publication->getData('issueId');
-            }
-        }
-        foreach ($article->childNodes as $child) {
-            if (!$child instanceof DOMElement || $child->localName !== 'publication') {
-                continue;
-            }
-            $sourceReference = $this->internalId($child);
-            if (isset($issueReferences[$sourceReference])) {
-                $child->setAttribute('issue_ref', $issueReferences[$sourceReference]);
-            }
-        }
-    }
-
-    private function internalId(DOMElement $parent): string
-    {
-        foreach ($parent->childNodes as $child) {
-            if ($child instanceof DOMElement
-                && $child->localName === 'id'
-                && $child->getAttribute('type') === 'internal'
-            ) {
-                return trim($child->textContent);
-            }
-        }
-        throw new InvalidArgumentException('Missing publication source reference');
     }
 }

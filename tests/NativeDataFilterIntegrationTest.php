@@ -103,6 +103,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $secondPublication->setData('status', \APP\submission\Submission::STATUS_SCHEDULED);
         $secondPublication->setData('accessStatus', 0);
         $secondPublication->setData('version', 2);
+        $secondPublication->setData('pages', '1-10');
         $secondPublication->stampModified();
         $secondPublicationId = Repo::publication()->dao->insert($secondPublication);
         Repo::submission()->edit($scheduled, ['currentPublicationId' => $secondPublicationId]);
@@ -110,6 +111,21 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
 
         $this->setRequestContext($source);
         $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $this->assertSame(0, $xpath->query('//pkp:issue_record|//pkp:submission_record')->length);
+        $this->assertSame(1, $xpath->query('/pkp:native_data/pkp:issues/pkp:issue/pkp:articles/pkp:article')->length);
+        $this->assertSame(1, $xpath->query('/pkp:native_data/pkp:articles/pkp:article')->length);
+        $this->assertSame(1, $xpath->query(
+            '/pkp:native_data/pkp:issues/pkp:issue/pkp:articles/pkp:article/pkp:id[@type="internal" and text()="'
+            . $scheduled->getId() . '"]'
+        )->length);
+        $this->assertSame(1, $xpath->query(
+            '/pkp:native_data/pkp:articles/pkp:article/pkp:id[@type="internal" and text()="'
+            . $unassigned->getId() . '"]'
+        )->length);
+        $this->assertSame(0, $xpath->query('//pkp:publication[@issue_ref]')->length);
+        $this->assertSame(2, $xpath->query('//pkp:publication/pkp:issue_identification')->length);
         $this->setRequestContext($destination);
         $maps = (new FullJournalImportExportDeployment($destination, null))->importNativeData(
             $document->documentElement
@@ -124,6 +140,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
             $scheduledImported->getCurrentPublication()->getId()
         );
         $this->assertSame($issueImportedId, $scheduledImported->getCurrentPublication()->getData('issueId'));
+        $this->assertSame('1-10', $scheduledImported->getCurrentPublication()->getData('pages'));
         $this->assertNull($unassignedImported->getCurrentPublication()->getData('issueId'));
         $this->assertArrayHasKey((string) $firstPublication->getId(), $maps['publication_id_map']);
         $this->assertSame('Unassigned article', $unassignedImported->getCurrentPublication()->getData('title', 'en'));
@@ -172,13 +189,15 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
         $xpath = new \DOMXPath($document);
         $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
-        $this->assertSame(2, $xpath->query('//pkp:submission_file/pkp:file[@checksum]')->length);
+        $this->assertSame(0, $xpath->query('//pkp:submission_file/pkp:file[@checksum]')->length);
+        $this->assertSame(2, $xpath->query('//pkp:submission_file/pkp:file/pkp:href')->length);
+        $this->assertSame(0, $xpath->query('//pkp:submission_file/pkp:file/pkp:embed')->length);
         $this->setRequestContext($destination);
         $importUser = Repo::user()->getCollector()->getMany()->first();
         $this->assertNotNull($importUser);
-        $maps = (new FullJournalImportExportDeployment($destination, $importUser))->importNativeData(
-            $document->documentElement
-        );
+        $deployment = new FullJournalImportExportDeployment($destination, $importUser);
+        $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $maps = $deployment->importNativeData($document->documentElement);
         $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
 
         $importedSubmissionFile = Repo::submissionFile()->get(
@@ -212,7 +231,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
         $xpath = new \DOMXPath($document);
         $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
-        $this->assertSame(1, $xpath->query('//pkp:issue_galley/pkp:issue_file[@checksum]')->length);
+        $this->assertSame(0, $xpath->query('//pkp:issue_galley/pkp:issue_file[@checksum]')->length);
         $maps = (new FullJournalImportExportDeployment($destination, null))->importNativeData(
             $document->documentElement
         );

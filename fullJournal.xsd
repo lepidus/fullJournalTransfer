@@ -76,37 +76,21 @@
 
     <complexType name="native_data">
         <sequence>
-            <element name="issues" type="pkp:issue_records" />
-            <element name="submissions" type="pkp:submission_records" />
-        </sequence>
-        <attribute name="current_issue_ref" type="string" use="optional" />
-    </complexType>
-
-    <complexType name="issue_records">
-        <sequence>
-            <element name="issue_record" type="pkp:issue_record" minOccurs="0" maxOccurs="unbounded" />
+            <element name="issue_orders" type="pkp:issue_orders" />
+            <element name="issues" type="pkp:open_data" />
+            <element name="articles" type="pkp:open_data" />
         </sequence>
     </complexType>
 
-    <complexType name="issue_record">
+    <complexType name="issue_orders">
         <sequence>
-            <any namespace="http://pkp.sfu.ca" processContents="lax" minOccurs="1" maxOccurs="1" />
-        </sequence>
-        <attribute name="source_ref" type="string" use="required" />
-        <attribute name="custom_order" type="positiveInteger" use="optional" />
-    </complexType>
-
-    <complexType name="submission_records">
-        <sequence>
-            <element name="submission_record" type="pkp:submission_record" minOccurs="0" maxOccurs="unbounded" />
+            <element name="issue_order" type="pkp:issue_order" minOccurs="0" maxOccurs="unbounded" />
         </sequence>
     </complexType>
 
-    <complexType name="submission_record">
-        <sequence>
-            <any namespace="http://pkp.sfu.ca" processContents="lax" minOccurs="1" maxOccurs="1" />
-        </sequence>
-        <attribute name="source_ref" type="string" use="required" />
+    <complexType name="issue_order">
+        <attribute name="issue_ref" type="string" use="required" />
+        <attribute name="position" type="positiveInteger" use="required" />
     </complexType>
 
     <complexType name="open_data">

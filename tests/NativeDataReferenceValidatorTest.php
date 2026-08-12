@@ -11,96 +11,69 @@ use PHPUnit\Framework\TestCase;
 
 class NativeDataReferenceValidatorTest extends TestCase
 {
-    public function testItAcceptsMappedIssuesAndSubmissionPublications(): void
+    public function testItAcceptsNativeIssuesAndArticles(): void
     {
-        $validator = new NativeDataReferenceValidator();
-
-        $validator->validate($this->nativeData(
-            '<issues><issue_record source_ref="issue-1"><issue/></issue_record></issues>',
-            '<submissions><submission_record source_ref="submission-1"><article current_publication_id="20">'
-            . '<publication issue_ref="issue-1"><id type="internal">20</id></publication>'
-            . '</article></submission_record></submissions>',
-            'issue-1'
-        ));
-
+        (new NativeDataReferenceValidator())->validate($this->nativeData('', $this->issue(), ''));
         $this->addToAssertionCount(1);
     }
 
-    public function testItRejectsUnknownCurrentIssueBeforeImport(): void
+    public function testItRejectsUnknownIssueOrderReference(): void
     {
-        $validator = new NativeDataReferenceValidator();
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown current issue reference');
-
-        $validator->validate($this->nativeData('<issues/>', '<submissions/>', 'missing-issue'));
+        $this->expectExceptionMessage('Unknown issue order reference');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('<issue_order issue_ref="2" position="1"/>', $this->issue(), '')
+        );
     }
 
-    public function testItRejectsUnknownPublicationIssueBeforeImport(): void
+    public function testItRejectsDuplicatedNativeIssueReferences(): void
     {
-        $validator = new NativeDataReferenceValidator();
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown issue reference in publication');
-
-        $validator->validate($this->nativeData(
-            '<issues><issue_record source_ref="issue-1"><issue/></issue_record></issues>',
-            '<submissions><submission_record source_ref="submission-1"><article current_publication_id="20">'
-            . '<publication issue_ref="missing-issue"><id type="internal">20</id></publication>'
-            . '</article></submission_record></submissions>'
-        ));
-    }
-
-    public function testItRejectsUnknownCurrentPublicationBeforeImport(): void
-    {
-        $validator = new NativeDataReferenceValidator();
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown current publication reference');
-
-        $validator->validate($this->nativeData(
-            '<issues/>',
-            '<submissions><submission_record source_ref="submission-1"><article current_publication_id="21">'
-            . '<publication><id type="internal">20</id></publication>'
-            . '</article></submission_record></submissions>'
-        ));
-    }
-
-    public function testItRejectsDuplicatedTypedReferences(): void
-    {
-        $validator = new NativeDataReferenceValidator();
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Duplicated issue source reference');
-
-        $validator->validate($this->nativeData(
-            '<issues><issue_record source_ref="issue-1"><issue/></issue_record>'
-            . '<issue_record source_ref="issue-1"><issue/></issue_record></issues>',
-            '<submissions/>'
-        ));
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', $this->issue() . $this->issue(), '')
+        );
     }
 
-    public function testItRejectsInvalidFileChecksumBeforeImport(): void
+    public function testItRejectsAnIssueWithoutNativeArticles(): void
     {
-        $validator = new NativeDataReferenceValidator();
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('File checksum does not match its payload');
-
-        $validator->validate($this->nativeData(
-            '<issues/>',
-            '<submissions><submission_record source_ref="submission-1">'
-            . '<article current_publication_id="20"><submission_file id="30">'
-            . '<file id="40" checksum="' . str_repeat('a', 64) . '">'
-            . '<embed encoding="base64">' . base64_encode('payload') . '</embed></file>'
-            . '</submission_file><publication><id type="internal">20</id></publication>'
-            . '</article></submission_record></submissions>'
-        ));
+        $this->expectExceptionMessage('Invalid OJS Native XML');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', '<issue><id type="internal">1</id><issue_identification/></issue>', '')
+        );
     }
 
-    private function nativeData(string $issues, string $submissions, ?string $currentIssueRef = null): \DOMElement
+    public function testItRejectsUnsafeExternalFileReferences(): void
     {
-        $attribute = $currentIssueRef === null ? '' : ' current_issue_ref="' . $currentIssueRef . '"';
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsafe native file reference');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', $this->issue(), $this->article('../private.txt'))
+        );
+    }
+
+    private function nativeData(string $orders, string $issues, string $articles): \DOMElement
+    {
         $document = new DOMDocument();
         $this->assertTrue($document->loadXML(
-            '<native_data xmlns="http://pkp.sfu.ca"' . $attribute . '>'
-            . $issues . $submissions . '</native_data>'
+            '<native_data xmlns="http://pkp.sfu.ca"><issue_orders>' . $orders . '</issue_orders>'
+            . '<issues>' . $issues . '</issues><articles>' . $articles . '</articles></native_data>'
         ));
         return $document->documentElement;
+    }
+
+    private function issue(): string
+    {
+        return '<issue><id type="internal">1</id><issue_identification/><articles/></issue>';
+    }
+
+    private function article(string $source): string
+    {
+        return '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
+            . '<submission_file id="30" stage="submission"><name locale="en">File</name>'
+            . '<file id="40"><href src="' . $source . '"/></file></submission_file>'
+            . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
+            . '<title locale="en">Article</title></publication></article>';
     }
 }

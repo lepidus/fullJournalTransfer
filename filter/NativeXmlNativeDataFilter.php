@@ -31,70 +31,47 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
         (new NativeDataReferenceValidator())->validate($root);
         $deployment = $this->getDeployment();
         return DB::transaction(function () use ($root, $deployment): Journal {
-            foreach (
-                ['issue', 'issue_galley', 'submission', 'publication', 'author', 'article_galley',
-                    'submission_file', 'file'] as $entity
-            ) {
+            foreach (['issue', 'issue_galley', 'submission', 'publication', 'author', 'article_galley',
+                'submission_file', 'file'] as $entity) {
                 $deployment->resetReferenceMap($entity);
             }
             $deployment->setAuthorDBIds([]);
             $deployment->setSubmissionFileDBIds([]);
             $deployment->setFileDBIds([]);
-            $issues = $this->requiredChild($root, 'issues');
+
             $issueFilter = PKPImportExportFilter::getFilter(
                 'full-journal-native-xml=>mapped-issue',
                 $deployment
             );
-            $customIssueOrders = [];
-            foreach ($this->children($issues, 'issue_record') as $record) {
-                $sourceReference = $record->getAttribute('source_ref');
-                $issueDocument = $this->documentFor($this->requiredChild($record, 'issue'));
-                $imported = $issueFilter->execute($issueDocument);
-                $issue = $imported[0] ?? null;
-                if (!$issue) {
-                    throw new InvalidArgumentException('Issue import did not return an entity');
+            $articleNodes = [];
+            foreach ($this->children($this->requiredChild($root, 'issues'), 'issue') as $issueNode) {
+                $issueDocument = $this->documentFor($issueNode);
+                $articles = $this->requiredChild($issueDocument->documentElement, 'articles');
+                foreach ($this->children($articles, 'article') as $articleNode) {
+                    $articleNodes[] = $articleNode->cloneNode(true);
+                    $articles->removeChild($articleNode);
                 }
-                $deployment->mapReference('issue', $sourceReference, (int) $issue->getId());
-                $customOrder = trim($record->getAttribute('custom_order'));
-                if ($customOrder !== '') {
-                    $customIssueOrders[(int) $issue->getId()] = (int) $customOrder;
-                }
+                $issueFilter->execute($issueDocument);
             }
-            foreach ($customIssueOrders as $issueId => $customOrder) {
+            foreach ($this->children($this->requiredChild($root, 'issue_orders'), 'issue_order') as $order) {
                 Repo::issue()->dao->insertCustomIssueOrder(
                     (int) $deployment->getContext()->getId(),
-                    $issueId,
-                    $customOrder
+                    $deployment->requireReference('issue', trim($order->getAttribute('issue_ref'))),
+                    (int) $order->getAttribute('position')
                 );
             }
-            $currentIssueReference = trim($root->getAttribute('current_issue_ref'));
-            if ($currentIssueReference !== '') {
-                $currentIssueId = $deployment->requireReference('issue', $currentIssueReference);
-                Repo::issue()->updateCurrent(
-                    (int) $deployment->getContext()->getId(),
-                    Repo::issue()->get($currentIssueId)
-                );
-            }
+
             $deployment->setIssue(null);
-            $submissions = $this->requiredChild($root, 'submissions');
-            $submissionFilter = PKPImportExportFilter::getFilter(
+            $articleFilter = PKPImportExportFilter::getFilter(
                 'full-journal-native-xml=>article',
                 $deployment
             );
-            foreach ($this->children($submissions, 'submission_record') as $record) {
-                $article = $this->requiredChild($record, 'article');
-                $articleDocument = $this->documentFor($article);
-                $imported = $submissionFilter->execute($articleDocument);
-                $submission = $imported[0] ?? null;
-                if (!$submission) {
-                    throw new InvalidArgumentException('Submission import did not return an entity');
-                }
-                $deployment->mapReference(
-                    'submission',
-                    $record->getAttribute('source_ref'),
-                    (int) $submission->getId()
-                );
-                $this->mapPublications($article, $submission);
+            foreach ($this->children($this->requiredChild($root, 'articles'), 'article') as $articleNode) {
+                $articleNodes[] = $articleNode;
+            }
+            foreach ($articleNodes as $articleNode) {
+                $articleDocument = $this->documentFor($articleNode);
+                $articleFilter->execute($articleDocument);
             }
             foreach ((array) $deployment->getAuthorDBIds() as $sourceId => $destinationId) {
                 $deployment->mapReference('author', (string) $sourceId, (int) $destinationId);
@@ -107,43 +84,6 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             }
             return $deployment->getContext();
         });
-    }
-
-    private function mapPublications(DOMElement $article, $submission): void
-    {
-        $deployment = $this->getDeployment();
-        $destinationByVersion = [];
-        foreach (Repo::publication()->getCollector()
-            ->filterBySubmissionIds([(int) $submission->getId()])
-            ->getMany() as $publication) {
-            $destinationByVersion[(string) $publication->getData('version')] = $publication;
-        }
-        foreach ($this->children($article, 'publication') as $publicationNode) {
-            $version = $publicationNode->getAttribute('version');
-            $publication = $destinationByVersion[$version] ?? null;
-            if (!$publication) {
-                throw new InvalidArgumentException('Imported publication version was not found');
-            }
-            $sourceReference = $this->internalId($publicationNode);
-            $deployment->mapReference('publication', $sourceReference, (int) $publication->getId());
-            $issueReference = trim($publicationNode->getAttribute('issue_ref'));
-            if ($issueReference !== '') {
-                $expectedIssueId = $deployment->requireReference('issue', $issueReference);
-                if ((int) $publication->getData('issueId') !== $expectedIssueId) {
-                    throw new InvalidArgumentException('Imported publication issue relation is invalid');
-                }
-            }
-        }
-    }
-
-    private function internalId(DOMElement $parent): string
-    {
-        foreach ($this->children($parent, 'id') as $id) {
-            if ($id->getAttribute('type') === 'internal' && trim($id->textContent) !== '') {
-                return trim($id->textContent);
-            }
-        }
-        throw new InvalidArgumentException('Missing publication source reference');
     }
 
     private function requiredChild(DOMElement $parent, string $name): DOMElement
@@ -172,5 +112,4 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
         $document->appendChild($document->importNode($element, true));
         return $document;
     }
-
 }

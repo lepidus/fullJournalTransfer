@@ -10,12 +10,18 @@ class NativeXmlPublicationFilter extends \APP\plugins\importexport\native\filter
 {
     public function populatePublishedPublication($publication, $node)
     {
-        $issueReference = trim($node->getAttribute('issue_ref'));
-        if ($issueReference !== '') {
-            $publication->setData(
-                'issueId',
-                $this->getDeployment()->requireReference('issue', $issueReference)
-            );
+        $deployment = $this->getDeployment();
+        $issue = $deployment->getIssue();
+        if ($node->getElementsByTagName('issue_identification')->length === 1) {
+            $deployment->setIssue(null);
+            try {
+                return parent::populatePublishedPublication($publication, $node);
+            } finally {
+                $deployment->setIssue($issue);
+            }
+        }
+        if ($issue) {
+            return parent::populatePublishedPublication($publication, $node);
         }
         return $publication;
     }

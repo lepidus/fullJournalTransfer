@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\core\Services;
-use DOMElement;
 use InvalidArgumentException;
 use PKP\config\Config;
 use PKP\file\TemporaryFileManager;
@@ -15,7 +14,6 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
 {
     public function handleRevisionElement($node)
     {
-        $this->validateChecksum($node);
         $temporaryFileManager = new TemporaryFileManager();
         $temporaryPath = $temporaryFileManager->getBasePath();
         if (!is_dir($temporaryPath) && !$temporaryFileManager->mkdirtree($temporaryPath)) {
@@ -38,24 +36,4 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
         return $fileId;
     }
 
-    private function validateChecksum(DOMElement $node): void
-    {
-        $expected = $node->getAttribute('checksum');
-        if (preg_match('/^[a-f0-9]{64}$/', $expected) !== 1) {
-            throw new InvalidArgumentException('Submission file checksum is invalid');
-        }
-        $embeds = [];
-        foreach ($node->childNodes as $child) {
-            if ($child instanceof DOMElement && $child->localName === 'embed') {
-                $embeds[] = $child;
-            }
-        }
-        if (count($embeds) !== 1 || $embeds[0]->getAttribute('encoding') !== 'base64') {
-            throw new InvalidArgumentException('Submission file revision must contain one base64 payload');
-        }
-        $content = base64_decode($embeds[0]->textContent, true);
-        if ($content === false || !hash_equals($expected, hash('sha256', $content))) {
-            throw new InvalidArgumentException('Submission file checksum does not match its payload');
-        }
-    }
 }

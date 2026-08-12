@@ -12,6 +12,17 @@ class IssueNativeXmlFilter extends \APP\plugins\importexport\native\filter\Issue
 {
     public function addArticles($doc, $issueNode, $issue)
     {
+        $submissions = $this->getDeployment()->getSubmissionsForIssue((int) $issue->getId());
+        $filter = PKPImportExportFilter::getFilter(
+            'article=>full-journal-native-xml',
+            $this->getDeployment(),
+            ['no-embed' => true]
+        );
+        $filter->setIncludeSubmissionsNode(true);
+        $articlesDocument = $filter->execute($submissions);
+        if ($articlesDocument->documentElement instanceof DOMElement) {
+            $issueNode->appendChild($doc->importNode($articlesDocument->documentElement, true));
+        }
     }
 
     public function addIssueGalleys($document, $issueNode, $issue)
