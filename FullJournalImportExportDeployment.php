@@ -143,7 +143,9 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function importReferenceData(DOMElement $referenceDataNode): array
     {
-        $this->referenceMaps = [];
+        foreach (['review_form', 'review_form_element', 'genre', 'section'] as $entity) {
+            $this->resetReferenceMap($entity);
+        }
         $filter = PKPImportExportFilter::getFilter('full-journal-xml=>reference-data', $this);
         $document = $this->documentFor($referenceDataNode);
         $filter->execute($document);
@@ -176,6 +178,25 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             'article_galley_id_map' => $this->getReferenceMap('article_galley'),
             'submission_file_id_map' => $this->getReferenceMap('submission_file'),
             'file_id_map' => $this->getReferenceMap('file'),
+        ];
+    }
+
+    public function exportWorkflow(): DOMDocument
+    {
+        $filter = PKPImportExportFilter::getFilter('workflow=>full-journal-xml', $this);
+        $context = $this->getContext();
+        return $filter->execute($context);
+    }
+
+    public function importWorkflow(DOMElement $workflowNode): array
+    {
+        $filter = PKPImportExportFilter::getFilter('full-journal-xml=>workflow', $this);
+        $document = $this->documentFor($workflowNode);
+        $filter->execute($document);
+        return [
+            'stage_assignment_id_map' => $this->getReferenceMap('stage_assignment'),
+            'review_round_id_map' => $this->getReferenceMap('review_round'),
+            'review_assignment_id_map' => $this->getReferenceMap('review_assignment'),
         ];
     }
 
