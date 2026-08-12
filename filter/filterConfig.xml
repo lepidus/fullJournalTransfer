@@ -31,6 +31,14 @@
 		<filterGroup symbolic="submission-file=>full-journal-native-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\submissionFile\SubmissionFile" outputType="class::DOMDocument" />
 		<filterGroup symbolic="full-journal-native-xml=>submission-file" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
 		<filterGroup symbolic="full-journal-native-xml=>article-galley" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\galley\Galley[]" />
+		<filterGroup symbolic="workflow=>full-journal-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::APP\journal\Journal" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-xml=>workflow" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\journal\Journal[]" />
+		<filterGroup symbolic="stage-assignment=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>stage-assignment" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\stageAssignment\StageAssignment[]" />
+		<filterGroup symbolic="review-round=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>review-round" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submission\reviewRound\ReviewRound[]" />
+		<filterGroup symbolic="review-assignment=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>review-assignment" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submission\reviewAssignment\ReviewAssignment[]" />
 	</filterGroups>
 	<filters>
 		<filter inGroup="journal=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter" isTemplate="0" />
@@ -62,5 +70,13 @@
 		<filter inGroup="submission-file=>full-journal-native-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\SubmissionFileNativeXmlFilter" isTemplate="0" />
 		<filter inGroup="full-journal-native-xml=>submission-file" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlSubmissionFileFilter" isTemplate="0" />
 		<filter inGroup="full-journal-native-xml=>article-galley" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlArticleGalleyFilter" isTemplate="0" />
+		<filter inGroup="workflow=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\WorkflowNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-xml=>workflow" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlWorkflowFilter" isTemplate="0" />
+		<filter inGroup="stage-assignment=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\StageAssignmentNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>stage-assignment" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlStageAssignmentFilter" isTemplate="0" />
+		<filter inGroup="review-round=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewRoundNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>review-round" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewRoundFilter" isTemplate="0" />
+		<filter inGroup="review-assignment=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewAssignmentNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>review-assignment" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewAssignmentFilter" isTemplate="0" />
 	</filters>
 </filterConfig>

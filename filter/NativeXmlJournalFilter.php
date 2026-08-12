@@ -110,6 +110,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 'users' => 'importUsers',
                 'reference_data' => 'importReferenceData',
                 'native_data' => 'importNativeData',
+                'workflow_history' => 'importWorkflow',
             ];
             foreach ($operations as $element => $method) {
                 $child = $this->optionalChild($node, $element);
