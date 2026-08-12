@@ -48,29 +48,13 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
             );
             $filter->execute($assignments);
         }
-        foreach ($node->childNodes as $child) {
-            if ($child instanceof \DOMElement && $child->localName === 'review_round_file') {
-                $submissionId = $deployment->requireReference(
-                    'submission',
-                    $this->requiredReference($node, 'submission_ref')
-                );
-                $submissionFileId = $deployment->requireReference(
-                    'submission_file',
-                    $this->requiredReference($child, 'submission_file_ref')
-                );
-                if ((int) DB::table('submission_files')
-                    ->where('submission_file_id', $submissionFileId)
-                    ->value('submission_id') !== $submissionId
-                ) {
-                    throw new InvalidArgumentException('Review round file does not belong to the review submission');
-                }
-                DB::table('review_round_files')->insert([
-                    'submission_id' => $submissionId,
-                    'review_round_id' => $id,
-                    'stage_id' => $this->positiveInteger($child, 'stage_id'),
-                    'submission_file_id' => $submissionFileId,
-                ]);
-            }
+        $files = $this->childrenDocument($node, 'review_round_file', 'review_round_files');
+        if ($files) {
+            $filter = PKPImportExportFilter::getFilter(
+                'full-journal-workflow-xml=>review-round-file',
+                $deployment
+            );
+            $filter->execute($files);
         }
         return DAORegistry::getDAO('ReviewRoundDAO')->getById((int) $id);
     }
@@ -104,10 +88,15 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
 
     private function assignmentsDocument($node): ?\DOMDocument
     {
+        return $this->childrenDocument($node, 'review_assignment', 'review_assignments');
+    }
+
+    private function childrenDocument($node, string $element, string $container): ?\DOMDocument
+    {
         $document = new \DOMDocument('1.0', 'UTF-8');
-        $root = $document->createElementNS('http://pkp.sfu.ca', 'review_assignments');
+        $root = $document->createElementNS('http://pkp.sfu.ca', $container);
         foreach ($node->childNodes as $child) {
-            if ($child instanceof \DOMElement && $child->localName === 'review_assignment') {
+            if ($child instanceof \DOMElement && $child->localName === $element) {
                 $root->appendChild($document->importNode($child, true));
             }
         }

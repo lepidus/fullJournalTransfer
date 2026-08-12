@@ -8,6 +8,7 @@ use DOMDocument;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\plugins\importexport\native\filter\NativeExportFilter;
+use PKP\plugins\importexport\PKPImportExportFilter;
 
 class ReviewAssignmentNativeXmlFilter extends NativeExportFilter
 {
@@ -42,43 +43,34 @@ class ReviewAssignmentNativeXmlFilter extends NativeExportFilter
             $responses = DB::table('review_form_responses')
                 ->where('review_id', $assignment->review_id)
                 ->orderBy('review_form_response_id')
-                ->get();
-            foreach ($responses as $response) {
-                $responseNode = $document->createElementNS('http://pkp.sfu.ca', 'review_response');
-                $responseNode->setAttribute('element_ref', (string) $response->review_form_element_id);
-                $responseNode->setAttribute('type', (string) $response->response_type);
-                $responseNode->appendChild($document->createTextNode((string) $response->response_value));
-                $node->appendChild($responseNode);
-            }
+                ->get()->all();
+            $this->appendFiltered($document, $node, 'review-response=>full-journal-workflow-xml', $responses);
             $comments = DB::table('submission_comments')
                 ->where('submission_id', $assignment->submission_id)
                 ->where('assoc_id', $assignment->review_id)
                 ->where('comment_type', 1)
                 ->orderBy('date_posted')
                 ->orderBy('comment_id')
-                ->get();
-            foreach ($comments as $comment) {
-                $commentNode = $document->createElementNS('http://pkp.sfu.ca', 'review_comment');
-                $commentNode->setAttribute('author_ref', (string) $comment->author_id);
-                $commentNode->setAttribute('role_id', (string) $comment->role_id);
-                $commentNode->setAttribute('title', (string) $comment->comment_title);
-                $commentNode->setAttribute('date_posted', (string) $comment->date_posted);
-                $commentNode->setAttribute('date_modified', (string) $comment->date_modified);
-                $commentNode->setAttribute('viewable', $comment->viewable ? 'true' : 'false');
-                $commentNode->appendChild($document->createTextNode((string) $comment->comments));
-                $node->appendChild($commentNode);
-            }
+                ->get()->all();
+            $this->appendFiltered($document, $node, 'review-comment=>full-journal-workflow-xml', $comments);
             $files = DB::table('review_files')
                 ->where('review_id', $assignment->review_id)
                 ->orderBy('review_file_id')
-                ->get();
-            foreach ($files as $file) {
-                $fileNode = $document->createElementNS('http://pkp.sfu.ca', 'review_file');
-                $fileNode->setAttribute('submission_file_ref', (string) $file->submission_file_id);
-                $node->appendChild($fileNode);
-            }
+                ->get()->all();
+            $this->appendFiltered($document, $node, 'review-file=>full-journal-workflow-xml', $files);
             $root->appendChild($node);
         }
         return $document;
+    }
+
+    private function appendFiltered(DOMDocument $document, $parent, string $group, array $entities): void
+    {
+        $filter = PKPImportExportFilter::getFilter($group, $this->getDeployment());
+        $childDocument = $filter->execute($entities);
+        foreach ($childDocument->documentElement->childNodes as $child) {
+            if ($child instanceof \DOMElement) {
+                $parent->appendChild($document->importNode($child, true));
+            }
+        }
     }
 }

@@ -39,6 +39,14 @@
 		<filterGroup symbolic="full-journal-workflow-xml=>review-round" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submission\reviewRound\ReviewRound[]" />
 		<filterGroup symbolic="review-assignment=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
 		<filterGroup symbolic="full-journal-workflow-xml=>review-assignment" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submission\reviewAssignment\ReviewAssignment[]" />
+		<filterGroup symbolic="review-response=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>review-response" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\reviewForm\ReviewFormResponse[]" />
+		<filterGroup symbolic="review-comment=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>review-comment" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submission\SubmissionComment[]" />
+		<filterGroup symbolic="review-file=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>review-file" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
+		<filterGroup symbolic="review-round-file=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>review-round-file" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
 	</filterGroups>
 	<filters>
 		<filter inGroup="journal=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter" isTemplate="0" />
@@ -78,5 +86,13 @@
 		<filter inGroup="full-journal-workflow-xml=>review-round" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewRoundFilter" isTemplate="0" />
 		<filter inGroup="review-assignment=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewAssignmentNativeXmlFilter" isTemplate="0" />
 		<filter inGroup="full-journal-workflow-xml=>review-assignment" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewAssignmentFilter" isTemplate="0" />
+		<filter inGroup="review-response=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewResponseNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>review-response" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewResponseFilter" isTemplate="0" />
+		<filter inGroup="review-comment=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewCommentNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>review-comment" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewCommentFilter" isTemplate="0" />
+		<filter inGroup="review-file=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewFileNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>review-file" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewFileFilter" isTemplate="0" />
+		<filter inGroup="review-round-file=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewRoundFileNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>review-round-file" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewRoundFileFilter" isTemplate="0" />
 	</filters>
 </filterConfig>

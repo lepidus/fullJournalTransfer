@@ -46,12 +46,16 @@ class ReviewRoundNativeXmlFilter extends NativeExportFilter
             $files = \Illuminate\Support\Facades\DB::table('review_round_files')
                 ->where('review_round_id', $round->review_round_id)
                 ->orderBy('review_round_file_id')
-                ->get();
-            foreach ($files as $file) {
-                $fileNode = $document->createElementNS('http://pkp.sfu.ca', 'review_round_file');
-                $fileNode->setAttribute('submission_file_ref', (string) $file->submission_file_id);
-                $fileNode->setAttribute('stage_id', (string) $file->stage_id);
-                $node->appendChild($fileNode);
+                ->get()->all();
+            $fileFilter = PKPImportExportFilter::getFilter(
+                'review-round-file=>full-journal-workflow-xml',
+                $this->getDeployment()
+            );
+            $fileDocument = $fileFilter->execute($files);
+            foreach ($fileDocument->documentElement->childNodes as $fileNode) {
+                if ($fileNode instanceof \DOMElement) {
+                    $node->appendChild($document->importNode($fileNode, true));
+                }
             }
             $root->appendChild($node);
         }

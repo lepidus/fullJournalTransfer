@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
+use DOMDocument;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\db\DAORegistry;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
+use PKP\plugins\importexport\PKPImportExportFilter;
 
 class NativeXmlReviewAssignmentFilter extends NativeImportFilter
 {
@@ -62,57 +64,15 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         }
         $reviewId = DB::table('review_assignments')->insertGetId($values, 'review_id');
         $deployment->mapReference('review_assignment', $sourceReference, (int) $reviewId);
-        foreach ($node->childNodes as $child) {
-            if (!$child instanceof DOMElement) {
-                continue;
-            }
-            if ($child->localName === 'review_response') {
-                $type = $this->required($child, 'type');
-                if (!in_array($type, ['string', 'int', 'object'], true)) {
-                    throw new InvalidArgumentException('Invalid review response type');
-                }
-                $elementId = $deployment->requireReference(
-                    'review_form_element',
-                    $this->required($child, 'element_ref')
-                );
-                if ($values['review_form_id'] === null
-                    || (int) DB::table('review_form_elements')
-                        ->where('review_form_element_id', $elementId)
-                        ->value('review_form_id') !== $values['review_form_id']
-                ) {
-                    throw new InvalidArgumentException('Review response does not belong to the assigned review form');
-                }
-                DB::table('review_form_responses')->insert([
-                    'review_form_element_id' => $elementId,
-                    'review_id' => $reviewId,
-                    'response_type' => $type,
-                    'response_value' => $child->textContent,
-                ]);
-            }
-            if ($child->localName === 'review_comment') {
-                DB::table('submission_comments')->insert([
-                    'comment_type' => 1,
-                    'role_id' => $this->integer($child, 'role_id'),
-                    'submission_id' => $submissionId,
-                    'assoc_id' => $reviewId,
-                    'author_id' => $deployment->requireReference('user', $this->required($child, 'author_ref')),
-                    'comment_title' => $this->required($child, 'title'),
-                    'comments' => $child->textContent,
-                    'date_posted' => $this->date($child, 'date_posted'),
-                    'date_modified' => $this->date($child, 'date_modified'),
-                    'viewable' => $this->boolean($child, 'viewable'),
-                ]);
-            }
-            if ($child->localName === 'review_file') {
-                $submissionFileId = $deployment->requireReference(
-                    'submission_file',
-                    $this->required($child, 'submission_file_ref')
-                );
-                $this->requireSubmissionFile($submissionFileId, $submissionId);
-                DB::table('review_files')->insert([
-                    'review_id' => $reviewId,
-                    'submission_file_id' => $submissionFileId,
-                ]);
+        foreach ([
+            'review_response' => ['review_responses', 'full-journal-workflow-xml=>review-response'],
+            'review_comment' => ['review_comments', 'full-journal-workflow-xml=>review-comment'],
+            'review_file' => ['review_files', 'full-journal-workflow-xml=>review-file'],
+        ] as $element => [$container, $group]) {
+            $document = $this->childrenDocument($node, $element, $container);
+            if ($document) {
+                $filter = PKPImportExportFilter::getFilter($group, $deployment);
+                $filter->execute($document);
             }
         }
         return DAORegistry::getDAO('ReviewAssignmentDAO')->getById((int) $reviewId);
@@ -152,22 +112,19 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         return $value;
     }
 
-    private function boolean($node, string $attribute): int
+    private function childrenDocument($node, string $element, string $container): ?DOMDocument
     {
-        $value = $this->required($node, $attribute);
-        if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid review comment boolean');
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $root = $document->createElementNS('http://pkp.sfu.ca', $container);
+        foreach ($node->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === $element) {
+                $root->appendChild($document->importNode($child, true));
+            }
         }
-        return $value === 'true' ? 1 : 0;
-    }
-
-    private function requireSubmissionFile(int $submissionFileId, int $submissionId): void
-    {
-        if ((int) DB::table('submission_files')
-            ->where('submission_file_id', $submissionFileId)
-            ->value('submission_id') !== $submissionId
-        ) {
-            throw new InvalidArgumentException('Review file does not belong to the review submission');
+        if (!$root->hasChildNodes()) {
+            return null;
         }
+        $document->appendChild($root);
+        return $document;
     }
 }
