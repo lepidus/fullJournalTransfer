@@ -47,6 +47,16 @@
 		<filterGroup symbolic="full-journal-workflow-xml=>review-file" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
 		<filterGroup symbolic="review-round-file=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
 		<filterGroup symbolic="full-journal-workflow-xml=>review-round-file" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
+		<filterGroup symbolic="editorial-decision=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>editorial-decision" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::APP\decision\Decision[]" />
+		<filterGroup symbolic="discussion=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>discussion" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\query\Query[]" />
+		<filterGroup symbolic="discussion-participant=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>discussion-participant" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::stdClass[]" />
+		<filterGroup symbolic="discussion-note=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::stdClass[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>discussion-note" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\note\Note[]" />
+		<filterGroup symbolic="discussion-attachment=>full-journal-workflow-xml" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::PKP\submissionFile\SubmissionFile[]" outputType="class::DOMDocument" />
+		<filterGroup symbolic="full-journal-workflow-xml=>discussion-attachment" displayName="plugins.importexport.fullJournal.displayName" description="plugins.importexport.fullJournal.description" inputType="class::DOMDocument" outputType="class::PKP\submissionFile\SubmissionFile[]" />
 	</filterGroups>
 	<filters>
 		<filter inGroup="journal=>full-journal-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\JournalNativeXmlFilter" isTemplate="0" />
@@ -94,5 +104,15 @@
 		<filter inGroup="full-journal-workflow-xml=>review-file" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewFileFilter" isTemplate="0" />
 		<filter inGroup="review-round-file=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\ReviewRoundFileNativeXmlFilter" isTemplate="0" />
 		<filter inGroup="full-journal-workflow-xml=>review-round-file" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlReviewRoundFileFilter" isTemplate="0" />
+		<filter inGroup="editorial-decision=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\EditorialDecisionNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>editorial-decision" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlEditorialDecisionFilter" isTemplate="0" />
+		<filter inGroup="discussion=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\DiscussionNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>discussion" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlDiscussionFilter" isTemplate="0" />
+		<filter inGroup="discussion-participant=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\DiscussionParticipantNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>discussion-participant" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlDiscussionParticipantFilter" isTemplate="0" />
+		<filter inGroup="discussion-note=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\DiscussionNoteNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>discussion-note" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlDiscussionNoteFilter" isTemplate="0" />
+		<filter inGroup="discussion-attachment=>full-journal-workflow-xml" class="APP\plugins\importexport\fullJournalTransfer\filter\DiscussionAttachmentNativeXmlFilter" isTemplate="0" />
+		<filter inGroup="full-journal-workflow-xml=>discussion-attachment" class="APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlDiscussionAttachmentFilter" isTemplate="0" />
 	</filters>
 </filterConfig>

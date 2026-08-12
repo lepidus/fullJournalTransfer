@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use PKP\config\Config;
 use PKP\db\DAORegistry;
+use PKP\decision\Decision;
+use PKP\install\Installer;
+use PKP\observers\events\DecisionAdded;
 use PKP\security\Role;
 use PKP\submissionFile\SubmissionFile;
 use PKP\tests\DatabaseTestCase;
@@ -28,6 +31,15 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
     protected function getAffectedTables()
     {
         return [];
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $installer = (new \ReflectionClass(Installer::class))->newInstanceWithoutConstructor();
+        if (!$installer->installFilterConfig(__DIR__ . '/../filter/filterConfig.xml')) {
+            throw new \RuntimeException('Workflow filter configuration could not be installed');
+        }
     }
 
     protected function tearDown(): void
@@ -290,6 +302,193 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             ->exists());
     }
 
+    public function testItRestoresHistoricalDecisionsWithoutRepeatingEditorialEffects(): void
+    {
+        Event::fake();
+        Queue::fake();
+        $source = $this->createContext('decision-source');
+        $destination = $this->createContext('decision-destination');
+        $sourceSection = $this->createSection($source);
+        $destinationSection = $this->createSection($destination);
+        $editor = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($editor);
+        $this->setRequestContext($source);
+        $submission = $this->createSubmission($source, $sourceSection, 'Decision history article');
+        $reviewRoundId = DB::table('review_rounds')->insertGetId([
+            'submission_id' => $submission->getId(),
+            'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
+            'round' => 1,
+            'status' => 4,
+        ], 'review_round_id');
+        $decidedAt = '2021-06-07 08:09:10';
+        DB::table('edit_decisions')->insert([
+            'submission_id' => $submission->getId(),
+            'editor_id' => $editor->getId(),
+            'decision' => Decision::PENDING_REVISIONS,
+            'date_decided' => $decidedAt,
+            'review_round_id' => $reviewRoundId,
+            'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
+            'round' => 1,
+        ]);
+        DB::table('edit_decisions')->insert([
+            'submission_id' => $submission->getId(),
+            'editor_id' => $editor->getId(),
+            'decision' => Decision::INITIAL_DECLINE,
+            'date_decided' => '2021-06-08 09:10:11',
+            'review_round_id' => null,
+            'stage_id' => WORKFLOW_STAGE_ID_SUBMISSION,
+            'round' => null,
+        ]);
+
+        $sourceDeployment = new FullJournalImportExportDeployment($source, null);
+        $nativeData = $sourceDeployment->exportNativeData();
+        $workflow = $sourceDeployment->exportWorkflow();
+        $xpath = new \DOMXPath($workflow);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $this->assertSame(2, $xpath->query('//pkp:editorial_decision')->length);
+        $this->assertSame($decidedAt, $xpath->evaluate('string(//pkp:editorial_decision/@date_decided)'));
+        $this->assertSame(1, $xpath->query('//pkp:editorial_decision[not(@review_round_ref) and not(@round)]')->length);
+
+        $destinationDeployment = new FullJournalImportExportDeployment($destination, $editor);
+        $this->setRequestContext($destination);
+        $destinationDeployment->mapReference('section', (string) $sourceSection->getId(), $destinationSection->getId());
+        $maps = $destinationDeployment->importNativeData($nativeData->documentElement);
+        $destinationDeployment->mapReference('user', (string) $editor->getId(), (int) $editor->getId());
+        $notifications = DB::table('notifications')->count();
+        $emailLogs = DB::table('email_log')->count();
+        $eventLogs = DB::table('event_log')->count();
+        $importedSubmissionId = $maps['submission_id_map'][(string) $submission->getId()];
+        $submissionBefore = Repo::submission()->get($importedSubmissionId);
+        $this->assertNotNull($submissionBefore);
+        $destinationDeployment->importWorkflow($workflow->documentElement);
+
+        $decisions = DB::table('edit_decisions')->where('submission_id', $importedSubmissionId)
+            ->orderBy('date_decided')->get();
+        $this->assertCount(2, $decisions);
+        $decision = $decisions[0];
+        $this->assertNotNull($decision);
+        $this->assertSame($decidedAt, $decision->date_decided);
+        $this->assertSame((int) $editor->getId(), (int) $decision->editor_id);
+        $this->assertSame(Decision::PENDING_REVISIONS, (int) $decision->decision);
+        $this->assertSame(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW, (int) $decision->stage_id);
+        $this->assertSame(1, (int) $decision->round);
+        $this->assertSame(Decision::INITIAL_DECLINE, (int) $decisions[1]->decision);
+        $this->assertNull($decisions[1]->review_round_id);
+        $this->assertNull($decisions[1]->round);
+        $this->assertSame($notifications, DB::table('notifications')->count());
+        $this->assertSame($emailLogs, DB::table('email_log')->count());
+        $this->assertSame($eventLogs, DB::table('event_log')->count());
+        $submissionAfter = Repo::submission()->get($importedSubmissionId);
+        $this->assertNotNull($submissionAfter);
+        $this->assertSame($submissionBefore->getData('stageId'), $submissionAfter->getData('stageId'));
+        $this->assertSame($submissionBefore->getData('status'), $submissionAfter->getData('status'));
+        Event::assertNotDispatched(DecisionAdded::class);
+    }
+
+    public function testItRestoresDiscussionsParticipantsNotesAndAttachmentsWithoutSideEffects(): void
+    {
+        Event::fake();
+        Queue::fake();
+        $source = $this->createContext('discussion-source');
+        $destination = $this->createContext('discussion-destination');
+        $sourceSection = $this->createSection($source);
+        $destinationSection = $this->createSection($destination);
+        $sourceGenre = $this->createGenre($source, 'Editorial Discussion');
+        $destinationGenre = $this->createGenre($destination, 'Editorial Discussion');
+        $participant = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($participant);
+        $this->setRequestContext($source);
+        $submission = $this->createSubmission($source, $sourceSection, 'Discussed article');
+        $queryId = DB::table('queries')->insertGetId([
+            'assoc_type' => Application::ASSOC_TYPE_SUBMISSION,
+            'assoc_id' => $submission->getId(),
+            'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
+            'closed' => 1,
+            'seq' => 2.5,
+        ], 'query_id');
+        DB::table('query_participants')->insert([
+            'query_id' => $queryId,
+            'user_id' => $participant->getId(),
+        ]);
+        $firstNoteId = DB::table('notes')->insertGetId([
+            'assoc_type' => Application::ASSOC_TYPE_QUERY,
+            'assoc_id' => $queryId,
+            'user_id' => $participant->getId(),
+            'date_created' => '2022-01-02 03:04:05',
+            'date_modified' => '2022-01-03 04:05:06',
+            'title' => 'Editorial question',
+            'contents' => 'Please clarify the analysis.',
+        ], 'note_id');
+        DB::table('notes')->insert([
+            'assoc_type' => Application::ASSOC_TYPE_QUERY,
+            'assoc_id' => $queryId,
+            'user_id' => $participant->getId(),
+            'date_created' => '2022-01-04 05:06:07',
+            'date_modified' => '2022-01-05 06:07:08',
+            'title' => 'Editorial response',
+            'contents' => 'The analysis was clarified.',
+        ]);
+        $attachment = $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $sourceGenre->getId(),
+            SubmissionFile::SUBMISSION_FILE_NOTE,
+            Application::ASSOC_TYPE_NOTE,
+            $firstNoteId
+        );
+
+        $sourceDeployment = new FullJournalImportExportDeployment($source, null);
+        $nativeData = $sourceDeployment->exportNativeData();
+        $workflow = $sourceDeployment->exportWorkflow();
+        $xpath = new \DOMXPath($workflow);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $this->assertSame(1, $xpath->query('//pkp:discussion')->length);
+        $this->assertSame(1, $xpath->query('//pkp:discussion_participant')->length);
+        $this->assertSame(2, $xpath->query('//pkp:discussion_note')->length);
+        $this->assertSame(1, $xpath->query('//pkp:discussion_attachment[@submission_file_ref]')->length);
+
+        $destinationDeployment = new FullJournalImportExportDeployment($destination, $participant);
+        $this->setRequestContext($destination);
+        $destinationDeployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $destinationDeployment->mapReference('section', (string) $sourceSection->getId(), $destinationSection->getId());
+        $destinationDeployment->mapReference('genre', (string) $sourceGenre->getId(), $destinationGenre->getId());
+        $nativeMaps = $destinationDeployment->importNativeData($nativeData->documentElement);
+        $destinationDeployment->mapReference('user', (string) $participant->getId(), (int) $participant->getId());
+        $notifications = DB::table('notifications')->count();
+        $emailLogs = DB::table('email_log')->count();
+        $eventLogs = DB::table('event_log')->count();
+        $workflowMaps = $destinationDeployment->importWorkflow($workflow->documentElement);
+        $importedSubmissionId = $nativeMaps['submission_id_map'][(string) $submission->getId()];
+        $importedQueryId = $workflowMaps['discussion_id_map'][(string) $queryId];
+
+        $discussion = DB::table('queries')->where('query_id', $importedQueryId)->first();
+        $this->assertNotNull($discussion);
+        $this->assertSame($importedSubmissionId, (int) $discussion->assoc_id);
+        $this->assertSame(WORKFLOW_STAGE_ID_EXTERNAL_REVIEW, (int) $discussion->stage_id);
+        $this->assertSame(1, (int) $discussion->closed);
+        $this->assertSame(2.5, (float) $discussion->seq);
+        $this->assertSame(
+            [(int) $participant->getId()],
+            DB::table('query_participants')->where('query_id', $importedQueryId)->pluck('user_id')
+                ->map(fn ($userId): int => (int) $userId)->all()
+        );
+        $notes = DB::table('notes')->where('assoc_type', Application::ASSOC_TYPE_QUERY)
+            ->where('assoc_id', $importedQueryId)->orderBy('date_created')->get();
+        $this->assertCount(2, $notes);
+        $this->assertSame('2022-01-02 03:04:05', $notes[0]->date_created);
+        $this->assertSame('2022-01-03 04:05:06', $notes[0]->date_modified);
+        $this->assertSame('Editorial response', $notes[1]->title);
+        $importedAttachmentId = $workflowMaps['discussion_attachment_id_map'][(string) $attachment->getId()];
+        $importedAttachment = Repo::submissionFile()->get($importedAttachmentId);
+        $this->assertNotNull($importedAttachment);
+        $this->assertSame($importedSubmissionId, (int) $importedAttachment->getData('submissionId'));
+        $this->assertSame(Application::ASSOC_TYPE_NOTE, (int) $importedAttachment->getData('assocType'));
+        $this->assertSame((int) $notes[0]->note_id, (int) $importedAttachment->getData('assocId'));
+        $this->assertSame($notifications, DB::table('notifications')->count());
+        $this->assertSame($emailLogs, DB::table('email_log')->count());
+        $this->assertSame($eventLogs, DB::table('event_log')->count());
+    }
+
     public function testItRejectsUnknownWorkflowReferencesWithoutPartialWrites(): void
     {
         $destination = $this->createContext('invalid-workflow');
@@ -303,7 +502,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             . 'review_round_ref="round-1" reviewer_ref="missing-user" stage_id="3" review_method="2" '
             . 'round="1" step="1" declined="0" cancelled="0" reminder_was_automatic="0" '
             . 'considered="0" request_resent="0"/>'
-            . '</review_round></review_rounds></workflow_history>'
+            . '</review_round></review_rounds><discussions/><editorial_decisions/></workflow_history>'
         ));
         $rounds = DB::table('review_rounds')->count();
         $assignments = DB::table('review_assignments')->count();
@@ -319,6 +518,35 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
 
         $this->assertSame($rounds, DB::table('review_rounds')->count());
         $this->assertSame($assignments, DB::table('review_assignments')->count());
+    }
+
+    public function testItRejectsUnknownDiscussionParticipantWithoutPartialWrites(): void
+    {
+        $destination = $this->createContext('invalid-discussion');
+        $section = $this->createSection($destination);
+        $submission = $this->createSubmission($destination, $section, 'Discussion sentinel');
+        $document = new \DOMDocument();
+        $this->assertTrue($document->loadXML(
+            '<workflow_history xmlns="http://pkp.sfu.ca"><stage_assignments/><review_rounds/>'
+            . '<discussions><discussion source_ref="discussion-1" submission_ref="submission-1" '
+            . 'stage_id="3" closed="false" sequence="1"><discussion_participant '
+            . 'discussion_ref="discussion-1" user_ref="missing-user"/></discussion></discussions>'
+            . '<editorial_decisions/></workflow_history>'
+        ));
+        $discussions = DB::table('queries')->count();
+        $participants = DB::table('query_participants')->count();
+        $deployment = new FullJournalImportExportDeployment($destination, null);
+        $deployment->mapReference('submission', 'submission-1', (int) $submission->getId());
+
+        try {
+            $deployment->importWorkflow($document->documentElement);
+            $this->fail('Unknown discussion participant was accepted');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertSame('Missing mapped user reference', $exception->getMessage());
+        }
+
+        $this->assertSame($discussions, DB::table('queries')->count());
+        $this->assertSame($participants, DB::table('query_participants')->count());
     }
 
     public function testItRejectsReviewAssignmentFromAnotherSubmission(): void
@@ -337,7 +565,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             . 'review_round_ref="round-1" reviewer_ref="user-1" stage_id="3" review_method="2" '
             . 'round="1" step="1" declined="0" cancelled="0" reminder_was_automatic="0" '
             . 'considered="0" request_resent="0"/>'
-            . '</review_round></review_rounds></workflow_history>'
+            . '</review_round></review_rounds><discussions/><editorial_decisions/></workflow_history>'
         ));
         $rounds = DB::table('review_rounds')->count();
         $deployment = new FullJournalImportExportDeployment($destination, null);
@@ -474,7 +702,10 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
     private function createSubmissionFile(
         Journal $context,
         \APP\submission\Submission $submission,
-        int $genreId
+        int $genreId,
+        int $fileStage = SubmissionFile::SUBMISSION_FILE_SUBMISSION,
+        ?int $assocType = null,
+        ?int $assocId = null
     ): SubmissionFile {
         $temporaryPath = tempnam(sys_get_temp_dir(), 'workflow-review-');
         file_put_contents($temporaryPath, 'review file');
@@ -489,7 +720,9 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $submissionFile->setData('submissionId', $submission->getId());
         $submissionFile->setData('fileId', $fileId);
         $submissionFile->setData('genreId', $genreId);
-        $submissionFile->setData('fileStage', SubmissionFile::SUBMISSION_FILE_SUBMISSION);
+        $submissionFile->setData('fileStage', $fileStage);
+        $submissionFile->setData('assocType', $assocType);
+        $submissionFile->setData('assocId', $assocId);
         $submissionFile->setData('viewable', true);
         $submissionFile->setData('createdAt', date('Y-m-d H:i:s'));
         $submissionFile->setData('updatedAt', date('Y-m-d H:i:s'));

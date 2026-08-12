@@ -52,6 +52,38 @@ class WorkflowNativeXmlFilter extends NativeExportFilter
         );
         $roundDocument = $roundFilter->execute($rounds);
         $root->appendChild($document->importNode($roundDocument->documentElement, true));
+
+        $discussions = DB::table('queries as discussion')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'discussion.assoc_id')
+            ->where('discussion.assoc_type', \APP\core\Application::ASSOC_TYPE_SUBMISSION)
+            ->where('submission.context_id', (int) $context->getId())
+            ->orderBy('discussion.assoc_id')
+            ->orderBy('discussion.stage_id')
+            ->orderBy('discussion.seq')
+            ->select('discussion.*')
+            ->get()
+            ->all();
+        $discussionFilter = PKPImportExportFilter::getFilter(
+            'discussion=>full-journal-workflow-xml',
+            $this->getDeployment()
+        );
+        $discussionDocument = $discussionFilter->execute($discussions);
+        $root->appendChild($document->importNode($discussionDocument->documentElement, true));
+
+        $decisions = DB::table('edit_decisions as decision')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'decision.submission_id')
+            ->where('submission.context_id', (int) $context->getId())
+            ->orderBy('decision.date_decided')
+            ->orderBy('decision.edit_decision_id')
+            ->select('decision.*')
+            ->get()
+            ->all();
+        $decisionFilter = PKPImportExportFilter::getFilter(
+            'editorial-decision=>full-journal-workflow-xml',
+            $this->getDeployment()
+        );
+        $decisionDocument = $decisionFilter->execute($decisions);
+        $root->appendChild($document->importNode($decisionDocument->documentElement, true));
         return $document;
     }
 }
