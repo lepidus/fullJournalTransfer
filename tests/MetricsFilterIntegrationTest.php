@@ -211,7 +211,7 @@ class MetricsFilterIntegrationTest extends DatabaseTestCase
             ->where('context_id', $destination->getId())->count());
     }
 
-    public function testItMapsInstitutionMetricsByRorAndReportsUnsafeRecords(): void
+    public function testItCreatesAndMapsInstitutionMetricsByRorAndReportsUnsafeRecords(): void
     {
         $source = $this->createContext('institution-source');
         $destination = $this->createContext('institution-destination');
@@ -229,11 +229,6 @@ class MetricsFilterIntegrationTest extends DatabaseTestCase
         $unsafeInstitutionId = DB::table('institutions')->insertGetId([
             'context_id' => $source->getId(),
             'ror' => null,
-            'deleted_at' => null,
-        ], 'institution_id');
-        $destinationInstitutionId = DB::table('institutions')->insertGetId([
-            'context_id' => $destination->getId(),
-            'ror' => 'https://ror.org/01abcde12',
             'deleted_at' => null,
         ], 'institution_id');
         foreach ([$sourceInstitutionId => 9, $unsafeInstitutionId => 12] as $institutionId => $investigations) {
@@ -271,7 +266,12 @@ class MetricsFilterIntegrationTest extends DatabaseTestCase
         $monthly = DB::table('metrics_counter_submission_institution_monthly')
             ->where('context_id', $destination->getId())
             ->first();
+        $destinationInstitutionId = DB::table('institutions')
+            ->where('context_id', $destination->getId())
+            ->where('ror', 'https://ror.org/01abcde12')
+            ->value('institution_id');
         $this->assertCount(1, $daily);
+        $this->assertNotNull($destinationInstitutionId);
         $this->assertSame($destinationInstitutionId, (int) $daily[0]->institution_id);
         $this->assertSame(9, (int) $monthly->metric_investigations);
         $this->assertSame([

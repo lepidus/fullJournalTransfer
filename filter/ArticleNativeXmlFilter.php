@@ -8,9 +8,8 @@ use APP\facades\Repo;
 use APP\submission\Submission;
 use DOMDocument;
 use DOMElement;
-use PKP\core\PKPApplication;
+use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
-use PKP\submissionFile\SubmissionFile;
 
 class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\ArticleNativeXmlFilter
 {
@@ -37,25 +36,11 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
 
     public function addFiles(DOMDocument $document, DOMElement $submissionNode, Submission $submission): void
     {
-        $excludedStages = [
-            SubmissionFile::SUBMISSION_FILE_REVIEW_ATTACHMENT,
-            SubmissionFile::SUBMISSION_FILE_REVIEW_FILE,
-            SubmissionFile::SUBMISSION_FILE_REVIEW_REVISION,
-            SubmissionFile::SUBMISSION_FILE_INTERNAL_REVIEW_FILE,
-            SubmissionFile::SUBMISSION_FILE_INTERNAL_REVIEW_REVISION,
-        ];
-        foreach (Repo::submissionFile()->getCollector()
+        $submissionFiles = Repo::submissionFile()->getCollector()
             ->filterBySubmissionIds([$submission->getId()])
             ->includeDependentFiles()
-            ->getMany() as $submissionFile) {
-            if (in_array($submissionFile->getData('fileStage'), $excludedStages, true)) {
-                $this->getDeployment()->addWarning(
-                    PKPApplication::ASSOC_TYPE_SUBMISSION,
-                    $submission->getId(),
-                    __('plugins.importexport.native.error.submissionFileSkipped', ['id' => $submissionFile->getId()])
-                );
-                continue;
-            }
+            ->getMany();
+        foreach ($this->orderSubmissionFiles($submissionFiles) as $submissionFile) {
             $filter = PKPImportExportFilter::getFilter(
                 'submission-file=>full-journal-native-xml',
                 $this->getDeployment(),
@@ -66,5 +51,36 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
                 $submissionNode->appendChild($document->importNode($fileDocument->documentElement, true));
             }
         }
+    }
+
+    private function orderSubmissionFiles(iterable $submissionFiles): array
+    {
+        $pending = [];
+        foreach ($submissionFiles as $submissionFile) {
+            $pending[(int) $submissionFile->getId()] = $submissionFile;
+        }
+        $allIds = array_fill_keys(array_keys($pending), true);
+        $resolved = [];
+        $ordered = [];
+        while ($pending !== []) {
+            $progress = false;
+            foreach ($pending as $id => $submissionFile) {
+                $sourceId = (int) $submissionFile->getData('sourceSubmissionFileId');
+                if ($sourceId && !isset($allIds[$sourceId])) {
+                    throw new InvalidArgumentException('A source submission file is missing from the journal export');
+                }
+                if ($sourceId && !isset($resolved[$sourceId])) {
+                    continue;
+                }
+                $ordered[] = $submissionFile;
+                $resolved[$id] = true;
+                unset($pending[$id]);
+                $progress = true;
+            }
+            if (!$progress) {
+                throw new InvalidArgumentException('Submission file dependencies contain a cycle');
+            }
+        }
+        return $ordered;
     }
 }

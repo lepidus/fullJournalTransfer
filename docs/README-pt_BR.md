@@ -6,13 +6,13 @@ Este plugin permite importar e exportar todo o conteúdo de um periódico.
 ## Compatibilidade
 A versão mais recente deste plugin é compatível com as seguintes aplicações do PKP:
 
-* OJS 3.3.0
+* OJS 3.4.0
 
-**Nota:** Este plugin é projetado para a exportação e importação de periódicos dentro da mesma versão do OJS. Exemplo: de `3.3.0-16` para `3.3.0-16`. Para melhores resultados, recomenda-se utilizar a versão OJS 3.3.0-16 ou mais recente.
+**Nota:** Os pacotes só podem ser transferidos entre instalações da mesma linha OJS 3.4.0.
 
 ## Requisitos
 
-- PHP >= 7.4
+- PHP >= 8.0.2
 - php-mbstring
 - php-intl
 - php-xml
@@ -42,8 +42,6 @@ Para importar um periódico a partir de um arquivo tar.gz, execute o comando no 
 php tools/importExport.php FullJournalImportExportPlugin import [nomeDoArquivoTarGz] [nome_do_usuario]
 ```
 
-⚠️ Durante o processo de importação, um email de "Registro de Periódico" é enviado para todos os usuários importados. Para fins de teste, recomendamos fortemente desativar a funcionalidade de email no arquivo config.inc.php antes de rodar o script de importação.
-
 **Obs**.: Periódicos contendo uma quantidade substancial de dados irão consumir muitos recursos de memória. Nesses casos, utilize o parâmetro PHP `-d memory_limit=-1` durante as operações de importação/exportação.
 
 ## Solução de problemas
@@ -55,10 +53,9 @@ Este plugin utiliza recursos dos plugins de importação/exportação nativo e d
 Alguns comportamentos são esperados ao executar a importação da revista:
 
 - Todos os IDs no banco de dados serão modificados, invalidando referências externas.
-- Os logins dos usuários serão alterados.
-- Alguns registros de métricas podem ser perdidos.
-- O histórico de atividades da submissão não é preservado; as datas e usuários são substituídos pela
-  data e usuário da execução do plugin.
+- O periódico importado é criado inicialmente desabilitado.
+- Uma segunda importação do mesmo caminho de periódico é rejeitada sem duplicar conteúdo.
+- Métricas institucionais exigem um identificador ROR válido; registros sem ROR estável são rejeitados.
 
 ## Conteúdo Importado/Exportado do Periódico
 
@@ -91,8 +88,22 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 ### Testes de Unidade
 Para executar os testes unitários, rode o seguinte comando no diretório raiz da Aplicação PKP:
 ```bash
-lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit-env2.xml plugins/importexport/fullJournalTransfer/tests
+lib/pkp/lib/vendor/bin/phpunit -c lib/pkp/tests/phpunit.xml --no-coverage plugins/importexport/fullJournalTransfer/tests
 ```
+
+### Fixture fixa de round trip
+
+A fixture versionada do OJS 3.4.0.10 é verificada pela suíte PHPUnit sem reconstrução ou seed:
+
+```bash
+php plugins/importexport/fullJournalTransfer/tests/round-trip/run \
+  --verify-only \
+  --fixture plugins/importexport/fullJournalTransfer/tests/round-trip/fixture-ojs-3.4.0.10-v1.tar.gz \
+  --expected plugins/importexport/fullJournalTransfer/tests/round-trip/expected-ojs-3.4.0.10-v1.json
+```
+
+O round trip completo exige uma instalação OJS descartável, uma base de testes explícita e `--apply`.
+A fixture só é reconstruída manualmente quando a cobertura ou o contrato OJS/pacote muda, gerando uma nova versão.
 
 # Créditos
 Este plugin foi idealizado e patrocinado pelo Instituto Brasileiro de Informação em Ciência e Tecnologia (IBICT) para a versão 2.x do OJS.
@@ -104,4 +115,4 @@ Desenvolvido pela Lepidus Tecnologia.
 # Licença
 Este plugin é licenciado sob a Licença Pública Geral GNU v3.0
 
-Copyright (c) 2014-2024 Lepidus Tecnologia
+Copyright (c) 2014-2026 Lepidus Tecnologia

@@ -6,13 +6,13 @@ This plugin allows you to import and export all the content of a journal.
 ## Compatibility
 The latest release of this plugin is compatible with the following PKP applications:
 
-* OJS 3.3.0
+* OJS 3.4.0
 
-**Note:** This plugin is designed for the export and import of journals within the same version of OJS. Example: from `3.3.0-16` to `3.3.0-16`. For best results, it is recommended to use OJS version 3.3.0-16 or newer.
+**Note:** Packages can only be transferred between installations on the same OJS 3.4.0 version line.
 
 ## Requirements
 
-- PHP >= 7.4
+- PHP >= 8.0.2
 - php-mbstring
 - php-intl
 - php-xml
@@ -42,8 +42,6 @@ To import a journal from tar.gz file, execute the command in the application's r
 php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] [user_name]
 ```
 
-⚠️ During the import process, a "Journal Registration" email is sent to all imported users. For testing purposes, we strongly recommend to disable the email functionality in the config.inc.php file before running the import script.
-
 **Obs**.: Journals containing substantial data will consume a large memory resources. In such instances, employ the PHP parameter `-d memory_limit=-1` during import/export operations.
 
 ## Troubleshooting
@@ -55,10 +53,9 @@ This plugin uses features from the users and the native import/export plugin. If
 Some expected behaviors when importing the journal:
 
 - All database IDs will be modified, invalidating external references.
-- User logins will be changed.
-- Some metric records may be lost.
-- Submission activity logs are not preserved; their dates and users are replaced by the plugin
-  execution date and user.
+- The imported journal is initially disabled.
+- A second import of the same journal path is rejected without duplicating content.
+- Institutional metrics require a valid ROR identifier; records without a stable ROR are rejected.
 
 ## Imported/Exported Journal Content
 
@@ -92,8 +89,22 @@ Some expected behaviors when importing the journal:
 
 To execute the unit tests, run the following command from root of the PKP Application directory:
 ```bash
-lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit-env2.xml plugins/importexport/fullJournalTransfer/tests
+lib/pkp/lib/vendor/bin/phpunit -c lib/pkp/tests/phpunit.xml --no-coverage plugins/importexport/fullJournalTransfer/tests
 ```
+
+### Fixed round-trip fixture
+
+The versioned OJS 3.4.0.10 fixture is verified by the PHPUnit suite without rebuilding or seeding it:
+
+```bash
+php plugins/importexport/fullJournalTransfer/tests/round-trip/run \
+  --verify-only \
+  --fixture plugins/importexport/fullJournalTransfer/tests/round-trip/fixture-ojs-3.4.0.10-v1.tar.gz \
+  --expected plugins/importexport/fullJournalTransfer/tests/round-trip/expected-ojs-3.4.0.10-v1.json
+```
+
+The complete round trip requires a disposable OJS installation, an explicit test database and `--apply`.
+The fixture is rebuilt manually only when coverage or the OJS/package contract changes, producing a new version.
 
 # Credits
 This plugin was idealized and sponsored by the Brazilian Institute of Information in Science and Technology (IBICT) for OJS version 2.x.
@@ -106,4 +117,4 @@ Developed by Lepidus Tecnologia.
 # License
 This plugin is licensed under the GNU General Public License v3.0
 
-Copyright (c) 2014-2024 Lepidus Tecnologia
+Copyright (c) 2014-2026 Lepidus Tecnologia

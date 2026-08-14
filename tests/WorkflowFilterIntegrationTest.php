@@ -234,7 +234,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
                 'comment_title' => 'Private review',
                 'comments' => 'Visible only to editors',
                 'date_posted' => '2024-01-04 10:32:00',
-                'date_modified' => '2024-01-04 10:33:00',
+                'date_modified' => null,
                 'viewable' => 0,
             ],
         ]);
@@ -287,6 +287,13 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
                 ->pluck('viewable')
                 ->map(fn ($viewable): int => (int) $viewable)
                 ->all()
+        );
+        $this->assertSame(
+            '2024-01-04 10:32:00',
+            DB::table('submission_comments')
+                ->where('assoc_id', $importedReviewId)
+                ->where('comment_title', 'Private review')
+                ->value('date_modified')
         );
         $this->assertSame($notifications, DB::table('notifications')->count());
         $this->assertSame($emailLogs, DB::table('email_log')->count());
