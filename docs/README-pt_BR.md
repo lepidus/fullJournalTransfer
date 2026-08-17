@@ -101,6 +101,8 @@ php plugins/importexport/fullJournalTransfer/tests/round-trip/run \
   --files-dir [diretorio_de_arquivos] \
   --public-dir [diretorio_publico] \
   --database [nome_da_base] \
+  --mysql-command [comando_mysql] \
+  --inventory-command plugins/importexport/fullJournalTransfer/tests/round-trip/inventory \
   --apply
 ```
 
