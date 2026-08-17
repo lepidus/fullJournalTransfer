@@ -10,7 +10,6 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
 use DOMDocument;
-use InvalidArgumentException;
 use PKP\tests\DatabaseTestCase;
 use Symfony\Component\Process\Process;
 
@@ -75,31 +74,53 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $archive = $this->archivePath();
         file_put_contents($archive, 'existing');
         $arguments = ['export', $archive, $context->getPath()];
+        $plugin = new CliTestPlugin();
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The export archive path is invalid');
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
 
-        (new CliTestPlugin())->executeCLI('tools/importExport.php', $arguments);
+        $this->assertFalse($result);
+        $this->assertSame(['The export archive path is invalid'], $plugin->cliErrors);
     }
 
     public function testItRejectsAnUnknownJournal(): void
     {
         $arguments = ['export', $this->archivePath(), 'missing-' . bin2hex(random_bytes(4))];
+        $plugin = new CliTestPlugin();
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The journal path does not exist');
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
 
-        (new FullJournalImportExportPlugin())->executeCLI('tools/importExport.php', $arguments);
+        $this->assertFalse($result);
+        $this->assertSame(['The journal path does not exist'], $plugin->cliErrors);
+    }
+
+    public function testPublicCliReportsAnUnknownJournalWithoutAStackTrace(): void
+    {
+        $applicationRoot = dirname(INDEX_FILE_LOCATION);
+        $process = new Process([
+            PHP_BINARY,
+            $applicationRoot . '/tools/importExport.php',
+            'FullJournalImportExportPlugin',
+            'export',
+            $this->archivePath(),
+            'missing-' . bin2hex(random_bytes(4)),
+        ], $applicationRoot);
+
+        $process->run();
+
+        $this->assertSame(1, $process->getExitCode());
+        $this->assertSame('', $process->getOutput());
+        $this->assertSame("Error: The journal path does not exist\n", $process->getErrorOutput());
     }
 
     public function testItRejectsAnUnknownImportUser(): void
     {
         $arguments = ['import', $this->archivePath(), 'missing-' . bin2hex(random_bytes(4))];
+        $plugin = new CliTestPlugin();
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The import user does not exist');
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
 
-        (new FullJournalImportExportPlugin())->executeCLI('tools/importExport.php', $arguments);
+        $this->assertFalse($result);
+        $this->assertSame(['The import user does not exist'], $plugin->cliErrors);
     }
 
     public function testItReportsAnInvalidImportPackage(): void
@@ -108,11 +129,12 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $user = Repo::user()->getCollector()->getMany()->first();
         $this->assertNotNull($user);
         $arguments = ['import', $this->archivePath(), $user->getUsername()];
+        $plugin = new CliTestPlugin();
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The package archive must be a regular file');
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
 
-        (new FullJournalImportExportPlugin())->executeCLI('tools/importExport.php', $arguments);
+        $this->assertFalse($result);
+        $this->assertSame(['The package archive must be a regular file'], $plugin->cliErrors);
     }
 
     private function createContext(): Journal
@@ -158,6 +180,8 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
 
 class CliTestPlugin extends FullJournalImportExportPlugin
 {
+    public array $cliErrors = [];
+
     public function usage($scriptName)
     {
         echo $scriptName . ' FullJournalImportExportPlugin import|export';
@@ -166,6 +190,11 @@ class CliTestPlugin extends FullJournalImportExportPlugin
     public function getAppSpecificDeployment($context, $user)
     {
         return new CliExportDeployment($context, $user);
+    }
+
+    protected function exitWithCLIError(string $message): void
+    {
+        $this->cliErrors[] = $message;
     }
 }
 

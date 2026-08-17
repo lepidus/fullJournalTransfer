@@ -43,6 +43,16 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
 
     public function executeCLI($scriptName, &$args)
     {
+        try {
+            return $this->executeCLICommand($scriptName, $args);
+        } catch (InvalidArgumentException | RuntimeException $exception) {
+            $this->exitWithCLIError($exception->getMessage());
+            return false;
+        }
+    }
+
+    private function executeCLICommand($scriptName, &$args)
+    {
         $command = array_shift($args);
         if ($command === 'usage' && $args === []) {
             $this->usage($scriptName);
@@ -85,6 +95,12 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
         }
         fwrite(STDOUT, "Journal import completed\n");
         return true;
+    }
+
+    protected function exitWithCLIError(string $message): void
+    {
+        fwrite(STDERR, 'Error: ' . $message . PHP_EOL);
+        exit(1);
     }
 
     public function getAppSpecificDeployment($context, $user)
