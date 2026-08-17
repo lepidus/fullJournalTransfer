@@ -15,6 +15,7 @@ class FullJournalPackageExporterTest extends TestCase
 {
     public function testItCreatesThePackageConsumedByThePublicCli(): void
     {
+        $stagingDirectories = $this->stagingDirectories();
         $directory = sys_get_temp_dir() . '/full-journal-exporter-' . bin2hex(random_bytes(8));
         $filesDirectory = $directory . '/files';
         $referencedFile = 'journals/1/articles/example.txt';
@@ -39,6 +40,7 @@ class FullJournalPackageExporterTest extends TestCase
             $this->assertStringContainsString('path="journal.xml"', $manifest);
             $this->assertStringContainsString('path="' . $referencedFile . '"', $manifest);
             $this->assertSame('example file', $this->runTar(['-xOzf', $archivePath, $referencedFile]));
+            $this->assertSame($stagingDirectories, $this->stagingDirectories());
         } finally {
             if (is_file($archivePath)) {
                 unlink($archivePath);
@@ -52,12 +54,43 @@ class FullJournalPackageExporterTest extends TestCase
         }
     }
 
+    public function testItCleansTheStagingDirectoryWhenExportFails(): void
+    {
+        $directory = sys_get_temp_dir() . '/full-journal-exporter-' . bin2hex(random_bytes(8));
+        $filesDirectory = $directory . '/files';
+        mkdir($filesDirectory, 0700, true);
+        $archivePath = $directory . '/journal.tar.gz';
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $document->loadXML('<journal><href src="journals/1/missing.txt"/></journal>');
+        $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
+        $stagingDirectories = $this->stagingDirectories();
+
+        try {
+            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            $this->fail('The missing referenced file was not rejected');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('A referenced journal file is unavailable', $exception->getMessage());
+        } finally {
+            $this->assertSame($stagingDirectories, $this->stagingDirectories());
+            $this->assertFileDoesNotExist($archivePath);
+            rmdir($filesDirectory);
+            rmdir($directory);
+        }
+    }
+
     private function runTar(array $arguments): string
     {
         $process = new Process(array_merge(['/bin/tar'], $arguments));
         $process->run();
         $this->assertTrue($process->isSuccessful(), $process->getErrorOutput());
         return $process->getOutput();
+    }
+
+    private function stagingDirectories(): array
+    {
+        $directories = glob(sys_get_temp_dir() . '/full-journal-export-*', GLOB_ONLYDIR);
+        sort($directories);
+        return $directories;
     }
 }
 
