@@ -52,6 +52,23 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $this->assertSame("manifest.xml\njournal.xml\n", $process->getOutput());
     }
 
+    public function testItDisplaysPluginUsageWithoutAnException(): void
+    {
+        $arguments = ['usage'];
+        ob_start();
+        try {
+            $result = (new CliTestPlugin())->executeCLI('tools/importExport.php', $arguments);
+            $output = (string) ob_get_contents();
+        } finally {
+            ob_end_clean();
+        }
+
+        $this->assertTrue($result);
+        $this->assertStringContainsString('FullJournalImportExportPlugin', $output);
+        $this->assertStringContainsString('import', $output);
+        $this->assertStringContainsString('export', $output);
+    }
+
     public function testItRejectsAnExistingExportDestination(): void
     {
         $context = $this->createContext();
@@ -141,6 +158,11 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
 
 class CliTestPlugin extends FullJournalImportExportPlugin
 {
+    public function usage($scriptName)
+    {
+        echo $scriptName . ' FullJournalImportExportPlugin import|export';
+    }
+
     public function getAppSpecificDeployment($context, $user)
     {
         return new CliExportDeployment($context, $user);

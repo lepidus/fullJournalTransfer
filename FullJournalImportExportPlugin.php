@@ -44,6 +44,10 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
     public function executeCLI($scriptName, &$args)
     {
         $command = array_shift($args);
+        if ($command === 'usage' && $args === []) {
+            $this->usage($scriptName);
+            return true;
+        }
         $archivePath = array_shift($args);
         $identifier = array_shift($args);
         if (!in_array($command, ['export', 'import'], true) || !$archivePath || !$identifier || $args !== []) {
