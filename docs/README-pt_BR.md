@@ -91,19 +91,18 @@ Para executar os testes unitários, rode o seguinte comando no diretório raiz d
 lib/pkp/lib/vendor/bin/phpunit -c lib/pkp/tests/phpunit.xml --no-coverage plugins/importexport/fullJournalTransfer/tests
 ```
 
-### Fixture fixa de round trip
-
-A fixture versionada do OJS 3.4.0.10 é verificada pela suíte PHPUnit sem reconstrução ou seed:
+### Round trip
 
 ```bash
 php plugins/importexport/fullJournalTransfer/tests/round-trip/run \
-  --verify-only \
   --fixture plugins/importexport/fullJournalTransfer/tests/round-trip/fixture-ojs-3.4.0.10-v1.tar.gz \
-  --expected plugins/importexport/fullJournalTransfer/tests/round-trip/expected-ojs-3.4.0.10-v1.json
+  --expected plugins/importexport/fullJournalTransfer/tests/round-trip/expected-ojs-3.4.0.10-v1.json \
+  --app-root [raiz_do_ojs] \
+  --files-dir [diretorio_de_arquivos] \
+  --public-dir [diretorio_publico] \
+  --database [nome_da_base] \
+  --apply
 ```
-
-O round trip completo exige uma instalação OJS descartável, uma base de testes explícita e `--apply`.
-A fixture só é reconstruída manualmente quando a cobertura ou o contrato OJS/pacote muda, gerando uma nova versão.
 
 # Créditos
 Este plugin foi idealizado e patrocinado pelo Instituto Brasileiro de Informação em Ciência e Tecnologia (IBICT) para a versão 2.x do OJS.
