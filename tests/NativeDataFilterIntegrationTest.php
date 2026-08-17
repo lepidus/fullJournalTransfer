@@ -221,6 +221,56 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         }
     }
 
+    public function testItOrdersAndRemapsDependentSubmissionFiles(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('dependency-source');
+        $destination = $this->createContext('dependency-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $sourceGenre = $this->createGenre($source, 'Dependency Manuscript');
+        $this->createGenre($destination, 'Dependency Manuscript');
+        $submission = $this->createSubmission($source, $sourceSection, 'Dependent files', null);
+        $parent = $this->createSubmissionFile($source, $submission, (int) $sourceGenre->getId(), ['parent']);
+        $child = $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $sourceGenre->getId(),
+            ['child'],
+            (int) $parent->getId()
+        );
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $nodes = $xpath->query('//pkp:submission_file');
+        $this->assertSame(2, $nodes->length);
+        $this->assertSame(
+            (string) $parent->getId(),
+            $nodes->item(0)->getAttribute('id')
+        );
+        $this->assertSame(
+            (string) $parent->getId(),
+            $nodes->item(1)->getAttribute('source_submission_file_id')
+        );
+
+        $this->setRequestContext($destination);
+        $importUser = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($importUser);
+        $deployment = new FullJournalImportExportDeployment($destination, $importUser);
+        $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $maps = $deployment->importNativeData($document->documentElement);
+        $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
+
+        $importedChild = Repo::submissionFile()->get($maps['submission_file_id_map'][(string) $child->getId()]);
+        $this->assertSame(
+            $maps['submission_file_id_map'][(string) $parent->getId()],
+            (int) $importedChild->getData('sourceSubmissionFileId')
+        );
+    }
+
     public function testItTransfersIssueGalleyFileWithChecksumAndTypedId(): void
     {
         $source = $this->createContext('issue-galley-source');
@@ -403,7 +453,8 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         Journal $context,
         \APP\submission\Submission $submission,
         int $genreId,
-        array $contents
+        array $contents,
+        ?int $sourceSubmissionFileId = null
     ): SubmissionFile {
         $fileIds = [];
         foreach ($contents as $index => $content) {
@@ -427,6 +478,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $submissionFile->setData('createdAt', date('Y-m-d H:i:s'));
         $submissionFile->setData('updatedAt', date('Y-m-d H:i:s'));
         $submissionFile->setData('name', ['en' => 'manuscript.txt']);
+        $submissionFile->setData('sourceSubmissionFileId', $sourceSubmissionFileId);
         $submissionFile->setId(Repo::submissionFile()->dao->insert($submissionFile));
         foreach ($fileIds as $fileId) {
             $submissionFile->setData('fileId', $fileId);

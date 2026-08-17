@@ -25,7 +25,7 @@ class ReviewCommentNativeXmlFilter extends NativeExportFilter
             $node->setAttribute('role_id', (string) $comment->role_id);
             $node->setAttribute('title', (string) $comment->comment_title);
             $node->setAttribute('date_posted', (string) $comment->date_posted);
-            $node->setAttribute('date_modified', (string) $comment->date_modified);
+            $node->setAttribute('date_modified', (string) ($comment->date_modified ?: $comment->date_posted));
             $node->setAttribute('viewable', $comment->viewable ? 'true' : 'false');
             $node->appendChild($document->createTextNode((string) $comment->comments));
             $root->appendChild($node);

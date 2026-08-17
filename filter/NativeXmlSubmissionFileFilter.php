@@ -12,6 +12,19 @@ use RuntimeException;
 
 class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\filter\NativeXmlArticleFileFilter
 {
+    public function handleElement($node)
+    {
+        $sourceId = trim($node->getAttribute('source_submission_file_id'));
+        if ($sourceId !== '') {
+            $destinationId = $this->getDeployment()->getSubmissionFileDBId($sourceId);
+            if (!$destinationId) {
+                throw new InvalidArgumentException('Source submission file has not been imported');
+            }
+            $node->setAttribute('source_submission_file_id', (string) $destinationId);
+        }
+        return parent::handleElement($node);
+    }
+
     public function handleRevisionElement($node)
     {
         $temporaryFileManager = new TemporaryFileManager();
