@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
+use APP\publication\Publication;
 use APP\submission\Submission;
 use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
+use RuntimeException;
 
 class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\ArticleNativeXmlFilter
 {
@@ -20,6 +22,7 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
             $this->getDeployment()
         );
         foreach ($submission->getData('publications') as $publication) {
+            $this->requireLocalizedTitle($publication, $submission);
             $deployment = $this->getDeployment();
             $issue = $deployment->getIssue();
             $deployment->setIssue(null);
@@ -30,8 +33,31 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
             }
             if ($publicationDocument && $publicationDocument->documentElement instanceof DOMElement) {
                 $submissionNode->appendChild($document->importNode($publicationDocument->documentElement, true));
+                continue;
+            }
+            throw new RuntimeException(sprintf(
+                'Publication %d from submission %d could not be exported',
+                $publication->getId(),
+                $submission->getId()
+            ));
+        }
+    }
+
+    private function requireLocalizedTitle(Publication $publication, Submission $submission): void
+    {
+        $titles = $publication->getData('title');
+        if (is_array($titles)) {
+            foreach ($titles as $title) {
+                if (is_string($title) && trim($title) !== '') {
+                    return;
+                }
             }
         }
+        throw new InvalidArgumentException(sprintf(
+            'Publication %d from submission %d has no localized title',
+            $publication->getId(),
+            $submission->getId()
+        ));
     }
 
     public function addFiles(DOMDocument $document, DOMElement $submissionNode, Submission $submission): void

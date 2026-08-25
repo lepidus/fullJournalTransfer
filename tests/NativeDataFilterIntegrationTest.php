@@ -13,6 +13,7 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use InvalidArgumentException;
 use PKP\config\Config;
 use PKP\db\DAORegistry;
 use PKP\observers\events\BatchMetadataChanged;
@@ -20,6 +21,7 @@ use PKP\security\Role;
 use PKP\submissionFile\SubmissionFile;
 use PKP\tests\DatabaseTestCase;
 use PKP\userGroup\UserGroup;
+use RuntimeException;
 
 class NativeDataFilterIntegrationTest extends DatabaseTestCase
 {
@@ -144,6 +146,47 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->assertNull($unassignedImported->getCurrentPublication()->getData('issueId'));
         $this->assertArrayHasKey((string) $firstPublication->getId(), $maps['publication_id_map']);
         $this->assertSame('Unassigned article', $unassignedImported->getCurrentPublication()->getData('title', 'en'));
+    }
+
+    public function testItRejectsAPublicationWithoutALocalizedTitle(): void
+    {
+        $source = $this->createContext('invalid-publication-source');
+        $section = $this->createSection($source);
+        $submission = $this->createSubmission($source, $section, 'Temporary title', null);
+        $publication = $submission->getCurrentPublication();
+        $publication->setData('title', null);
+        $publication->setData('licenseUrl', 'https://creativecommons.org/licenses/by/4.0/');
+        Repo::publication()->dao->update($publication);
+        $this->setRequestContext($source);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Publication %d from submission %d has no localized title',
+            $publication->getId(),
+            $submission->getId()
+        ));
+
+        (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+    }
+
+    public function testItRejectsAPublicationThatCannotBeSerialized(): void
+    {
+        $source = $this->createContext('invalid-publication-schema');
+        $section = $this->createSection($source);
+        $submission = $this->createSubmission($source, $section, 'Valid title', null);
+        $publication = $submission->getCurrentPublication();
+        $publication->setData('sectionId', null);
+        Repo::publication()->dao->update($publication);
+        $this->setRequestContext($source);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Publication %d from submission %d could not be exported',
+            $publication->getId(),
+            $submission->getId()
+        ));
+
+        (new FullJournalImportExportDeployment($source, null))->exportNativeData();
     }
 
     public function testItTransfersAuthorsGalleysAndFileRevisionsWithChecksumsAndTypedIds(): void
