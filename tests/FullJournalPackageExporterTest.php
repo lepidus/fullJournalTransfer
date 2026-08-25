@@ -8,6 +8,7 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalPackageExporter;
 use DOMDocument;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
@@ -73,6 +74,37 @@ class FullJournalPackageExporterTest extends TestCase
         } finally {
             $this->assertSame($stagingDirectories, $this->stagingDirectories());
             $this->assertFileDoesNotExist($archivePath);
+            rmdir($filesDirectory);
+            rmdir($directory);
+        }
+    }
+
+    public function testItRejectsInconsistentNativeDataBeforeCreatingThePackage(): void
+    {
+        $directory = sys_get_temp_dir() . '/full-journal-exporter-' . bin2hex(random_bytes(8));
+        $filesDirectory = $directory . '/files';
+        mkdir($filesDirectory, 0700, true);
+        $archivePath = $directory . '/journal.tar.gz';
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $document->loadXML(
+            '<journal xmlns="http://pkp.sfu.ca"><native_data><issue_orders/><issues/><articles>'
+            . '<article current_publication_id="21" stage="submission"><id type="internal">10</id>'
+            . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
+            . '<title locale="en">Article</title></publication></article>'
+            . '</articles></native_data></journal>'
+        );
+        $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
+
+        try {
+            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            $this->fail('The inconsistent native data was not rejected');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertSame('Unknown current publication reference', $exception->getMessage());
+            $this->assertFileDoesNotExist($archivePath);
+        } finally {
+            if (is_file($archivePath)) {
+                unlink($archivePath);
+            }
             rmdir($filesDirectory);
             rmdir($directory);
         }

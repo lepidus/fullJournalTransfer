@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer;
 
 use DOMDocument;
+use DOMElement;
 use DOMXPath;
 use InvalidArgumentException;
 use RuntimeException;
@@ -38,6 +39,7 @@ class FullJournalPackageExporter
 
         try {
             $document = $deployment->exportContextData();
+            $this->validateNativeData($document);
             $xml = $document->saveXML();
             if (!is_string($xml) || file_put_contents($journalPath, $xml) === false) {
                 throw new RuntimeException('The journal XML could not be written');
@@ -68,6 +70,22 @@ class FullJournalPackageExporter
                 unlink($archivePath);
             }
         }
+    }
+
+    private function validateNativeData(DOMDocument $document): void
+    {
+        $root = $document->documentElement;
+        if (!$root || $root->namespaceURI !== 'http://pkp.sfu.ca' || $root->localName !== 'journal') {
+            return;
+        }
+        $xpath = new DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $nativeData = $xpath->query('/pkp:journal/pkp:native_data');
+        $nativeDataRoot = $nativeData ? $nativeData->item(0) : null;
+        if (!$nativeData || $nativeData->length !== 1 || !$nativeDataRoot instanceof DOMElement) {
+            throw new InvalidArgumentException('Expected exactly one native data element');
+        }
+        (new NativeDataReferenceValidator())->validate($nativeDataRoot);
     }
 
     private function createManifest(string $stagingPath, array $packageFiles): string
