@@ -145,9 +145,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
             $checklistNode = $document->createElementNS(self::NAMESPACE, 'submission_checklist');
             foreach ($checklist as $locale => $items) {
                 if (!in_array($locale, $supportedFormLocales, true)) {
-                    throw new InvalidArgumentException(
-                        'Checklist locale is not supported by the destination form configuration: ' . $locale
-                    );
+                    continue;
                 }
                 if (!is_string($items)) {
                     throw new InvalidArgumentException('Submission checklist content must be localized HTML');
@@ -157,7 +155,9 @@ class JournalNativeXmlFilter extends NativeExportFilter
                 $contentNode->appendChild($document->createTextNode($items));
                 $checklistNode->appendChild($contentNode);
             }
-            $root->appendChild($checklistNode);
+            if ($checklistNode->hasChildNodes()) {
+                $root->appendChild($checklistNode);
+            }
         }
     }
 
