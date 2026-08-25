@@ -51,7 +51,7 @@ class JournalFilterTest extends TestCase
         ], $destination->getData('submissionChecklist'));
     }
 
-    public function testItRejectsChecklistLocalesOutsideSupportedFormLocales(): void
+    public function testItSkipsChecklistLocalesOutsideSupportedFormLocales(): void
     {
         $source = new Journal();
         $source->setPath('source-journal');
@@ -60,16 +60,17 @@ class JournalFilterTest extends TestCase
         $source->setData('name', ['en' => 'Journal']);
         $source->setData('contactName', 'Contact');
         $source->setData('contactEmail', 'contact@example.com');
-        $source->setData('supportedLocales', ['en']);
+        $source->setData('supportedLocales', ['en', 'es_ES']);
         $source->setData('supportedFormLocales', ['en']);
         $source->setData('supportedSubmissionLocales', ['en']);
         $source->setData('submissionChecklist', [
-            'fr_CA' => '<ul><li>Unexpected locale</li></ul>',
+            'es_ES' => '<ul><li>Unsupported locale</li></ul>',
         ]);
 
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Checklist locale is not supported by the destination form configuration: fr_CA');
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
 
-        (new FullJournalImportExportDeployment($source, null))->exportContextData();
+        $checklistNodes = $document->getElementsByTagNameNS('http://pkp.sfu.ca', 'submission_checklist');
+        $this->assertSame(0, $checklistNodes->length);
+        $this->assertTrue($document->schemaValidate(dirname(__DIR__) . '/fullJournal.xsd'));
     }
 }
