@@ -37,19 +37,27 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
             'sequence' => $this->number($node, 'sequence'),
         ]);
         $deployment->mapReference('discussion', $sourceReference, (int) $discussion->getId());
-        foreach ([
-            'discussion_participant' => [
-                'discussion_participants',
-                'full-journal-workflow-xml=>discussion-participant',
-            ],
-            'discussion_note' => ['discussion_notes', 'full-journal-workflow-xml=>discussion-note'],
-        ] as $element => [$container, $group]) {
-            $children = $this->childrenDocument($node, $element, $container);
-            if ($children) {
-                PKPImportExportFilter::getFilter($group, $deployment)->execute($children);
+        foreach ($node->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === 'discussion_participant') {
+                $this->importParticipant($child);
             }
         }
+        $notes = $this->childrenDocument($node, 'discussion_note', 'discussion_notes');
+        if ($notes) {
+            PKPImportExportFilter::getFilter(
+                'full-journal-workflow-xml=>discussion-note',
+                $deployment
+            )->execute($notes);
+        }
         return $discussion;
+    }
+
+    private function importParticipant(DOMElement $node): void
+    {
+        $deployment = $this->getDeployment();
+        $discussionId = $deployment->requireReference('discussion', $this->required($node, 'discussion_ref'));
+        $userId = $deployment->requireReference('user', $this->required($node, 'user_ref'));
+        (new HistoricalDiscussionPersistenceAdapter())->insertParticipant($discussionId, $userId);
     }
 
     private function required($node, string $attribute): string
