@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
+use APP\plugins\importexport\fullJournalTransfer\SubmissionFileTransferPlanner;
 use APP\publication\Publication;
 use APP\submission\Submission;
 use DOMDocument;
@@ -66,7 +67,8 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
             ->filterBySubmissionIds([$submission->getId()])
             ->includeDependentFiles()
             ->getMany();
-        foreach ($this->orderSubmissionFiles($submissionFiles) as $submissionFile) {
+        $partition = (new SubmissionFileTransferPlanner())->partition($submissionFiles);
+        foreach ($partition['native'] as $submissionFile) {
             $filter = PKPImportExportFilter::getFilter(
                 'submission-file=>full-journal-native-xml',
                 $this->getDeployment(),
@@ -79,34 +81,4 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
         }
     }
 
-    private function orderSubmissionFiles(iterable $submissionFiles): array
-    {
-        $pending = [];
-        foreach ($submissionFiles as $submissionFile) {
-            $pending[(int) $submissionFile->getId()] = $submissionFile;
-        }
-        $allIds = array_fill_keys(array_keys($pending), true);
-        $resolved = [];
-        $ordered = [];
-        while ($pending !== []) {
-            $progress = false;
-            foreach ($pending as $id => $submissionFile) {
-                $sourceId = (int) $submissionFile->getData('sourceSubmissionFileId');
-                if ($sourceId && !isset($allIds[$sourceId])) {
-                    throw new InvalidArgumentException('A source submission file is missing from the journal export');
-                }
-                if ($sourceId && !isset($resolved[$sourceId])) {
-                    continue;
-                }
-                $ordered[] = $submissionFile;
-                $resolved[$id] = true;
-                unset($pending[$id]);
-                $progress = true;
-            }
-            if (!$progress) {
-                throw new InvalidArgumentException('Submission file dependencies contain a cycle');
-            }
-        }
-        return $ordered;
-    }
 }

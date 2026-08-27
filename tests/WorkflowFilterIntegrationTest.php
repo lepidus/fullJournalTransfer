@@ -309,6 +309,86 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             ->exists());
     }
 
+    public function testItRestoresReviewRevisionAfterCreatingItsReviewRound(): void
+    {
+        Event::fake();
+        Queue::fake();
+        $source = $this->createContext('revision-source');
+        $destination = $this->createContext('revision-destination');
+        $sourceSection = $this->createSection($source);
+        $destinationSection = $this->createSection($destination);
+        $sourceGenre = $this->createGenre($source, 'Review Revision');
+        $destinationGenre = $this->createGenre($destination, 'Review Revision');
+        $this->setRequestContext($source);
+        $submission = $this->createSubmission($source, $sourceSection, 'Review revision article');
+        $roundId = DB::table('review_rounds')->insertGetId([
+            'submission_id' => $submission->getId(),
+            'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
+            'round' => 1,
+            'status' => 1,
+        ], 'review_round_id');
+        $revision = $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $sourceGenre->getId(),
+            SubmissionFile::SUBMISSION_FILE_REVIEW_REVISION,
+            Application::ASSOC_TYPE_REVIEW_ROUND,
+            (int) $roundId
+        );
+
+        $sourceDeployment = new FullJournalImportExportDeployment($source, null);
+        $nativeData = $sourceDeployment->exportNativeData();
+        $workflow = $sourceDeployment->exportWorkflow();
+        $nativeXpath = new \DOMXPath($nativeData);
+        $nativeXpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $workflowXpath = new \DOMXPath($workflow);
+        $workflowXpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $this->assertSame(0, $nativeXpath->query('//pkp:submission_file[@stage="review_revision"]')->length);
+        $this->assertSame(1, $workflowXpath->query('//pkp:workflow_file/pkp:submission_file')->length);
+        $this->assertSame(
+            (string) $roundId,
+            $workflowXpath->evaluate('string(//pkp:workflow_file/@review_round_ref)')
+        );
+
+        $this->setRequestContext($destination);
+        $importUser = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($importUser);
+        $destinationDeployment = new FullJournalImportExportDeployment($destination, $importUser);
+        $destinationDeployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $destinationDeployment->mapReference(
+            'section',
+            (string) $sourceSection->getId(),
+            (int) $destinationSection->getId()
+        );
+        $destinationDeployment->mapReference(
+            'genre',
+            (string) $sourceGenre->getId(),
+            (int) $destinationGenre->getId()
+        );
+        $nativeMaps = $destinationDeployment->importNativeData($nativeData->documentElement);
+        $workflowMaps = $destinationDeployment->importWorkflow($workflow->documentElement);
+        $this->fileIds = array_merge(
+            $this->fileIds,
+            array_values($destinationDeployment->getReferenceMap('file'))
+        );
+
+        $importedRoundId = $workflowMaps['review_round_id_map'][(string) $roundId];
+        $importedRevisionId = $destinationDeployment->getReferenceMap('submission_file')[(string) $revision->getId()];
+        $importedRevision = Repo::submissionFile()->get($importedRevisionId);
+        $this->assertNotNull($importedRevision);
+        $this->assertSame(
+            $nativeMaps['submission_id_map'][(string) $submission->getId()],
+            (int) $importedRevision->getData('submissionId')
+        );
+        $this->assertSame(SubmissionFile::SUBMISSION_FILE_REVIEW_REVISION, $importedRevision->getFileStage());
+        $this->assertSame(Application::ASSOC_TYPE_REVIEW_ROUND, (int) $importedRevision->getData('assocType'));
+        $this->assertSame($importedRoundId, (int) $importedRevision->getData('assocId'));
+        $this->assertTrue(DB::table('review_round_files')
+            ->where('review_round_id', $importedRoundId)
+            ->where('submission_file_id', $importedRevisionId)
+            ->exists());
+    }
+
     public function testItRestoresHistoricalDecisionsWithoutRepeatingEditorialEffects(): void
     {
         Event::fake();
@@ -509,7 +589,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             . 'review_round_ref="round-1" reviewer_ref="missing-user" stage_id="3" review_method="2" '
             . 'round="1" step="1" declined="0" cancelled="0" reminder_was_automatic="0" '
             . 'considered="0" request_resent="0"/>'
-            . '</review_round></review_rounds><discussions/><editorial_decisions/></workflow_history>'
+            . '</review_round></review_rounds><workflow_files/><discussions/><editorial_decisions/></workflow_history>'
         ));
         $rounds = DB::table('review_rounds')->count();
         $assignments = DB::table('review_assignments')->count();
@@ -534,7 +614,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $submission = $this->createSubmission($destination, $section, 'Discussion sentinel');
         $document = new \DOMDocument();
         $this->assertTrue($document->loadXML(
-            '<workflow_history xmlns="http://pkp.sfu.ca"><stage_assignments/><review_rounds/>'
+            '<workflow_history xmlns="http://pkp.sfu.ca"><stage_assignments/><review_rounds/><workflow_files/>'
             . '<discussions><discussion source_ref="discussion-1" submission_ref="submission-1" '
             . 'stage_id="3" closed="false" sequence="1"><discussion_participant '
             . 'discussion_ref="discussion-1" user_ref="missing-user"/></discussion></discussions>'
@@ -572,7 +652,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             . 'review_round_ref="round-1" reviewer_ref="user-1" stage_id="3" review_method="2" '
             . 'round="1" step="1" declined="0" cancelled="0" reminder_was_automatic="0" '
             . 'considered="0" request_resent="0"/>'
-            . '</review_round></review_rounds><discussions/><editorial_decisions/></workflow_history>'
+            . '</review_round></review_rounds><workflow_files/><discussions/><editorial_decisions/></workflow_history>'
         ));
         $rounds = DB::table('review_rounds')->count();
         $deployment = new FullJournalImportExportDeployment($destination, null);

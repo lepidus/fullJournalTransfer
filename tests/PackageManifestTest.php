@@ -18,7 +18,7 @@ class PackageManifestTest extends TestCase
 
         $this->assertSame('ojs', $manifest->getApplication());
         $this->assertSame(self::RELEASE, $manifest->getApplicationVersion());
-        $this->assertSame('1.0', $manifest->getFormatVersion());
+        $this->assertSame('1.1', $manifest->getFormatVersion());
         $this->assertSame(['journal', 'users', 'workflow', 'metrics'], $manifest->getCapabilities());
         $this->assertSame(
             [
@@ -44,7 +44,7 @@ class PackageManifestTest extends TestCase
 
     public function testVersionedFixtureMatchesTheJournalPayload(): void
     {
-        $directory = __DIR__ . '/samples/full-journal-1.0';
+        $directory = __DIR__ . '/samples/full-journal-1.1';
         $manifest = PackageManifest::fromXml(
             (string) file_get_contents($directory . '/manifest.xml'),
             self::RELEASE
@@ -86,7 +86,11 @@ class PackageManifestTest extends TestCase
                 'complete application version',
             ],
             'format' => [
-                str_replace('format_version="1.0"', 'format_version="2.0"', $this->validManifest()),
+                str_replace('format_version="1.1"', 'format_version="2.0"', $this->validManifest()),
+                'format version',
+            ],
+            'previous format' => [
+                str_replace('format_version="1.1"', 'format_version="1.0"', $this->validManifest()),
                 'format version',
             ],
             'journal cardinality' => [
@@ -126,7 +130,7 @@ class PackageManifestTest extends TestCase
     {
         return '<?xml version="1.0" encoding="UTF-8"?>'
             . '<full_journal_package application="ojs" application_version="' . self::RELEASE . '" '
-            . 'format_version="1.0" created_at="2026-08-10T15:00:00-04:00">'
+            . 'format_version="1.1" created_at="2026-08-10T15:00:00-04:00">'
             . '<capabilities><capability name="journal"/><capability name="users"/>'
             . '<capability name="workflow"/><capability name="metrics"/></capabilities>'
             . '<files>' . $this->journalFile() . '</files>'

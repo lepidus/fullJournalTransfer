@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\SubmissionFileTransferPlanner;
 use DOMDocument;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
@@ -36,10 +37,60 @@ class WorkflowNativeXmlFilter extends NativeExportFilter
 
         $this->appendStageAssignments($document, $root, (int) $context->getId());
         $this->appendReviewRounds($document, $root, (int) $context->getId());
+        $this->appendWorkflowFiles($document, $root, (int) $context->getId());
         $this->appendDiscussions($document, $root, (int) $context->getId());
         $this->appendEditorialDecisions($document, $root, (int) $context->getId());
 
         return $document;
+    }
+
+    private function appendWorkflowFiles(DOMDocument $document, DOMElement $parent, int $contextId): void
+    {
+        $root = $document->createElementNS($this->getDeployment()->getNamespace(), 'workflow_files');
+        $submissions = Repo::submission()->getCollector()
+            ->filterByContextIds([$contextId])
+            ->getMany();
+        $planner = new SubmissionFileTransferPlanner();
+        foreach ($submissions as $submission) {
+            $submissionFiles = Repo::submissionFile()->getCollector()
+                ->filterBySubmissionIds([(int) $submission->getId()])
+                ->includeDependentFiles()
+                ->getMany();
+            $partition = $planner->partition($submissionFiles);
+            foreach ($partition['workflow'] as $submissionFile) {
+                $node = $document->createElementNS($this->getDeployment()->getNamespace(), 'workflow_file');
+                $node->setAttribute('submission_ref', (string) $submission->getId());
+                if ($planner->requiresReviewRound($submissionFile)) {
+                    $reviewRoundId = $this->reviewRoundId($submissionFile, (int) $submission->getId());
+                    $node->setAttribute('review_round_ref', (string) $reviewRoundId);
+                }
+                $filter = PKPImportExportFilter::getFilter(
+                    'submission-file=>full-journal-native-xml',
+                    $this->getDeployment(),
+                    array_merge($this->opts, ['no-embed' => true])
+                );
+                $fileDocument = $filter->execute($submissionFile, true);
+                if (!$fileDocument || !$fileDocument->documentElement instanceof DOMElement) {
+                    throw new InvalidArgumentException('A workflow submission file could not be exported');
+                }
+                $node->appendChild($document->importNode($fileDocument->documentElement, true));
+                $root->appendChild($node);
+            }
+        }
+        $parent->appendChild($root);
+    }
+
+    private function reviewRoundId($submissionFile, int $submissionId): int
+    {
+        if ((int) $submissionFile->getData('assocType') !== Application::ASSOC_TYPE_REVIEW_ROUND) {
+            throw new InvalidArgumentException('A review revision has no review round association');
+        }
+        $reviewRoundId = (int) $submissionFile->getData('assocId');
+        $reviewRound = DB::table('review_rounds')->where('review_round_id', $reviewRoundId)->first();
+        if (!$reviewRound || (int) $reviewRound->submission_id !== $submissionId) {
+            throw new InvalidArgumentException('A review revision references an invalid review round');
+        }
+        return $reviewRoundId;
     }
 
     private function appendStageAssignments(DOMDocument $document, DOMElement $parent, int $contextId): void

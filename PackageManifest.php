@@ -12,7 +12,7 @@ use InvalidArgumentException;
 class PackageManifest
 {
     public const APPLICATION = 'ojs';
-    public const FORMAT_VERSION = '1.0';
+    public const FORMAT_VERSION = '1.1';
 
     private string $application;
     private string $applicationVersion;

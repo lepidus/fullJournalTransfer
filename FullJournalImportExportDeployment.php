@@ -11,6 +11,7 @@ use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
+use PKP\submissionFile\SubmissionFile;
 use Throwable;
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
@@ -21,6 +22,14 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private ?int $currentReviewFormId = null;
     private array $submissionsByIssue = [];
     private array $metricRejections = [];
+
+    public function getStageNameStageIdMapping()
+    {
+        return array_merge(parent::getStageNameStageIdMapping(), [
+            'internal_review_file' => SubmissionFile::SUBMISSION_FILE_INTERNAL_REVIEW_FILE,
+            'internal_review_revision' => SubmissionFile::SUBMISSION_FILE_INTERNAL_REVIEW_REVISION,
+        ]);
+    }
 
     public function importPackage(
         string $archivePath,
