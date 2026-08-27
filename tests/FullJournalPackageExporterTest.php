@@ -38,6 +38,7 @@ class FullJournalPackageExporterTest extends TestCase
             ], preg_split('/\R/', trim($entries)));
             $manifest = $this->runTar(['-xOzf', $archivePath, 'manifest.xml']);
             $this->assertStringContainsString('application_version="3.4.0.10"', $manifest);
+            $this->assertStringContainsString('format_version="1.1"', $manifest);
             $this->assertStringContainsString('path="journal.xml"', $manifest);
             $this->assertStringContainsString('path="' . $referencedFile . '"', $manifest);
             $this->assertSame('example file', $this->runTar(['-xOzf', $archivePath, $referencedFile]));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
 use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
@@ -88,6 +89,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addLocales($document, $root, $supportedLocales, $supportedFormLocales, $supportedSubmissionLocales);
         $this->addSubmissionChecklist($document, $root, $journal, $supportedFormLocales);
         $this->addSettings($document, $root, $journal);
+        $this->addTheme($document, $root, $journal);
         $this->validateRequiredSettings($journal);
         if ((int) $journal->getId() > 0) {
             foreach (['exportUsers', 'exportReferenceData', 'exportNativeData', 'exportWorkflow',
@@ -187,6 +189,37 @@ class JournalNativeXmlFilter extends NativeExportFilter
             }
         }
         $root->appendChild($settingsNode);
+    }
+
+    public function addTheme(DOMDocument $document, DOMElement $root, Journal $journal): void
+    {
+        $pluginPath = $journal->getData('themePluginPath');
+        if ($pluginPath === null || $pluginPath === '') {
+            return;
+        }
+        if (!is_string($pluginPath)) {
+            throw new InvalidArgumentException('The selected theme path is invalid');
+        }
+        $theme = (new ThemeSettingsTransfer())->findInstalledTheme($pluginPath);
+        $theme->init();
+        $themeNode = $document->createElementNS(self::NAMESPACE, 'theme');
+        $themeNode->setAttribute('plugin_path', $pluginPath);
+        $themeNode->setAttribute('plugin_name', $theme->getName());
+        if ((int) $journal->getId() > 0) {
+            foreach ($theme->getOptionValues((int) $journal->getId()) as $name => $value) {
+                if ($value === null) {
+                    continue;
+                }
+                $optionNode = $document->createElementNS(self::NAMESPACE, 'option');
+                $optionNode->setAttribute('name', $name);
+                $optionNode->appendChild($document->createTextNode(json_encode(
+                    $value,
+                    JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+                )));
+                $themeNode->appendChild($optionNode);
+            }
+        }
+        $root->appendChild($themeNode);
     }
 
     private function requireLocales($locales, string $property): array

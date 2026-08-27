@@ -29,6 +29,8 @@ class FullJournalSchemaTest extends TestCase
             . '<setting name="contactName" type="string">Equipe editorial</setting>'
             . '<setting name="contactEmail" type="string">editor@example.com</setting>'
             . '</context_settings>'
+            . '<theme plugin_path="default" plugin_name="defaultthemeplugin">'
+            . '<option name="baseColour">&quot;#123456&quot;</option></theme>'
             . '<workflow_history><review_round submission_ref="submission-1" round="1"/></workflow_history>'
             . '<metrics><context_metrics><context_metric load_id="usage.log" date="2026-08-10" metric="3"/>'
             . '</context_metrics><submission_metrics/><issue_metrics/><geo_metrics/><counter_metrics/>'

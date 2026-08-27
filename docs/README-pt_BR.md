@@ -55,6 +55,8 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - Todos os IDs no banco de dados serão modificados, invalidando referências externas.
 - O periódico importado é criado inicialmente desabilitado.
 - Uma segunda importação do mesmo caminho de periódico é rejeitada sem duplicar conteúdo.
+- O tema selecionado e suas opções declaradas são transferidos quando o código do plugin de tema está instalado no OJS
+  de destino. Quando ele não está disponível, o periódico importado usa o tema padrão com suas opções padrão.
 - Métricas institucionais exigem um identificador ROR válido; registros sem ROR estável são rejeitados.
 
 ## Conteúdo Importado/Exportado do Periódico
@@ -68,6 +70,7 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 **Adicionado**:
 
 - Dados do Periódico
+- Tema selecionado e opções do tema
 - Menus de Navegação
 - Configurações de Plugins
 - Seções

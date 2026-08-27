@@ -17,6 +17,7 @@
                 <element name="locales" type="pkp:locales" />
                 <element name="submission_checklist" type="pkp:submission_checklist" minOccurs="0" />
                 <element name="context_settings" type="pkp:context_settings" />
+                <element name="theme" type="pkp:theme" minOccurs="0" />
                 <element name="users" type="pkp:open_data" minOccurs="0" />
                 <element name="reference_data" type="pkp:open_data" minOccurs="0" />
                 <element name="native_data" type="pkp:native_data" minOccurs="0" />
@@ -73,6 +74,30 @@
             </element>
         </sequence>
     </complexType>
+
+    <complexType name="theme">
+        <sequence>
+            <element name="option" minOccurs="0" maxOccurs="unbounded">
+                <complexType mixed="true">
+                    <attribute name="name" type="pkp:theme_option_name" use="required" />
+                </complexType>
+            </element>
+        </sequence>
+        <attribute name="plugin_path" type="pkp:plugin_identifier" use="required" />
+        <attribute name="plugin_name" type="pkp:plugin_identifier" use="required" />
+    </complexType>
+
+    <simpleType name="plugin_identifier">
+        <restriction base="string">
+            <pattern value="[a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*" />
+        </restriction>
+    </simpleType>
+
+    <simpleType name="theme_option_name">
+        <restriction base="string">
+            <pattern value="[a-zA-Z0-9][a-zA-Z0-9_.-]*" />
+        </restriction>
+    </simpleType>
 
     <complexType name="native_data">
         <sequence>

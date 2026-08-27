@@ -6,10 +6,13 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\core\Application;
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use JsonException;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
+use PKP\plugins\ThemePlugin;
 
 class NativeXmlJournalFilter extends NativeImportFilter
 {
@@ -87,6 +90,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
         }
         $journal->setData('submissionChecklist', $checklist);
         $this->importSettings($node, $journal);
+        $themeNode = $this->optionalChild($node, 'theme');
+        if ($themeNode) {
+            $theme = $this->getImportedTheme($themeNode);
+            $journal->setData('themePluginPath', $theme->getDirName());
+        }
         $this->validateRequiredSettings($journal);
     }
 
@@ -106,6 +114,10 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
             $deployment = $this->getDeployment();
             $deployment->setContext($createdJournal);
+            $themeNode = $this->optionalChild($node, 'theme');
+            if ($themeNode) {
+                $this->importThemeOptions($themeNode, $createdJournal);
+            }
             $operations = [
                 'users' => 'importUsers',
                 'reference_data' => 'importReferenceData',
@@ -165,6 +177,61 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 throw new InvalidArgumentException('Localized context setting is not allowed: ' . $property);
             }
             $journal->setData($property, $settingNode->textContent, $locale);
+        }
+    }
+
+    private function getImportedTheme(DOMElement $node): ThemePlugin
+    {
+        $pluginPath = $node->getAttribute('plugin_path');
+        $theme = (new ThemeSettingsTransfer())->findInstalledThemeOrDefault($pluginPath);
+        if ($theme->getDirName() === $pluginPath && $node->getAttribute('plugin_name') !== $theme->getName()) {
+            throw new InvalidArgumentException('The selected theme identity does not match the installed plugin');
+        }
+        return $theme;
+    }
+
+    private function importThemeOptions(DOMElement $node, Journal $journal): void
+    {
+        $theme = $this->getImportedTheme($node);
+        $theme->init();
+        if ($theme->getDirName() !== $node->getAttribute('plugin_path')) {
+            $theme->updateSetting((int) $journal->getId(), 'enabled', true, 'bool');
+            return;
+        }
+        $options = [];
+        foreach ($node->childNodes as $optionNode) {
+            if (!$optionNode instanceof DOMElement || $optionNode->localName !== 'option') {
+                continue;
+            }
+            $name = $optionNode->getAttribute('name');
+            if (array_key_exists($name, $options)) {
+                throw new InvalidArgumentException('Duplicated theme option: ' . $name);
+            }
+            if ($theme->getOptionConfig($name) === false) {
+                throw new InvalidArgumentException('Theme option is not supported: ' . $name);
+            }
+            try {
+                $value = json_decode($optionNode->textContent, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $exception) {
+                throw new InvalidArgumentException('Theme option contains invalid JSON: ' . $name, 0, $exception);
+            }
+            if ($value === null) {
+                throw new InvalidArgumentException('Theme option value must not be null: ' . $name);
+            }
+            $options[$name] = $value;
+        }
+        $errors = $theme->validateOptions(
+            array_merge($options, ['themePluginPath' => $theme->getDirName()]),
+            $theme->getDirName(),
+            (int) $journal->getId(),
+            Application::get()->getRequest()
+        );
+        if ($errors !== []) {
+            throw new InvalidArgumentException('The imported theme options are invalid');
+        }
+        $theme->updateSetting((int) $journal->getId(), 'enabled', true, 'bool');
+        foreach ($options as $name => $value) {
+            $theme->saveOption($name, $value, (int) $journal->getId());
         }
     }
 
