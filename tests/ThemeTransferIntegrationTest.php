@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\tests;
 
 use APP\core\Application;
+use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use DOMElement;
@@ -36,7 +37,11 @@ class ThemeTransferIntegrationTest extends DatabaseTestCase
 
     protected function tearDown(): void
     {
+        $publicFileManager = new PublicFileManager();
         foreach (array_reverse($this->contexts) as $context) {
+            $publicFileManager->rmtree(
+                $publicFileManager->getContextFilesPath((int) $context->getId())
+            );
             Application::get()->getContextDAO()->deleteObject($context);
         }
         parent::tearDown();

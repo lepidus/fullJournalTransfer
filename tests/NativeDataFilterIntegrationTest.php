@@ -8,6 +8,7 @@ use APP\core\Application;
 use APP\core\Services;
 use APP\facades\Repo;
 use APP\file\IssueFileManager;
+use APP\file\PublicFileManager;
 use APP\issue\IssueFile;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
@@ -37,6 +38,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
 
     protected function tearDown(): void
     {
+        $publicFileManager = new PublicFileManager();
         foreach (array_reverse($this->contexts) as $context) {
             Repo::submission()->deleteByContextId((int) $context->getId());
             foreach ($this->issueIds as $issueId) {
@@ -48,6 +50,9 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
             Repo::issue()->deleteByContextId((int) $context->getId());
             Repo::section()->deleteByContextId((int) $context->getId());
             DAORegistry::getDAO('GenreDAO')->deleteByContextId((int) $context->getId());
+            $publicFileManager->rmtree(
+                $publicFileManager->getContextFilesPath((int) $context->getId())
+            );
             Application::get()->getContextDAO()->deleteObject($context);
         }
         foreach (array_reverse($this->userGroups) as $userGroup) {

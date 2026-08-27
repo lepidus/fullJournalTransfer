@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests;
 use APP\core\Application;
 use APP\core\Services;
 use APP\facades\Repo;
+use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use DOMDocument;
@@ -41,6 +42,7 @@ class ImportRollbackIntegrationTest extends DatabaseTestCase
 
     protected function tearDown(): void
     {
+        $publicFileManager = new PublicFileManager();
         foreach (array_reverse($this->contexts) as $context) {
             $contextId = (int) $context->getId();
             Repo::submission()->deleteByContextId($contextId);
@@ -49,6 +51,7 @@ class ImportRollbackIntegrationTest extends DatabaseTestCase
             foreach ($this->metricTables() as $table) {
                 DB::table($table)->where('context_id', $contextId)->delete();
             }
+            $publicFileManager->rmtree($publicFileManager->getContextFilesPath($contextId));
             Application::get()->getContextDAO()->deleteObject($context);
         }
         foreach (array_unique($this->fileIds) as $fileId) {
@@ -75,6 +78,10 @@ class ImportRollbackIntegrationTest extends DatabaseTestCase
         $this->assertTrue($deployment->isProcessFailed());
         $this->assertSame([], $deployment->createdFilePaths);
         $this->assertNull(Application::get()->getContextDAO()->getByPath($path));
+        $publicFileManager = new PublicFileManager();
+        $this->assertDirectoryDoesNotExist(
+            $publicFileManager->getContextFilesPath((int) $deployment->getContext()->getId())
+        );
     }
 
     public function testItCompensatesTheFirstFileWhenASecondFileCannotBeMoved(): void

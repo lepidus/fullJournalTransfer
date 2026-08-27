@@ -6,6 +6,7 @@ namespace APP\plugins\importexport\fullJournalTransfer;
 
 use APP\core\Application;
 use APP\facades\Repo;
+use APP\file\PublicFileManager;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
 use DOMDocument;
 use DOMElement;
@@ -18,6 +19,7 @@ use Throwable;
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
     private array $createdFiles = [];
+    private array $createdDirectories = [];
     private array $referenceMaps = [];
     private array $userConflicts = [];
     private ?int $currentReviewFormId = null;
@@ -68,17 +70,21 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function import($rootFilter, $importXml)
     {
         $this->createdFiles = [];
+        $this->createdDirectories = [];
         try {
             $this->runNativeImport($rootFilter, $importXml);
         } catch (Throwable $exception) {
             $this->compensateCreatedFiles();
+            $this->compensateCreatedDirectories();
             throw $exception;
         }
 
         if ($this->isProcessFailed()) {
             $this->compensateCreatedFiles();
+            $this->compensateCreatedDirectories();
         } else {
             $this->createdFiles = [];
+            $this->createdDirectories = [];
         }
     }
 
@@ -88,6 +94,14 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             throw new \InvalidArgumentException('A created file journal entry must use an absolute path');
         }
         $this->createdFiles[] = $path;
+    }
+
+    public function recordCreatedDirectory(string $path): void
+    {
+        if ($path === '' || $path[0] !== DIRECTORY_SEPARATOR) {
+            throw new \InvalidArgumentException('A created directory journal entry must use an absolute path');
+        }
+        $this->createdDirectories[] = $path;
     }
 
     public function exportContextData(): DOMDocument
@@ -400,6 +414,21 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             }
         }
         $this->createdFiles = [];
+    }
+
+    private function compensateCreatedDirectories(): void
+    {
+        $publicFileManager = new PublicFileManager();
+        foreach (array_reverse($this->createdDirectories) as $path) {
+            if (is_dir($path) && !$publicFileManager->rmtree($path)) {
+                $this->addError(
+                    \PKP\core\PKPApplication::ASSOC_TYPE_NONE,
+                    0,
+                    'Failed to compensate an imported directory'
+                );
+            }
+        }
+        $this->createdDirectories = [];
     }
 
     private function getRequiredChild(DOMElement $parent, string $name): DOMElement

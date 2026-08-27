@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\core\Application;
+use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
 use DOMElement;
@@ -13,6 +14,7 @@ use InvalidArgumentException;
 use JsonException;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
 use PKP\plugins\ThemePlugin;
+use RuntimeException;
 
 class NativeXmlJournalFilter extends NativeImportFilter
 {
@@ -114,6 +116,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
             $deployment = $this->getDeployment();
             $deployment->setContext($createdJournal);
+            $publicFileManager = new PublicFileManager();
+            $publicFilesPath = $publicFileManager->getContextFilesPath($contextId);
+            $publicFilesPathExisted = file_exists($publicFilesPath);
+            if (!$publicFileManager->mkdirtree($publicFilesPath) || !is_dir($publicFilesPath)) {
+                throw new RuntimeException('The imported context public files directory could not be created');
+            }
+            if (!$publicFilesPathExisted) {
+                $deployment->recordCreatedDirectory($publicFilesPath);
+            }
             $themeNode = $this->optionalChild($node, 'theme');
             if ($themeNode) {
                 $this->importThemeOptions($themeNode, $createdJournal);
