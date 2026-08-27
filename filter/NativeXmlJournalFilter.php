@@ -123,7 +123,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 throw new RuntimeException('The imported context public files directory could not be created');
             }
             if (!$publicFilesPathExisted) {
-                $deployment->recordCreatedDirectory($publicFilesPath);
+                $absolutePublicFilesPath = realpath($publicFilesPath);
+                if ($absolutePublicFilesPath === false) {
+                    throw new RuntimeException('The imported context public files directory could not be resolved');
+                }
+                $deployment->recordCreatedDirectory($absolutePublicFilesPath);
             }
             $themeNode = $this->optionalChild($node, 'theme');
             if ($themeNode) {
