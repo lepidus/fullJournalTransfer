@@ -110,6 +110,39 @@ class FullJournalPackageExporterTest extends TestCase
         }
     }
 
+    public function testItRejectsAnUnknownWorkflowUserBeforeCreatingThePackage(): void
+    {
+        $directory = sys_get_temp_dir() . '/full-journal-exporter-' . bin2hex(random_bytes(8));
+        $filesDirectory = $directory . '/files';
+        mkdir($filesDirectory, 0700, true);
+        $archivePath = $directory . '/journal.tar.gz';
+        $document = new DOMDocument('1.0', 'UTF-8');
+        $document->loadXML(
+            '<journal xmlns="http://pkp.sfu.ca"><users><user_groups/><users>'
+            . '<user source_ref="1"/></users></users><native_data><issue_orders/><issues/><articles>'
+            . '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
+            . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
+            . '<title locale="en">Article</title></publication></article>'
+            . '</articles></native_data><workflow_history><stage_assignments>'
+            . '<stage_assignment user_ref="2"/></stage_assignments></workflow_history></journal>'
+        );
+        $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
+
+        try {
+            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            $this->fail('The unknown workflow user was not rejected');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertSame('Unknown workflow user reference: 2', $exception->getMessage());
+            $this->assertFileDoesNotExist($archivePath);
+        } finally {
+            if (is_file($archivePath)) {
+                unlink($archivePath);
+            }
+            rmdir($filesDirectory);
+            rmdir($directory);
+        }
+    }
+
     private function runTar(array $arguments): string
     {
         $process = new Process(array_merge(['/bin/tar'], $arguments));

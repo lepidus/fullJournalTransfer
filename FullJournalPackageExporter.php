@@ -46,6 +46,7 @@ class FullJournalPackageExporter
             }
             $document = $deployment->exportContextData();
             $this->validateNativeData($document);
+            $this->validateUserReferences($document);
             $xml = $document->saveXML();
             if (!is_string($xml) || file_put_contents($journalPath, $xml) === false) {
                 throw new RuntimeException('The journal XML could not be written');
@@ -98,6 +99,15 @@ class FullJournalPackageExporter
             throw new InvalidArgumentException('Expected exactly one native data element');
         }
         (new NativeDataReferenceValidator())->validate($nativeDataRoot);
+    }
+
+    private function validateUserReferences(DOMDocument $document): void
+    {
+        $root = $document->documentElement;
+        if (!$root || $root->namespaceURI !== 'http://pkp.sfu.ca' || $root->localName !== 'journal') {
+            return;
+        }
+        (new JournalUserReferenceValidator())->validate($root);
     }
 
     private function createManifest(string $stagingPath, array $packageFiles): string

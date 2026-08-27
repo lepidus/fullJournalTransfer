@@ -143,6 +143,49 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         );
     }
 
+    public function testItExportsAWorkflowUserWithoutRestoringContextMembership(): void
+    {
+        $source = $this->createContext('historical-user-source');
+        $sourceSection = $this->createSection($source);
+        $sourceGroup = $this->createUserGroup($source, 'Historical Editors');
+        $user = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($user);
+        $this->assertFalse(Repo::userGroup()->userInGroup((int) $user->getId(), (int) $sourceGroup->getId()));
+        $this->setRequestContext($source);
+        $submission = $this->createSubmission($source, $sourceSection, 'Historical assignment');
+        DB::table('stage_assignments')->insert([
+            'submission_id' => $submission->getId(),
+            'user_group_id' => $sourceGroup->getId(),
+            'user_id' => $user->getId(),
+            'date_assigned' => '2024-02-03 04:05:06',
+            'recommend_only' => 0,
+            'can_change_metadata' => 0,
+        ]);
+
+        $deployment = new FullJournalImportExportDeployment($source, null);
+        $users = $deployment->exportUsers();
+        $workflow = $deployment->exportWorkflow();
+        $usersXpath = new \DOMXPath($users);
+        $usersXpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $workflowXpath = new \DOMXPath($workflow);
+        $workflowXpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $userReference = (string) $user->getId();
+
+        $this->assertSame(
+            $userReference,
+            $usersXpath->evaluate('string(//pkp:user[@source_ref="' . $userReference . '"]/@source_ref)')
+        );
+        $this->assertSame(
+            0,
+            $usersXpath->query('//pkp:user[@source_ref="' . $userReference . '"]/pkp:user_group_ref')->length
+        );
+        $this->assertSame(
+            $userReference,
+            $workflowXpath->evaluate('string(//pkp:stage_assignment/@user_ref)')
+        );
+        $this->assertFalse(Repo::userGroup()->userInGroup((int) $user->getId(), (int) $sourceGroup->getId()));
+    }
+
     public function testItRestoresReviewAssignmentsResponsesAndCommentsWithoutSideEffects(): void
     {
         Event::fake();
