@@ -9,6 +9,7 @@ use APP\facades\Repo;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
 use DOMDocument;
 use DOMElement;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\submissionFile\SubmissionFile;
@@ -113,10 +114,28 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function exportUsers(): DOMDocument
     {
         $filter = PKPImportExportFilter::getFilter('user=>full-journal-user-xml', $this);
-        $users = Repo::user()->getCollector()
+        $usersById = [];
+        $contextUsers = Repo::user()->getCollector()
             ->filterByContextIds([$this->getContext()->getId()])
-            ->getMany()
-            ->toArray();
+            ->getMany();
+        foreach ($contextUsers as $user) {
+            $usersById[(int) $user->getId()] = $user;
+        }
+        $workflowUserIds = $this->getWorkflowUserIds((int) $this->getContext()->getId());
+        if ($workflowUserIds !== []) {
+            $workflowUsers = Repo::user()->getCollector()
+                ->filterByUserIds($workflowUserIds)
+                ->getMany();
+            foreach ($workflowUsers as $user) {
+                $usersById[(int) $user->getId()] = $user;
+            }
+        }
+        $missingUserIds = array_diff($workflowUserIds, array_keys($usersById));
+        if ($missingUserIds !== []) {
+            throw new InvalidArgumentException('Workflow references a missing user: ' . reset($missingUserIds));
+        }
+        ksort($usersById, SORT_NUMERIC);
+        $users = array_values($usersById);
         $nativeDocument = $filter->execute($users);
         $document = new DOMDocument('1.0', 'UTF-8');
         $root = $document->createElementNS($this->getNamespace(), 'users');
@@ -127,6 +146,65 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             }
         }
         return $document;
+    }
+
+    private function getWorkflowUserIds(int $contextId): array
+    {
+        $userIds = [];
+        $queries = [
+            DB::table('stage_assignments as assignment')
+                ->join('submissions as submission', 'submission.submission_id', '=', 'assignment.submission_id')
+                ->where('submission.context_id', $contextId)
+                ->pluck('assignment.user_id'),
+            DB::table('review_assignments as assignment')
+                ->join('review_rounds as round', function ($join): void {
+                    $join->on('round.review_round_id', '=', 'assignment.review_round_id')
+                        ->on('round.submission_id', '=', 'assignment.submission_id');
+                })
+                ->join('submissions as submission', 'submission.submission_id', '=', 'round.submission_id')
+                ->where('submission.context_id', $contextId)
+                ->pluck('assignment.reviewer_id'),
+            DB::table('submission_comments as comment')
+                ->join('review_assignments as assignment', function ($join): void {
+                    $join->on('assignment.review_id', '=', 'comment.assoc_id')
+                        ->on('assignment.submission_id', '=', 'comment.submission_id');
+                })
+                ->join('review_rounds as round', function ($join): void {
+                    $join->on('round.review_round_id', '=', 'assignment.review_round_id')
+                        ->on('round.submission_id', '=', 'assignment.submission_id');
+                })
+                ->join('submissions as submission', 'submission.submission_id', '=', 'round.submission_id')
+                ->where('comment.comment_type', 1)
+                ->where('submission.context_id', $contextId)
+                ->pluck('comment.author_id'),
+            DB::table('query_participants as participant')
+                ->join('queries as discussion', 'discussion.query_id', '=', 'participant.query_id')
+                ->join('submissions as submission', 'submission.submission_id', '=', 'discussion.assoc_id')
+                ->where('discussion.assoc_type', Application::ASSOC_TYPE_SUBMISSION)
+                ->where('submission.context_id', $contextId)
+                ->pluck('participant.user_id'),
+            DB::table('notes as note')
+                ->join('queries as discussion', 'discussion.query_id', '=', 'note.assoc_id')
+                ->join('submissions as submission', 'submission.submission_id', '=', 'discussion.assoc_id')
+                ->where('note.assoc_type', Application::ASSOC_TYPE_QUERY)
+                ->where('discussion.assoc_type', Application::ASSOC_TYPE_SUBMISSION)
+                ->where('submission.context_id', $contextId)
+                ->pluck('note.user_id'),
+            DB::table('edit_decisions as decision')
+                ->join('submissions as submission', 'submission.submission_id', '=', 'decision.submission_id')
+                ->where('submission.context_id', $contextId)
+                ->pluck('decision.editor_id'),
+        ];
+        foreach ($queries as $queryUserIds) {
+            foreach ($queryUserIds as $userId) {
+                if ((int) $userId > 0) {
+                    $userIds[(int) $userId] = true;
+                }
+            }
+        }
+        $userIds = array_keys($userIds);
+        sort($userIds, SORT_NUMERIC);
+        return $userIds;
     }
 
     public function importUsers(DOMElement $usersNode): array
