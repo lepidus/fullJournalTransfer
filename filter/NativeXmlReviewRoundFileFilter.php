@@ -43,12 +43,14 @@ class NativeXmlReviewRoundFileFilter extends NativeImportFilter
         ) {
             throw new InvalidArgumentException('Review round file does not belong to the review submission');
         }
-        DB::table('review_round_files')->insert([
-            'submission_id' => $submissionId,
-            'review_round_id' => $reviewRoundId,
-            'stage_id' => $this->integer($node, 'stage_id'),
-            'submission_file_id' => $submissionFileId,
-        ]);
+        DB::table('review_round_files')->updateOrInsert(
+            [
+                'submission_id' => $submissionId,
+                'review_round_id' => $reviewRoundId,
+                'submission_file_id' => $submissionFileId,
+            ],
+            ['stage_id' => $this->integer($node, 'stage_id')]
+        );
         return Repo::submissionFile()->get($submissionFileId);
     }
 

@@ -177,7 +177,7 @@ class ArchiveManagerTest extends TestCase
     {
         return '<?xml version="1.0" encoding="UTF-8"?>'
             . '<full_journal_package application="ojs" application_version="' . self::RELEASE . '" '
-            . 'format_version="1.0" created_at="2026-08-10T16:00:00-04:00">'
+            . 'format_version="1.1" created_at="2026-08-10T16:00:00-04:00">'
             . '<capabilities><capability name="journal"/></capabilities>'
             . '<files><file path="journal.xml" size="10" checksum="' . $checksum . '"/></files>'
             . '</full_journal_package>';

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\db\DAORegistry;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
-use PKP\plugins\importexport\PKPImportExportFilter;
 
 class NativeXmlReviewRoundFilter extends NativeImportFilter
 {
@@ -40,22 +39,6 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
             'status' => $this->nonNegativeInteger($node, 'status'),
         ], 'review_round_id');
         $deployment->mapReference('review_round', $sourceReference, (int) $id);
-        $assignments = $this->assignmentsDocument($node);
-        if ($assignments) {
-            $filter = PKPImportExportFilter::getFilter(
-                'full-journal-workflow-xml=>review-assignment',
-                $deployment
-            );
-            $filter->execute($assignments);
-        }
-        $files = $this->childrenDocument($node, 'review_round_file', 'review_round_files');
-        if ($files) {
-            $filter = PKPImportExportFilter::getFilter(
-                'full-journal-workflow-xml=>review-round-file',
-                $deployment
-            );
-            $filter->execute($files);
-        }
         return DAORegistry::getDAO('ReviewRoundDAO')->getById((int) $id);
     }
 
@@ -86,24 +69,4 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
         return $value;
     }
 
-    private function assignmentsDocument($node): ?\DOMDocument
-    {
-        return $this->childrenDocument($node, 'review_assignment', 'review_assignments');
-    }
-
-    private function childrenDocument($node, string $element, string $container): ?\DOMDocument
-    {
-        $document = new \DOMDocument('1.0', 'UTF-8');
-        $root = $document->createElementNS('http://pkp.sfu.ca', $container);
-        foreach ($node->childNodes as $child) {
-            if ($child instanceof \DOMElement && $child->localName === $element) {
-                $root->appendChild($document->importNode($child, true));
-            }
-        }
-        if (!$root->hasChildNodes()) {
-            return null;
-        }
-        $document->appendChild($root);
-        return $document;
-    }
 }
