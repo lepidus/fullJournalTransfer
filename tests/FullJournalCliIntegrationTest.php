@@ -41,10 +41,17 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $context = $this->createContext();
         $archive = $this->archivePath();
         $arguments = ['export', $archive, $context->getPath()];
+        $plugin = new CliTestPlugin();
 
-        $result = (new CliTestPlugin())->executeCLI('tools/importExport.php', $arguments);
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
 
         $this->assertTrue($result);
+        $this->assertSame([
+            'Exporting journal data...',
+            'Copying journal files...',
+            'Creating journal archive...',
+            'Journal export completed',
+        ], $plugin->cliOutput);
         $this->assertFileExists($archive);
         $process = new Process(['/bin/tar', '-tzf', $archive]);
         $process->mustRun();
@@ -134,7 +141,26 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $result = $plugin->executeCLI('tools/importExport.php', $arguments);
 
         $this->assertFalse($result);
+        $this->assertSame(['Validating journal package...'], $plugin->cliOutput);
         $this->assertSame(['The package archive must be a regular file'], $plugin->cliErrors);
+    }
+
+    public function testItReportsRelevantImportProgress(): void
+    {
+        $user = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($user);
+        $arguments = ['import', $this->archivePath(), $user->getUsername()];
+        $plugin = new SuccessfulImportCliTestPlugin();
+
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
+
+        $this->assertTrue($result);
+        $this->assertSame([
+            'Validating journal package...',
+            'Extracting journal package...',
+            'Importing journal data...',
+            'Journal import completed',
+        ], $plugin->cliOutput);
     }
 
     private function createContext(): Journal
@@ -181,6 +207,7 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
 class CliTestPlugin extends FullJournalImportExportPlugin
 {
     public array $cliErrors = [];
+    public array $cliOutput = [];
 
     public function usage($scriptName)
     {
@@ -196,6 +223,11 @@ class CliTestPlugin extends FullJournalImportExportPlugin
     {
         $this->cliErrors[] = $message;
     }
+
+    protected function writeCLIOutput(string $message): void
+    {
+        $this->cliOutput[] = $message;
+    }
 }
 
 class CliExportDeployment extends FullJournalImportExportDeployment
@@ -205,5 +237,31 @@ class CliExportDeployment extends FullJournalImportExportDeployment
         $document = new DOMDocument('1.0', 'UTF-8');
         $document->loadXML('<journal/>');
         return $document;
+    }
+}
+
+class SuccessfulImportCliTestPlugin extends CliTestPlugin
+{
+    public function getAppSpecificDeployment($context, $user)
+    {
+        return new SuccessfulImportDeployment($context, $user);
+    }
+}
+
+class SuccessfulImportDeployment extends FullJournalImportExportDeployment
+{
+    public function importPackage(
+        string $archivePath,
+        string $applicationVersion,
+        string $rootFilter,
+        ?\APP\plugins\importexport\fullJournalTransfer\ArchiveManager $archiveManager = null,
+        ?callable $progress = null
+    ): bool {
+        if ($progress) {
+            $progress('Validating journal package...');
+            $progress('Extracting journal package...');
+            $progress('Importing journal data...');
+        }
+        return true;
     }
 }

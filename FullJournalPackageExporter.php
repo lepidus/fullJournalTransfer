@@ -22,8 +22,11 @@ class FullJournalPackageExporter
         $this->applicationVersion = $applicationVersion;
     }
 
-    public function export(FullJournalImportExportDeployment $deployment, string $archivePath): void
-    {
+    public function export(
+        FullJournalImportExportDeployment $deployment,
+        string $archivePath,
+        ?callable $progress = null
+    ): void {
         $outputDirectory = realpath(dirname($archivePath));
         if ($outputDirectory === false || !is_writable($outputDirectory)) {
             throw new InvalidArgumentException('The export directory is not writable');
@@ -38,13 +41,22 @@ class FullJournalPackageExporter
         $completed = false;
 
         try {
+            if ($progress) {
+                $progress('Exporting journal data...');
+            }
             $document = $deployment->exportContextData();
             $this->validateNativeData($document);
             $xml = $document->saveXML();
             if (!is_string($xml) || file_put_contents($journalPath, $xml) === false) {
                 throw new RuntimeException('The journal XML could not be written');
             }
+            if ($progress) {
+                $progress('Copying journal files...');
+            }
             $packageFiles = array_merge(['journal.xml'], $this->stageReferencedFiles($document, $stagingPath));
+            if ($progress) {
+                $progress('Creating journal archive...');
+            }
             if (file_put_contents($manifestPath, $this->createManifest($stagingPath, $packageFiles)) === false) {
                 throw new RuntimeException('The package manifest could not be written');
             }

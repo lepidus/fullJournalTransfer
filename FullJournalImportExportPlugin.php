@@ -76,8 +76,10 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
                 (string) Config::getVar('files', 'files_dir'),
                 Application::get()->getCurrentVersion()->getVersionString()
             );
-            $exporter->export($deployment, $archivePath);
-            fwrite(STDOUT, "Journal export completed\n");
+            $exporter->export($deployment, $archivePath, function (string $message): void {
+                $this->writeCLIOutput($message);
+            });
+            $this->writeCLIOutput('Journal export completed');
             return true;
         }
 
@@ -87,14 +89,22 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
         }
         $deployment = $this->getAppSpecificDeployment(Application::get()->getContextDAO()->newDataObject(), $user);
         $version = Application::get()->getCurrentVersion()->getVersionString();
-        if (!$deployment->importPackage($archivePath, $version, 'full-journal-xml=>journal')) {
+        $progress = function (string $message): void {
+            $this->writeCLIOutput($message);
+        };
+        if (!$deployment->importPackage($archivePath, $version, 'full-journal-xml=>journal', null, $progress)) {
             $problems = json_encode($deployment->getWarningsAndErrors(), JSON_UNESCAPED_SLASHES);
             throw new RuntimeException(
                 'The journal package could not be imported: ' . (is_string($problems) ? $problems : 'unknown error')
             );
         }
-        fwrite(STDOUT, "Journal import completed\n");
+        $this->writeCLIOutput('Journal import completed');
         return true;
+    }
+
+    protected function writeCLIOutput(string $message): void
+    {
+        fwrite(STDOUT, $message . PHP_EOL);
     }
 
     protected function exitWithCLIError(string $message): void

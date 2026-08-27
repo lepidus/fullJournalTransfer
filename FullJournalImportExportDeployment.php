@@ -26,14 +26,15 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         string $archivePath,
         string $applicationVersion,
         string $rootFilter,
-        ?ArchiveManager $archiveManager = null
+        ?ArchiveManager $archiveManager = null,
+        ?callable $progress = null
     ): bool {
         $archiveManager = $archiveManager ?? new ArchiveManager();
 
         return $archiveManager->withExtractedPackage(
             $archivePath,
             $applicationVersion,
-            function (string $stagingPath) use ($rootFilter): bool {
+            function (string $stagingPath) use ($rootFilter, $progress): bool {
                 $journalXml = file_get_contents($stagingPath . DIRECTORY_SEPARATOR . 'journal.xml');
                 if ($journalXml === false) {
                     throw new \RuntimeException('The journal XML could not be read');
@@ -41,12 +42,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
                 $this->setImportPath($stagingPath);
                 try {
+                    if ($progress) {
+                        $progress('Importing journal data...');
+                    }
                     $this->import($rootFilter, $journalXml);
                     return !$this->isProcessFailed();
                 } finally {
                     $this->setImportPath('');
                 }
-            }
+            },
+            $progress
         );
     }
 

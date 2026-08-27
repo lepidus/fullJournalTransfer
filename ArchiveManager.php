@@ -19,10 +19,20 @@ class ArchiveManager
     private const MAX_EXTRACTED_SIZE = 10737418240;
     private const MAX_ENTRIES = 100000;
 
-    public function withExtractedPackage(string $archivePath, string $applicationVersion, callable $importer)
-    {
+    public function withExtractedPackage(
+        string $archivePath,
+        string $applicationVersion,
+        callable $importer,
+        ?callable $progress = null
+    ) {
+        if ($progress) {
+            $progress('Validating journal package...');
+        }
         $archive = $this->openAndValidateArchive($archivePath);
         [$manifest, $entries] = $this->validateContents($archive, $archivePath, $applicationVersion);
+        if ($progress) {
+            $progress('Extracting journal package...');
+        }
         $stagingPath = $this->createStagingDirectory();
 
         try {

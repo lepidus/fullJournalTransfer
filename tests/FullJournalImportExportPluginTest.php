@@ -191,8 +191,12 @@ class ValidatedStagingArchiveManager extends ArchiveManager
         $this->stagingPath = $stagingPath;
     }
 
-    public function withExtractedPackage(string $archivePath, string $applicationVersion, callable $importer)
-    {
+    public function withExtractedPackage(
+        string $archivePath,
+        string $applicationVersion,
+        callable $importer,
+        ?callable $progress = null
+    ) {
         return $importer($this->stagingPath);
     }
 }
