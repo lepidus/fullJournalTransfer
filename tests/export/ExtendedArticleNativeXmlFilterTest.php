@@ -67,6 +67,28 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('UserDAO', $mockDAO);
     }
 
+    private function registerMockUsersById($emailsById)
+    {
+        $mockDAO = $this->getMockBuilder(UserDAO::class)
+            ->setMethods(['getById'])
+            ->getMock();
+
+        $usersById = [];
+        foreach ($emailsById as $userId => $email) {
+            $user = $mockDAO->newDataObject();
+            $user->setEmail($email);
+            $usersById[$userId] = $user;
+        }
+
+        $mockDAO->expects($this->any())
+            ->method('getById')
+            ->will($this->returnCallback(function ($userId) use ($usersById) {
+                return isset($usersById[$userId]) ? $usersById[$userId] : null;
+            }));
+
+        DAORegistry::registerDAO('UserDAO', $mockDAO);
+    }
+
     private function registerMockUserGroupDAO($userGroupName)
     {
         $mockDAO = $this->getMockBuilder(UserGroupDAO::class)
@@ -133,7 +155,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
         DAORegistry::registerDAO('EditDecisionDAO', $mockDAO);
     }
 
-    private function registerMockQueryDAO($query)
+    private function registerMockQueryDAO($query, $participantIds = [123])
     {
         $mockDAO = $this->getMockBuilder(QueryDAO::class)
             ->setMethods(['getByAssoc', 'getParticipantIds'])
@@ -154,7 +176,7 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $mockDAO->expects($this->any())
             ->method('getParticipantIds')
-            ->will($this->returnValue([123]));
+            ->will($this->returnValue($participantIds));
 
         DAORegistry::registerDAO('QueryDAO', $mockDAO);
     }
@@ -523,6 +545,59 @@ class ExtendedArticleNativeXmlFilterTest extends NativeImportExportFilterTestCas
 
         $submissionFileDAO->deleteById($submissionFileId);
         $submissionDAO->deleteById($submissionId);
+
+        $this->assertXmlStringEqualsXmlString(
+            $this->doc->saveXML($expectedStageNode),
+            $this->doc->saveXML($stageNode),
+            "actual xml is equal to expected xml"
+        );
+    }
+
+    public function testSkippingQueryWithOnlyMissingParticipants()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $submission = new Submission();
+        $query = new Query();
+        $query->setSequence(1);
+        $query->setIsClosed(false);
+
+        $this->registerMockUsersById([]);
+        $this->registerMockQueryDAO($query, [123]);
+
+        $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $articleExportFilter->addQueries($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
+
+        $this->assertFalse($stageNode->hasChildNodes());
+    }
+
+    public function testAddingQueryWithExistingAndMissingParticipants()
+    {
+        $articleExportFilter = $this->getNativeImportExportFilter();
+        $deployment = $articleExportFilter->getDeployment();
+
+        $submission = new Submission();
+        $query = new Query();
+        $query->setSequence(1);
+        $query->setIsClosed(false);
+
+        $this->registerMockUsersById([123 => 'editor@email.com']);
+        $this->registerMockQueryDAO($query, [123, 456]);
+        $this->registerMockNoteDAO(null);
+
+        $expectedStageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $queriesNode = $this->doc->createElementNS($deployment->getNamespace(), 'queries');
+        $queryNode = $this->doc->createElementNS($deployment->getNamespace(), 'query');
+        $queryNode->setAttribute('seq', $query->getSequence());
+        $queryNode->setAttribute('closed', (int) $query->getIsClosed());
+        $queryNode->appendChild($this->createQueryParticipantsNode($deployment, ['editor@email.com']));
+        $queryNode->appendChild($this->createQueryRepliesNode($deployment, [], null));
+        $queriesNode->appendChild($queryNode);
+        $expectedStageNode->appendChild($queriesNode);
+
+        $stageNode = $this->doc->createElementNS($deployment->getNamespace(), 'stage');
+        $articleExportFilter->addQueries($this->doc, $stageNode, $submission, WORKFLOW_STAGE_ID_SUBMISSION);
 
         $this->assertXmlStringEqualsXmlString(
             $this->doc->saveXML($expectedStageNode),
