@@ -76,6 +76,7 @@ Some expected behaviors when importing the journal:
 - Journal data
 - Author preferred public names and competing interests
 - Submission historical dates and issue publication timestamps
+- Incomplete submission wizard progress
 - Selected theme and theme options
 - Navigation Menus
 - Plugins Configs

@@ -76,6 +76,7 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - Dados do Periódico
 - Nomes públicos preferenciais e conflitos de interesse dos autores
 - Datas históricas das submissões e horários de publicação das edições
+- Progresso das submissões incompletas no assistente
 - Tema selecionado e opções do tema
 - Menus de Navegação
 - Configurações de Plugins

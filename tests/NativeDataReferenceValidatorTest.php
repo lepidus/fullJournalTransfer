@@ -139,6 +139,26 @@ class NativeDataReferenceValidatorTest extends TestCase
         );
     }
 
+    public function testItRejectsMissingSubmissionProgress(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing submission progress');
+        $article = str_replace(' submission_progress=""', '', $this->articleWithAuthor());
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', $this->issue(), $article)
+        );
+    }
+
+    public function testItRejectsInvalidSubmissionProgress(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid submission progress');
+        $article = str_replace('submission_progress=""', 'submission_progress="unknown"', $this->articleWithAuthor());
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', $this->issue(), $article)
+        );
+    }
+
     private function nativeData(
         string $orders,
         string $issues,
@@ -168,7 +188,8 @@ class NativeDataReferenceValidatorTest extends TestCase
 
     private function article(string $source): string
     {
-        return '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
+        return '<article current_publication_id="20" stage="submission" submission_progress="">'
+            . '<id type="internal">10</id>'
             . '<submission_file id="30" stage="submission"><name locale="en">File</name>'
             . '<file id="40"><href src="' . $source . '"/></file></submission_file>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
@@ -177,7 +198,8 @@ class NativeDataReferenceValidatorTest extends TestCase
 
     private function articleWithAuthor(): string
     {
-        return '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
+        return '<article current_publication_id="20" stage="submission" submission_progress="">'
+            . '<id type="internal">10</id>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
             . '<title locale="en">Article</title><authors><author user_group_ref="Author" seq="1" id="50">'
             . '<givenname locale="en">Ada</givenname><email>ada@example.com</email></author></authors>'

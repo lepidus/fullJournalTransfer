@@ -327,6 +327,46 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->assertSame($issueDatePublished, $importedIssue->getDatePublished());
     }
 
+    public function testItTransfersIncompleteAndCompletedSubmissionProgress(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('submission-progress-source');
+        $destination = $this->createContext('submission-progress-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $incomplete = $this->createSubmission($source, $sourceSection, 'Incomplete submission', null);
+        $incomplete->setData('submissionProgress', 'details');
+        Repo::submission()->dao->update($incomplete);
+        $completed = $this->createSubmission($source, $sourceSection, 'Completed submission', null);
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $this->assertSame('details', $xpath->evaluate(
+            'string(//pkp:article[pkp:id[@type="internal" and text()="' . $incomplete->getId()
+            . '"]]/@submission_progress)'
+        ));
+        $this->assertSame('', $xpath->evaluate(
+            'string(//pkp:article[pkp:id[@type="internal" and text()="' . $completed->getId()
+            . '"]]/@submission_progress)'
+        ));
+
+        $this->setRequestContext($destination);
+        $maps = (new FullJournalImportExportDeployment($destination, null))->importNativeData(
+            $document->documentElement
+        );
+        $importedIncomplete = Repo::submission()->get(
+            $maps['submission_id_map'][(string) $incomplete->getId()]
+        );
+        $importedCompleted = Repo::submission()->get(
+            $maps['submission_id_map'][(string) $completed->getId()]
+        );
+        $this->assertSame('details', $importedIncomplete->getData('submissionProgress'));
+        $this->assertSame('', $importedCompleted->getData('submissionProgress'));
+    }
+
     public function testItRejectsAPublicationWithoutALocalizedTitle(): void
     {
         $source = $this->createContext('invalid-publication-source');

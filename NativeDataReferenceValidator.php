@@ -11,6 +11,16 @@ use PKP\core\Core;
 
 class NativeDataReferenceValidator
 {
+    private const SUBMISSION_PROGRESS_VALUES = [
+        '',
+        'start',
+        'details',
+        'files',
+        'contributors',
+        'editors',
+        'review',
+    ];
+
     public function validate(DOMElement $root): void
     {
         if ($root->localName !== 'native_data') {
@@ -115,6 +125,12 @@ class NativeDataReferenceValidator
         array &$authorReferences
     ): void {
         foreach ($this->children($articles, 'article') as $article) {
+            if (!$article->hasAttribute('submission_progress')) {
+                throw new InvalidArgumentException('Missing submission progress');
+            }
+            if (!in_array($article->getAttribute('submission_progress'), self::SUBMISSION_PROGRESS_VALUES, true)) {
+                throw new InvalidArgumentException('Invalid submission progress');
+            }
             $this->addUnique(
                 $submissionReferences,
                 $this->internalId($article, 'submission'),

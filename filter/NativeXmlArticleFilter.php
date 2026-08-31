@@ -11,6 +11,13 @@ use PKP\plugins\importexport\PKPImportExportFilter;
 
 class NativeXmlArticleFilter extends \APP\plugins\importexport\native\filter\NativeXmlArticleFilter
 {
+    public function populateObject($submission, $node)
+    {
+        $submission = parent::populateObject($submission, $node);
+        $submission->setData('submissionProgress', $node->getAttribute('submission_progress'));
+        return $submission;
+    }
+
     public function handleElement($node)
     {
         $sourceReference = $this->internalId($node);

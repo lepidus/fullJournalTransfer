@@ -89,7 +89,8 @@ class FullJournalPackageExporterTest extends TestCase
         $document = new DOMDocument('1.0', 'UTF-8');
         $document->loadXML(
             '<journal xmlns="http://pkp.sfu.ca"><native_data><issue_orders/><issues/><articles>'
-            . '<article current_publication_id="21" stage="submission"><id type="internal">10</id>'
+            . '<article current_publication_id="21" stage="submission" submission_progress="">'
+            . '<id type="internal">10</id>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
             . '<title locale="en">Article</title></publication></article>'
             . '</articles><author_metadata/><historical_dates><issues/><submissions>'
@@ -122,7 +123,8 @@ class FullJournalPackageExporterTest extends TestCase
         $document->loadXML(
             '<journal xmlns="http://pkp.sfu.ca"><users><user_groups/><users>'
             . '<user source_ref="1"/></users></users><native_data><issue_orders/><issues/><articles>'
-            . '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
+            . '<article current_publication_id="20" stage="submission" submission_progress="">'
+            . '<id type="internal">10</id>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
             . '<title locale="en">Article</title></publication></article>'
             . '</articles><author_metadata/><historical_dates><issues/><submissions>'
