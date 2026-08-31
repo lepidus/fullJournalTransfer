@@ -153,6 +153,68 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->assertSame('Unassigned article', $unassignedImported->getCurrentPublication()->getData('title', 'en'));
     }
 
+    public function testItTransfersPublicationTitlesWithoutMergingPrefixes(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('prefixed-title-source', ['en', 'pt_BR']);
+        $destination = $this->createContext('prefixed-title-destination', ['en', 'pt_BR']);
+        $section = $this->createSection($source);
+        $this->createSection($destination);
+        $submission = $this->createSubmission($source, $section, 'Temporary title', null);
+        $publication = $submission->getCurrentPublication();
+        $titles = [
+            'en' => '<em>Example &amp; evidence</em>',
+            'pt_BR' => 'Exemplo',
+        ];
+        $prefixes = [
+            'en' => '"O',
+            'pt_BR' => 'O',
+        ];
+        $subtitles = [
+            'en' => 'A <strong>study</strong>',
+            'pt_BR' => 'Um estudo',
+        ];
+        $publication->setData('title', $titles);
+        $publication->setData('prefix', $prefixes);
+        $publication->setData('subtitle', $subtitles);
+        Repo::publication()->dao->update($publication);
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        foreach ($titles as $locale => $title) {
+            $titleNodes = $xpath->query('//pkp:publication/pkp:title[@locale="' . $locale . '"]');
+            $this->assertSame(1, $titleNodes->length);
+            $this->assertSame($title, $titleNodes->item(0)->textContent);
+        }
+        foreach ($prefixes as $locale => $prefix) {
+            $prefixNodes = $xpath->query('//pkp:publication/pkp:prefix[@locale="' . $locale . '"]');
+            $this->assertSame(1, $prefixNodes->length);
+            $this->assertSame($prefix, $prefixNodes->item(0)->textContent);
+        }
+        $this->assertSame($titles, $publication->getData('title'));
+        $this->assertSame($prefixes, $publication->getData('prefix'));
+
+        $this->setRequestContext($destination);
+        $maps = (new FullJournalImportExportDeployment($destination, null))->importNativeData(
+            $document->documentElement
+        );
+        $imported = Repo::publication()->get(
+            $maps['publication_id_map'][(string) $publication->getId()]
+        );
+        foreach ($titles as $locale => $title) {
+            $this->assertSame($title, $imported->getData('title', $locale));
+        }
+        foreach ($prefixes as $locale => $prefix) {
+            $this->assertSame($prefix, $imported->getData('prefix', $locale));
+        }
+        foreach ($subtitles as $locale => $subtitle) {
+            $this->assertSame($subtitle, $imported->getData('subtitle', $locale));
+        }
+    }
+
     public function testItRejectsAPublicationWithoutALocalizedTitle(): void
     {
         $source = $this->createContext('invalid-publication-source');
@@ -383,7 +445,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         );
     }
 
-    private function createContext(string $label): Journal
+    private function createContext(string $label, array $locales = ['en']): Journal
     {
         $context = Application::get()->getContextDAO()->newDataObject();
         $context->setPath(
@@ -393,10 +455,10 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $context->setPrimaryLocale('en');
         $context->setEnabled(false);
         $context->setSequence(1);
-        $context->setData('supportedLocales', ['en']);
-        $context->setData('supportedFormLocales', ['en']);
-        $context->setData('supportedSubmissionLocales', ['en']);
-        $context->setData('name', ['en' => 'Native Data Test Journal']);
+        $context->setData('supportedLocales', $locales);
+        $context->setData('supportedFormLocales', $locales);
+        $context->setData('supportedSubmissionLocales', $locales);
+        $context->setData('name', array_fill_keys($locales, 'Native Data Test Journal'));
         $context->setData('contactName', 'Editorial Team');
         $context->setData('contactEmail', 'editor@example.com');
         Application::get()->getContextDAO()->insertObject($context);

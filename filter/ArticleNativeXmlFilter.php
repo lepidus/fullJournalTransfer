@@ -33,6 +33,7 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
                 $deployment->setIssue($issue);
             }
             if ($publicationDocument && $publicationDocument->documentElement instanceof DOMElement) {
+                $this->replaceSerializedPublicationTitlesWithRawValues($publicationDocument, $publication);
                 $submissionNode->appendChild($document->importNode($publicationDocument->documentElement, true));
                 continue;
             }
@@ -59,6 +60,30 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
             $publication->getId(),
             $submission->getId()
         ));
+    }
+
+    private function replaceSerializedPublicationTitlesWithRawValues(
+        DOMDocument $document,
+        Publication $publication
+    ): void {
+        $titles = $publication->getData('title');
+        foreach ($document->documentElement->childNodes as $node) {
+            if (!$node instanceof DOMElement || $node->localName !== 'title') {
+                continue;
+            }
+            $locale = $node->getAttribute('locale');
+            if (!is_array($titles) || !isset($titles[$locale]) || !is_string($titles[$locale])) {
+                throw new RuntimeException(sprintf(
+                    'Publication %d has no raw title for locale %s',
+                    $publication->getId(),
+                    $locale
+                ));
+            }
+            while ($node->firstChild) {
+                $node->removeChild($node->firstChild);
+            }
+            $node->appendChild($document->createTextNode($titles[$locale]));
+        }
     }
 
     public function addFiles(DOMDocument $document, DOMElement $submissionNode, Submission $submission): void
