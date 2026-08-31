@@ -215,6 +215,67 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         }
     }
 
+    public function testItTransfersEssentialLocalizedAuthorMetadata(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('author-metadata-source', ['en', 'pt_BR']);
+        $destination = $this->createContext('author-metadata-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $groupName = 'Author Metadata ' . bin2hex(random_bytes(4));
+        $sourceGroup = $this->createUserGroup($source, $groupName);
+        $this->createUserGroup($destination, $groupName);
+        $submission = $this->createSubmission($source, $sourceSection, 'Author metadata', null);
+        $publication = $submission->getCurrentPublication();
+        $author = Repo::author()->newDataObject();
+        $author->setData('publicationId', $publication->getId());
+        $author->setData('userGroupId', $sourceGroup->getId());
+        $author->setData('givenName', ['en' => 'Ada', 'pt_BR' => 'Ada']);
+        $author->setData('familyName', ['en' => 'Lovelace', 'pt_BR' => 'Lovelace']);
+        $author->setData('preferredPublicName', ['en' => 'Ada L.', 'pt_BR' => 'Ada Lovelace']);
+        $author->setData('competingInterests', [
+            'en' => 'Consultant for <em>Analytical Engines</em>',
+            'pt_BR' => 'Consultora da Analytical Engines',
+        ]);
+        $author->setData('email', 'ada-metadata@example.com');
+        $author->setData('seq', 1);
+        $author->setData('includeInBrowse', true);
+        $authorId = Repo::author()->add($author);
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $metadataPath = '//pkp:author_metadata/pkp:author[@author_ref="' . $authorId . '"]';
+        $this->assertSame(1, $xpath->query($metadataPath)->length);
+        $this->assertSame(
+            'Ada L.',
+            $xpath->query($metadataPath . '/pkp:preferred_public_name[@locale="en"]')->item(0)->textContent
+        );
+        $this->assertSame(
+            'Consultant for <em>Analytical Engines</em>',
+            $xpath->query($metadataPath . '/pkp:competing_interests[@locale="en"]')->item(0)->textContent
+        );
+        $this->assertSame(
+            'Ada Lovelace',
+            $xpath->query($metadataPath . '/pkp:preferred_public_name[@locale="pt_BR"]')->item(0)->textContent
+        );
+
+        $this->setRequestContext($destination);
+        $maps = (new FullJournalImportExportDeployment($destination, null))->importNativeData(
+            $document->documentElement
+        );
+        $imported = Repo::author()->get($maps['author_id_map'][(string) $authorId]);
+        $this->assertSame('Ada L.', $imported->getData('preferredPublicName', 'en'));
+        $this->assertSame(
+            'Consultant for <em>Analytical Engines</em>',
+            $imported->getData('competingInterests', 'en')
+        );
+        $this->assertNull($imported->getData('preferredPublicName', 'pt_BR'));
+        $this->assertNull($imported->getData('competingInterests', 'pt_BR'));
+    }
+
     public function testItRejectsAPublicationWithoutALocalizedTitle(): void
     {
         $source = $this->createContext('invalid-publication-source');

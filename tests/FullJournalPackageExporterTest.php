@@ -92,7 +92,7 @@ class FullJournalPackageExporterTest extends TestCase
             . '<article current_publication_id="21" stage="submission"><id type="internal">10</id>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
             . '<title locale="en">Article</title></publication></article>'
-            . '</articles></native_data></journal>'
+            . '</articles><author_metadata/></native_data></journal>'
         );
         $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
 
@@ -124,7 +124,7 @@ class FullJournalPackageExporterTest extends TestCase
             . '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
             . '<title locale="en">Article</title></publication></article>'
-            . '</articles></native_data><workflow_history><stage_assignments>'
+            . '</articles><author_metadata/></native_data><workflow_history><stage_assignments>'
             . '<stage_assignment user_ref="2"/></stage_assignments></workflow_history></journal>'
         );
         $deployment = new ExportDocumentDeployment(new Journal(), null, $document);

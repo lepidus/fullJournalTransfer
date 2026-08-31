@@ -76,6 +76,7 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             foreach ((array) $deployment->getAuthorDBIds() as $sourceId => $destinationId) {
                 $deployment->mapReference('author', (string) $sourceId, (int) $destinationId);
             }
+            $this->importAuthorMetadata($this->requiredChild($root, 'author_metadata'));
             foreach ((array) $deployment->getSubmissionFileDBIds() as $sourceId => $destinationId) {
                 $deployment->mapReference('submission_file', (string) $sourceId, (int) $destinationId);
             }
@@ -84,6 +85,34 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             }
             return $deployment->getContext();
         });
+    }
+
+    private function importAuthorMetadata(DOMElement $metadataNode): void
+    {
+        $deployment = $this->getDeployment();
+        $supportedLocales = $deployment->getContext()->getSupportedSubmissionLocales();
+        foreach ($this->children($metadataNode, 'author') as $authorNode) {
+            $sourceId = trim($authorNode->getAttribute('author_ref'));
+            $author = Repo::author()->get($deployment->requireReference('author', $sourceId));
+            if (!$author) {
+                throw new InvalidArgumentException('Mapped author does not exist: ' . $sourceId);
+            }
+            $properties = [];
+            foreach ([
+                'preferred_public_name' => 'preferredPublicName',
+                'competing_interests' => 'competingInterests',
+            ] as $elementName => $property) {
+                foreach ($this->children($authorNode, $elementName) as $valueNode) {
+                    $locale = $valueNode->getAttribute('locale');
+                    if (in_array($locale, $supportedLocales, true)) {
+                        $properties[$property][$locale] = $valueNode->textContent;
+                    }
+                }
+            }
+            if ($properties !== []) {
+                Repo::author()->edit($author, $properties);
+            }
+        }
     }
 
     private function requiredChild(DOMElement $parent, string $name): DOMElement

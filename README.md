@@ -55,6 +55,7 @@ Some expected behaviors when importing the journal:
 - All database IDs will be modified, invalidating external references.
 - The imported journal is initially disabled.
 - A second import of the same journal path is rejected without duplicating content.
+- Export archives contain author competing interests and must be handled as sensitive data.
 - The selected theme and its declared options are transferred when the theme plugin code is installed in the
   destination OJS. When it is unavailable, the imported journal uses the default theme with its default options.
 - Institutional metrics require a valid ROR identifier; records without a stable ROR are rejected.
@@ -70,6 +71,7 @@ Some expected behaviors when importing the journal:
 **Added**:
 
 - Journal data
+- Author preferred public names and competing interests
 - Selected theme and theme options
 - Navigation Menus
 - Plugins Configs

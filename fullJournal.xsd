@@ -104,6 +104,7 @@
             <element name="issue_orders" type="pkp:issue_orders" />
             <element name="issues" type="pkp:open_data" />
             <element name="articles" type="pkp:open_data" />
+            <element name="author_metadata" type="pkp:author_metadata" />
         </sequence>
     </complexType>
 
@@ -116,6 +117,24 @@
     <complexType name="issue_order">
         <attribute name="issue_ref" type="string" use="required" />
         <attribute name="position" type="positiveInteger" use="required" />
+    </complexType>
+
+    <complexType name="author_metadata">
+        <sequence>
+            <element name="author" type="pkp:author_metadata_entry" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="author_metadata_entry">
+        <sequence>
+            <element name="preferred_public_name" type="pkp:localized_author_metadata" minOccurs="0" maxOccurs="unbounded" />
+            <element name="competing_interests" type="pkp:localized_author_metadata" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+        <attribute name="author_ref" type="positiveInteger" use="required" />
+    </complexType>
+
+    <complexType name="localized_author_metadata" mixed="true">
+        <attribute name="locale" type="pkp:locale_code" use="required" />
     </complexType>
 
     <complexType name="open_data">

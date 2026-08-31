@@ -18,6 +18,7 @@ class NativeDataReferenceValidator
         }
         $issueReferences = [];
         $submissionReferences = [];
+        $authorReferences = [];
         $issues = $this->requiredChild($root, 'issues');
         $articles = $this->requiredChild($root, 'articles');
         if ($this->children($issues, 'issue') !== []) {
@@ -28,7 +29,7 @@ class NativeDataReferenceValidator
             $sourceReference = $this->internalId($issue, 'issue');
             $this->addUnique($issueReferences, $sourceReference, 'issue');
             $issueArticles = $this->requiredChild($issue, 'articles');
-            $this->validateArticles($issueArticles, $submissionReferences);
+            $this->validateArticles($issueArticles, $submissionReferences, $authorReferences);
         }
         foreach ($this->children($this->requiredChild($root, 'issue_orders'), 'issue_order') as $order) {
             $sourceReference = trim($order->getAttribute('issue_ref'));
@@ -36,12 +37,16 @@ class NativeDataReferenceValidator
                 throw new InvalidArgumentException('Unknown issue order reference');
             }
         }
-        $this->validateArticles($articles, $submissionReferences);
+        $this->validateArticles($articles, $submissionReferences, $authorReferences);
+        $this->validateAuthorMetadata($this->requiredChild($root, 'author_metadata'), $authorReferences);
         $this->validateFileReferences($root);
     }
 
-    private function validateArticles(DOMElement $articles, array &$submissionReferences): void
-    {
+    private function validateArticles(
+        DOMElement $articles,
+        array &$submissionReferences,
+        array &$authorReferences
+    ): void {
         foreach ($this->children($articles, 'article') as $article) {
             $this->addUnique(
                 $submissionReferences,
@@ -55,10 +60,48 @@ class NativeDataReferenceValidator
                     $this->internalId($publication, 'publication'),
                     'publication'
                 );
+                foreach ($this->children($publication, 'authors') as $authors) {
+                    foreach ($this->children($authors, 'author') as $author) {
+                        $this->addUnique(
+                            $authorReferences,
+                            trim($author->getAttribute('id')),
+                            'author'
+                        );
+                    }
+                }
             }
             $current = trim($article->getAttribute('current_publication_id'));
             if ($current === '' || !isset($publicationReferences[$current])) {
                 throw new InvalidArgumentException('Unknown current publication reference');
+            }
+        }
+    }
+
+    private function validateAuthorMetadata(DOMElement $metadataNode, array $authorReferences): void
+    {
+        $metadataReferences = [];
+        foreach ($this->children($metadataNode, 'author') as $authorNode) {
+            $sourceReference = trim($authorNode->getAttribute('author_ref'));
+            if (!isset($authorReferences[$sourceReference])) {
+                throw new InvalidArgumentException('Unknown author metadata reference');
+            }
+            $this->addUnique($metadataReferences, $sourceReference, 'author metadata');
+            $seen = [];
+            foreach ($authorNode->childNodes as $valueNode) {
+                if (!$valueNode instanceof DOMElement
+                    || !in_array($valueNode->localName, ['preferred_public_name', 'competing_interests'], true)
+                ) {
+                    throw new InvalidArgumentException('Invalid author metadata element');
+                }
+                $locale = trim($valueNode->getAttribute('locale'));
+                $key = $valueNode->localName . ':' . $locale;
+                if (preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1 || isset($seen[$key])) {
+                    throw new InvalidArgumentException('Invalid localized author metadata');
+                }
+                $seen[$key] = true;
+            }
+            if ($seen === []) {
+                throw new InvalidArgumentException('Author metadata entry must not be empty');
             }
         }
     }

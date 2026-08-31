@@ -53,12 +53,56 @@ class NativeDataReferenceValidatorTest extends TestCase
         );
     }
 
-    private function nativeData(string $orders, string $issues, string $articles): \DOMElement
+    public function testItRejectsUnknownAuthorMetadataReference(): void
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown author metadata reference');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                '',
+                '<author author_ref="99"><preferred_public_name locale="en">Ada</preferred_public_name></author>'
+            )
+        );
+    }
+
+    public function testItRejectsDuplicatedAuthorMetadataReferences(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicated author metadata source reference');
+        $metadata = '<author author_ref="50"><preferred_public_name locale="en">Ada</preferred_public_name></author>';
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', $this->issue(), $this->articleWithAuthor(), $metadata . $metadata)
+        );
+    }
+
+    public function testItRejectsDuplicatedLocalizedAuthorMetadata(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid localized author metadata');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                '<author author_ref="50"><competing_interests locale="en">First</competing_interests>'
+                . '<competing_interests locale="en">Second</competing_interests></author>'
+            )
+        );
+    }
+
+    private function nativeData(
+        string $orders,
+        string $issues,
+        string $articles,
+        string $authorMetadata = ''
+    ): \DOMElement {
         $document = new DOMDocument();
         $this->assertTrue($document->loadXML(
             '<native_data xmlns="http://pkp.sfu.ca"><issue_orders>' . $orders . '</issue_orders>'
-            . '<issues>' . $issues . '</issues><articles>' . $articles . '</articles></native_data>'
+            . '<issues>' . $issues . '</issues><articles>' . $articles . '</articles>'
+            . '<author_metadata>' . $authorMetadata . '</author_metadata></native_data>'
         ));
         return $document->documentElement;
     }
@@ -75,5 +119,14 @@ class NativeDataReferenceValidatorTest extends TestCase
             . '<file id="40"><href src="' . $source . '"/></file></submission_file>'
             . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
             . '<title locale="en">Article</title></publication></article>';
+    }
+
+    private function articleWithAuthor(): string
+    {
+        return '<article current_publication_id="20" stage="submission"><id type="internal">10</id>'
+            . '<publication section_ref="ART" version="1"><id type="internal">20</id>'
+            . '<title locale="en">Article</title><authors><author user_group_ref="Author" seq="1" id="50">'
+            . '<givenname locale="en">Ada</givenname><email>ada@example.com</email></author></authors>'
+            . '</publication></article>';
     }
 }
