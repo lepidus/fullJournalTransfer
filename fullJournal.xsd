@@ -105,6 +105,7 @@
             <element name="issues" type="pkp:open_data" />
             <element name="articles" type="pkp:open_data" />
             <element name="author_metadata" type="pkp:author_metadata" />
+            <element name="historical_dates" type="pkp:historical_dates" />
         </sequence>
     </complexType>
 
@@ -136,6 +137,43 @@
     <complexType name="localized_author_metadata" mixed="true">
         <attribute name="locale" type="pkp:locale_code" use="required" />
     </complexType>
+
+    <complexType name="historical_dates">
+        <sequence>
+            <element name="issues" type="pkp:historical_issue_dates" />
+            <element name="submissions" type="pkp:historical_submission_dates" />
+        </sequence>
+    </complexType>
+
+    <complexType name="historical_issue_dates">
+        <sequence>
+            <element name="issue" type="pkp:historical_issue_date" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="historical_issue_date">
+        <attribute name="issue_ref" type="positiveInteger" use="required" />
+        <attribute name="date_published" type="pkp:date_time" />
+    </complexType>
+
+    <complexType name="historical_submission_dates">
+        <sequence>
+            <element name="submission" type="pkp:historical_submission_date" minOccurs="0" maxOccurs="unbounded" />
+        </sequence>
+    </complexType>
+
+    <complexType name="historical_submission_date">
+        <attribute name="submission_ref" type="positiveInteger" use="required" />
+        <attribute name="date_submitted" type="pkp:date_time" />
+        <attribute name="date_last_activity" type="pkp:date_time" />
+        <attribute name="last_modified" type="pkp:date_time" />
+    </complexType>
+
+    <simpleType name="date_time">
+        <restriction base="string">
+            <pattern value="[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}" />
+        </restriction>
+    </simpleType>
 
     <complexType name="open_data">
         <sequence>

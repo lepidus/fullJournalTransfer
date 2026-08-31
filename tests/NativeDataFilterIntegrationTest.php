@@ -276,6 +276,57 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->assertNull($imported->getData('competingInterests', 'pt_BR'));
     }
 
+    public function testItTransfersHistoricalSubmissionAndIssueDatesWithTheirTimes(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('historical-dates-source');
+        $destination = $this->createContext('historical-dates-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $issue = $this->createIssue($source, 8, 'Historical dates issue');
+        $submission = $this->createSubmission($source, $sourceSection, 'Historical dates article', null);
+        $dates = [
+            'dateSubmitted' => '2018-02-03 04:05:06',
+            'dateLastActivity' => '2020-03-04 05:06:07',
+            'lastModified' => '2021-04-05 06:07:08',
+        ];
+        foreach ($dates as $property => $value) {
+            $submission->setData($property, $value);
+        }
+        Repo::submission()->dao->update($submission);
+        $issueDatePublished = '2017-01-02 03:04:05';
+        Repo::issue()->edit($issue, ['datePublished' => $issueDatePublished]);
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $submissionPath = '//pkp:historical_dates/pkp:submissions/pkp:submission[@submission_ref="'
+            . $submission->getId() . '"]';
+        $issuePath = '//pkp:historical_dates/pkp:issues/pkp:issue[@issue_ref="' . $issue->getId() . '"]';
+        $this->assertSame($dates['dateSubmitted'], $xpath->evaluate('string(' . $submissionPath . '/@date_submitted)'));
+        $this->assertSame(
+            $dates['dateLastActivity'],
+            $xpath->evaluate('string(' . $submissionPath . '/@date_last_activity)')
+        );
+        $this->assertSame($dates['lastModified'], $xpath->evaluate('string(' . $submissionPath . '/@last_modified)'));
+        $this->assertSame($issueDatePublished, $xpath->evaluate('string(' . $issuePath . '/@date_published)'));
+
+        $this->setRequestContext($destination);
+        $maps = (new FullJournalImportExportDeployment($destination, null))->importNativeData(
+            $document->documentElement
+        );
+        $importedSubmission = Repo::submission()->get(
+            $maps['submission_id_map'][(string) $submission->getId()]
+        );
+        $importedIssue = Repo::issue()->get($maps['issue_id_map'][(string) $issue->getId()]);
+        foreach ($dates as $property => $value) {
+            $this->assertSame($value, $importedSubmission->getData($property));
+        }
+        $this->assertSame($issueDatePublished, $importedIssue->getDatePublished());
+    }
+
     public function testItRejectsAPublicationWithoutALocalizedTitle(): void
     {
         $source = $this->createContext('invalid-publication-source');

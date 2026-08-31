@@ -56,6 +56,9 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - O periódico importado é criado inicialmente desabilitado.
 - Uma segunda importação do mesmo caminho de periódico é rejeitada sem duplicar conteúdo.
 - Os pacotes exportados contêm conflitos de interesse dos autores e devem ser tratados como dados sensíveis.
+- As datas históricas de modificação das submissões são preservadas. Após a importação, reconstrua o índice de busca e
+  limpe os caches da aplicação conforme o procedimento operacional da instalação de destino. Consumidores OAI devem
+  fazer uma coleta completa após mudar para a revista de destino, em vez de depender apenas de uma janela incremental.
 - O tema selecionado e suas opções declaradas são transferidos quando o código do plugin de tema está instalado no OJS
   de destino. Quando ele não está disponível, o periódico importado usa o tema padrão com suas opções padrão.
 - Métricas institucionais exigem um identificador ROR válido; registros sem ROR estável são rejeitados.
@@ -72,6 +75,7 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 
 - Dados do Periódico
 - Nomes públicos preferenciais e conflitos de interesse dos autores
+- Datas históricas das submissões e horários de publicação das edições
 - Tema selecionado e opções do tema
 - Menus de Navegação
 - Configurações de Plugins

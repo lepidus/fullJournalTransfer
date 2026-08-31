@@ -77,6 +77,7 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
                 $deployment->mapReference('author', (string) $sourceId, (int) $destinationId);
             }
             $this->importAuthorMetadata($this->requiredChild($root, 'author_metadata'));
+            $this->importHistoricalDates($this->requiredChild($root, 'historical_dates'));
             foreach ((array) $deployment->getSubmissionFileDBIds() as $sourceId => $destinationId) {
                 $deployment->mapReference('submission_file', (string) $sourceId, (int) $destinationId);
             }
@@ -85,6 +86,49 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             }
             return $deployment->getContext();
         });
+    }
+
+    private function importHistoricalDates(DOMElement $historicalDatesNode): void
+    {
+        $deployment = $this->getDeployment();
+        $contextId = (int) $deployment->getContext()->getId();
+        foreach ($this->children($this->requiredChild($historicalDatesNode, 'issues'), 'issue') as $issueNode) {
+            $issueId = $deployment->requireReference('issue', trim($issueNode->getAttribute('issue_ref')));
+            $issue = Repo::issue()->get($issueId);
+            if (!$issue || (int) $issue->getJournalId() !== $contextId) {
+                throw new InvalidArgumentException('Mapped issue does not exist in the imported context');
+            }
+            DB::table('issues')
+                ->where('issue_id', $issueId)
+                ->where('journal_id', $contextId)
+                ->update(['date_published' => $this->optionalAttribute($issueNode, 'date_published')]);
+        }
+        foreach ($this->children(
+            $this->requiredChild($historicalDatesNode, 'submissions'),
+            'submission'
+        ) as $submissionNode) {
+            $submissionId = $deployment->requireReference(
+                'submission',
+                trim($submissionNode->getAttribute('submission_ref'))
+            );
+            $submission = Repo::submission()->get($submissionId);
+            if (!$submission || (int) $submission->getData('contextId') !== $contextId) {
+                throw new InvalidArgumentException('Mapped submission does not exist in the imported context');
+            }
+            DB::table('submissions')
+                ->where('submission_id', $submissionId)
+                ->where('context_id', $contextId)
+                ->update([
+                    'date_submitted' => $this->optionalAttribute($submissionNode, 'date_submitted'),
+                    'date_last_activity' => $this->optionalAttribute($submissionNode, 'date_last_activity'),
+                    'last_modified' => $this->optionalAttribute($submissionNode, 'last_modified'),
+                ]);
+        }
+    }
+
+    private function optionalAttribute(DOMElement $node, string $name): ?string
+    {
+        return $node->hasAttribute($name) ? $node->getAttribute($name) : null;
     }
 
     private function importAuthorMetadata(DOMElement $metadataNode): void

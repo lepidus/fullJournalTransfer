@@ -89,7 +89,58 @@ class NativeDataNativeXmlFilter extends NativeExportFilter
             $root->appendChild($document->importNode($articlesDocument->documentElement, true));
         }
         $this->addAuthorMetadata($document, $root, $submissions);
+        $this->addHistoricalDates($document, $root, $issues, $submissions);
         return $document;
+    }
+
+    private function addHistoricalDates(
+        DOMDocument $document,
+        DOMElement $root,
+        array $issues,
+        array $submissions
+    ): void {
+        $historicalDatesNode = $document->createElementNS('http://pkp.sfu.ca', 'historical_dates');
+        $issuesNode = $document->createElementNS('http://pkp.sfu.ca', 'issues');
+        $issuesById = [];
+        foreach ($issues as $issue) {
+            $issuesById[(int) $issue->getId()] = $issue;
+        }
+        ksort($issuesById, SORT_NUMERIC);
+        foreach ($issuesById as $issue) {
+            $issueNode = $document->createElementNS('http://pkp.sfu.ca', 'issue');
+            $issueNode->setAttribute('issue_ref', (string) $issue->getId());
+            $this->setOptionalAttribute($issueNode, 'date_published', $issue->getDatePublished());
+            $issuesNode->appendChild($issueNode);
+        }
+        $historicalDatesNode->appendChild($issuesNode);
+
+        $submissionsNode = $document->createElementNS('http://pkp.sfu.ca', 'submissions');
+        $submissionsById = [];
+        foreach ($submissions as $submission) {
+            $submissionsById[(int) $submission->getId()] = $submission;
+        }
+        ksort($submissionsById, SORT_NUMERIC);
+        foreach ($submissionsById as $submission) {
+            $submissionNode = $document->createElementNS('http://pkp.sfu.ca', 'submission');
+            $submissionNode->setAttribute('submission_ref', (string) $submission->getId());
+            $this->setOptionalAttribute($submissionNode, 'date_submitted', $submission->getData('dateSubmitted'));
+            $this->setOptionalAttribute(
+                $submissionNode,
+                'date_last_activity',
+                $submission->getData('dateLastActivity')
+            );
+            $this->setOptionalAttribute($submissionNode, 'last_modified', $submission->getData('lastModified'));
+            $submissionsNode->appendChild($submissionNode);
+        }
+        $historicalDatesNode->appendChild($submissionsNode);
+        $root->appendChild($historicalDatesNode);
+    }
+
+    private function setOptionalAttribute(DOMElement $node, string $name, $value): void
+    {
+        if ($value !== null) {
+            $node->setAttribute($name, (string) $value);
+        }
     }
 
     private function addAuthorMetadata(DOMDocument $document, DOMElement $root, array $submissions): void

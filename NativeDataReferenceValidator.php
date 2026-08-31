@@ -39,7 +39,74 @@ class NativeDataReferenceValidator
         }
         $this->validateArticles($articles, $submissionReferences, $authorReferences);
         $this->validateAuthorMetadata($this->requiredChild($root, 'author_metadata'), $authorReferences);
+        $this->validateHistoricalDates(
+            $this->requiredChild($root, 'historical_dates'),
+            $issueReferences,
+            $submissionReferences
+        );
         $this->validateFileReferences($root);
+    }
+
+    private function validateHistoricalDates(
+        DOMElement $historicalDatesNode,
+        array $issueReferences,
+        array $submissionReferences
+    ): void {
+        $metadataIssueReferences = [];
+        foreach ($this->children($this->requiredChild($historicalDatesNode, 'issues'), 'issue') as $issueNode) {
+            $sourceReference = trim($issueNode->getAttribute('issue_ref'));
+            if (!isset($issueReferences[$sourceReference])) {
+                throw new InvalidArgumentException('Unknown historical issue date reference');
+            }
+            $this->addUnique($metadataIssueReferences, $sourceReference, 'historical issue date');
+            $this->validateOptionalDateTime($issueNode, 'date_published');
+        }
+        $this->requireCompleteReferences($issueReferences, $metadataIssueReferences, 'issue date');
+
+        $metadataSubmissionReferences = [];
+        foreach ($this->children(
+            $this->requiredChild($historicalDatesNode, 'submissions'),
+            'submission'
+        ) as $submissionNode) {
+            $sourceReference = trim($submissionNode->getAttribute('submission_ref'));
+            if (!isset($submissionReferences[$sourceReference])) {
+                throw new InvalidArgumentException('Unknown historical submission date reference');
+            }
+            $this->addUnique(
+                $metadataSubmissionReferences,
+                $sourceReference,
+                'historical submission date'
+            );
+            foreach (['date_submitted', 'date_last_activity', 'last_modified'] as $attribute) {
+                $this->validateOptionalDateTime($submissionNode, $attribute);
+            }
+        }
+        $this->requireCompleteReferences(
+            $submissionReferences,
+            $metadataSubmissionReferences,
+            'submission date'
+        );
+    }
+
+    private function validateOptionalDateTime(DOMElement $node, string $attribute): void
+    {
+        if (!$node->hasAttribute($attribute)) {
+            return;
+        }
+        $value = $node->getAttribute($attribute);
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
+        if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
+            throw new InvalidArgumentException('Invalid historical date: ' . $attribute);
+        }
+    }
+
+    private function requireCompleteReferences(array $expected, array $actual, string $entity): void
+    {
+        foreach ($expected as $sourceReference => $unused) {
+            if (!isset($actual[$sourceReference])) {
+                throw new InvalidArgumentException('Missing historical ' . $entity . ' reference: ' . $sourceReference);
+            }
+        }
     }
 
     private function validateArticles(

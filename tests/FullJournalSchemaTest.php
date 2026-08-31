@@ -34,7 +34,7 @@ class FullJournalSchemaTest extends TestCase
             . '<native_data><issue_orders/><issues/><articles/><author_metadata>'
             . '<author author_ref="42"><preferred_public_name locale="en">Ada L.</preferred_public_name>'
             . '<competing_interests locale="pt_BR">Nenhum</competing_interests></author>'
-            . '</author_metadata></native_data>'
+            . '</author_metadata><historical_dates><issues/><submissions/></historical_dates></native_data>'
             . '<workflow_history><review_round submission_ref="submission-1" round="1"/></workflow_history>'
             . '<metrics><context_metrics><context_metric load_id="usage.log" date="2026-08-10" metric="3"/>'
             . '</context_metrics><submission_metrics/><issue_metrics/><geo_metrics/><counter_metrics/>'

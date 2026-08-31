@@ -92,17 +92,71 @@ class NativeDataReferenceValidatorTest extends TestCase
         );
     }
 
+    public function testItRejectsUnknownHistoricalSubmissionDateReference(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown historical submission date reference');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                '',
+                '<issues><issue issue_ref="1"/></issues><submissions>'
+                . '<submission submission_ref="99"/></submissions>'
+            )
+        );
+    }
+
+    public function testItRejectsInvalidHistoricalDate(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid historical date: date_published');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                '',
+                '',
+                '<issues><issue issue_ref="1" date_published="2024-02-30 12:00:00"/></issues>'
+                . '<submissions/>'
+            )
+        );
+    }
+
+    public function testItRejectsMissingHistoricalSubmissionDateReference(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing historical submission date reference: 10');
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                '',
+                '<issues><issue issue_ref="1"/></issues><submissions/>'
+            )
+        );
+    }
+
     private function nativeData(
         string $orders,
         string $issues,
         string $articles,
-        string $authorMetadata = ''
+        string $authorMetadata = '',
+        ?string $historicalDates = null
     ): \DOMElement {
+        if ($historicalDates === null) {
+            $historicalDates = '<issues><issue issue_ref="1"/></issues><submissions>'
+                . ($articles === '' ? '' : '<submission submission_ref="10"/>')
+                . '</submissions>';
+        }
         $document = new DOMDocument();
         $this->assertTrue($document->loadXML(
             '<native_data xmlns="http://pkp.sfu.ca"><issue_orders>' . $orders . '</issue_orders>'
             . '<issues>' . $issues . '</issues><articles>' . $articles . '</articles>'
-            . '<author_metadata>' . $authorMetadata . '</author_metadata></native_data>'
+            . '<author_metadata>' . $authorMetadata . '</author_metadata>'
+            . '<historical_dates>' . $historicalDates . '</historical_dates></native_data>'
         ));
         return $document->documentElement;
     }

@@ -56,6 +56,9 @@ Some expected behaviors when importing the journal:
 - The imported journal is initially disabled.
 - A second import of the same journal path is rejected without duplicating content.
 - Export archives contain author competing interests and must be handled as sensitive data.
+- Historical submission modification times are preserved. After import, rebuild the search index and clear the
+  application caches according to the destination site's operational procedure. OAI consumers should perform a full
+  harvest after switching to the destination journal instead of relying only on an incremental date window.
 - The selected theme and its declared options are transferred when the theme plugin code is installed in the
   destination OJS. When it is unavailable, the imported journal uses the default theme with its default options.
 - Institutional metrics require a valid ROR identifier; records without a stable ROR are rejected.
@@ -72,6 +75,7 @@ Some expected behaviors when importing the journal:
 
 - Journal data
 - Author preferred public names and competing interests
+- Submission historical dates and issue publication timestamps
 - Selected theme and theme options
 - Navigation Menus
 - Plugins Configs
