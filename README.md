@@ -1,7 +1,7 @@
 **English** | [Português Brasileiro](/docs/README-pt_BR.md)
 
 # Full Journal Transfer
-This plugin allows you to import and export all the content of a journal.
+This plugin transfers the journal data covered by the explicit contracts described below.
 
 ## Compatibility
 The latest release of this plugin is compatible with the following PKP applications:
@@ -63,6 +63,41 @@ Some expected behaviors when importing the journal:
   destination OJS. When it is unavailable, the imported journal uses the default theme with its default options.
 - Institutional metrics require a valid ROR identifier; records without a stable ROR are rejected.
 
+## Journal locales and settings
+
+The UI, form, and submission locale lists are transferred independently. During import, each list is
+intersected with the locales enabled for the destination OJS site, preserving the source order. Import stops
+before the journal is created when the primary locale is unavailable or when no form or submission locale
+remains. Validation errors in this early CLI/filter path are deterministic English messages because plugin
+locale catalogs are not loaded at that point.
+
+The following journal settings are transferred:
+
+- Identity and contact: `name`, `acronym`, `abbreviation`, `about`, `description`, `editorialTeam`,
+  `authorInformation`, `librarianInformation`, `readerInformation`, `privacyStatement`, `openAccessPolicy`,
+  `contactAffiliation`, `contactEmail`, `contactName`, `contactPhone`, `mailingAddress`, `country`, `onlineIssn`,
+  `printIssn`, `publisherInstitution`, `publisherUrl`, `supportEmail`, `supportName`, `supportPhone`, `enableOai`,
+  `itemsPerPage`, and `numPageLinks`.
+- DOI: `enableDois`, `enabledDoiTypes`, `doiPrefix`, `doiSuffixType`, `doiIssueSuffixPattern`,
+  `doiPublicationSuffixPattern`, `doiRepresentationSuffixPattern`, `doiVersioning`, and `doiCreationTime`.
+- License and copyright: `copyrightYearBasis`, `copyrightHolderType`, `copyrightHolderOther`, `copyrightNotice`,
+  `licenseTerms`, `licenseUrl`, and `rights`.
+- Submission and metadata: `disableSubmissions`, `authorGuidelines`, `beginSubmissionHelp`, `contributorsHelp`,
+  `detailsHelp`, `forTheEditorsHelp`, `uploadFilesHelp`, `submissionChecklist`, `submissionAcknowledgement`,
+  `copySubmissionAckAddress`, `copySubmissionAckPrimaryContact`, `submitWithCategories`, `agencies`, `citations`,
+  `competingInterests`, `coverage`, `dataAvailability`, `disciplines`, `keywords`, `languages`, `subjects`, and
+  `requireAuthorCompetingInterests`.
+- Review and editorial workflow: `defaultReviewMode`, `numWeeksPerResponse`, `numWeeksPerReview`,
+  `restrictReviewerFileAccess`, `reviewerAccessKeysEnabled`, `reviewGuidelines`, `reviewHelp`,
+  `numDaysBeforeInviteReminder`, `numDaysBeforeSubmitReminder`, `rateReviewerOnQuality`, and `notifyAllAuthors`.
+- Publication: `publishingMode` for open-access or no-publication journals. Subscription publishing is rejected
+  before journal creation because subscription records are not transferred.
+
+Localized settings are limited to the accepted locale union, and the submission checklist is limited to the
+effective form locales. Null values remain absent. Assigned issue, publication, and representation DOIs are
+preserved through Native XML. Automatic DOI deposits, agency account data, credentials, tokens, and private
+deposit-plugin settings are not transferred, and importing a package never schedules a DOI deposit.
+
 ## Imported/Exported Journal Content
 
 **Using PKP native import/export**:
@@ -79,7 +114,6 @@ Some expected behaviors when importing the journal:
 - Incomplete submission wizard progress
 - Selected theme and theme options
 - Navigation Menus
-- Plugins Configs
 - Sections
 - Review Forms
 - Review Assignments

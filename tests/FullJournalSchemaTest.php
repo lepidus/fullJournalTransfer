@@ -17,9 +17,10 @@ class FullJournalSchemaTest extends TestCase
             . '<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR" url_path="journal" '
             . 'sequence="1" source_enabled="true">'
             . '<locales>'
-            . '<locale code="pt_BR" enabled_for_forms="true" form_order="2" '
+            . '<locale code="pt_BR" enabled_for_ui="true" enabled_for_forms="true" form_order="2" '
             . 'enabled_for_submissions="true" submission_order="1"/>'
-            . '<locale code="en" enabled_for_forms="true" form_order="1" enabled_for_submissions="false"/>'
+            . '<locale code="en" enabled_for_ui="true" enabled_for_forms="true" form_order="1" '
+            . 'enabled_for_submissions="false"/>'
             . '</locales>'
             . '<submission_checklist>'
             . '<content locale="pt_BR">&lt;ul&gt;&lt;li&gt;O arquivo está no formato aceito.&lt;/li&gt;&lt;/ul&gt;</content>'
@@ -28,6 +29,7 @@ class FullJournalSchemaTest extends TestCase
             . '<setting name="name" type="string" locale="pt_BR">Periódico</setting>'
             . '<setting name="contactName" type="string">Equipe editorial</setting>'
             . '<setting name="contactEmail" type="string">editor@example.com</setting>'
+            . '<setting name="enabledDoiTypes" type="string-list">["publication","issue"]</setting>'
             . '</context_settings>'
             . '<theme plugin_path="default" plugin_name="defaultthemeplugin">'
             . '<option name="baseColour">&quot;#123456&quot;</option></theme>'
@@ -75,6 +77,20 @@ class FullJournalSchemaTest extends TestCase
         $this->assertInvalidDocument('<journal xmlns="http://pkp.sfu.ca" primary_locale="pt_BR"/>');
     }
 
+    public function testItRejectsALocaleWithoutAnExplicitUiFlag(): void
+    {
+        $this->assertInvalidDocument(
+            '<journal xmlns="http://pkp.sfu.ca" primary_locale="en" url_path="journal" '
+            . 'sequence="1" source_enabled="false"><locales>'
+            . '<locale code="en" enabled_for_forms="true" form_order="1" '
+            . 'enabled_for_submissions="true" submission_order="1"/></locales>'
+            . '<context_settings><setting name="name" type="string" locale="en">Journal</setting>'
+            . '<setting name="contactName" type="string">Editor</setting>'
+            . '<setting name="contactEmail" type="string">editor@example.com</setting>'
+            . '</context_settings></journal>'
+        );
+    }
+
     public function testItRejectsDuplicateSingletons(): void
     {
         $this->assertInvalidDocument(
@@ -100,7 +116,7 @@ class FullJournalSchemaTest extends TestCase
         $this->assertInvalidDocument(
             '<journal xmlns="http://pkp.sfu.ca" primary_locale="en" url_path="journal" '
             . 'sequence="1" source_enabled="false">'
-            . '<locales><locale code="en" enabled_for_forms="true" form_order="1" '
+            . '<locales><locale code="en" enabled_for_ui="true" enabled_for_forms="true" form_order="1" '
             . 'enabled_for_submissions="true" submission_order="1"/></locales>'
             . '<context_settings><setting name="name" type="string" locale="en">Journal</setting>'
             . '<setting name="contactName" type="string">Editor</setting>'

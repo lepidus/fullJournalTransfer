@@ -10,6 +10,7 @@ use APP\facades\Repo;
 use APP\file\IssueFileManager;
 use APP\file\PublicFileManager;
 use APP\issue\IssueFile;
+use APP\jobs\doi\DepositIssue;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use Illuminate\Support\Facades\Event;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Queue;
 use InvalidArgumentException;
 use PKP\config\Config;
 use PKP\db\DAORegistry;
+use PKP\jobs\doi\DepositSubmission;
 use PKP\observers\events\BatchMetadataChanged;
 use PKP\security\Role;
 use PKP\submissionFile\SubmissionFile;
@@ -30,6 +32,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
     private array $fileIds = [];
     private array $issueIds = [];
     private array $userGroups = [];
+    private array $doiIds = [];
 
     protected function getAffectedTables()
     {
@@ -57,6 +60,12 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         }
         foreach (array_reverse($this->userGroups) as $userGroup) {
             Repo::userGroup()->delete($userGroup);
+        }
+        foreach (array_unique($this->doiIds) as $doiId) {
+            $doi = Repo::doi()->get($doiId);
+            if ($doi) {
+                Repo::doi()->delete($doi);
+            }
         }
         foreach (array_unique($this->fileIds) as $fileId) {
             if (Services::get('file')->get($fileId)) {
@@ -597,6 +606,72 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         );
     }
 
+    public function testItPreservesAssignedDoisWithoutSchedulingDeposits(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('doi-source');
+        $section = $this->createSection($source);
+        $issue = $this->createIssue($source, 6, 'DOI issue');
+        $submission = $this->createSubmission($source, $section, 'DOI article', $issue->getId());
+        $genre = $this->createGenre($source, 'DOI Galley');
+        $submissionFile = $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $genre->getId(),
+            ['doi galley']
+        );
+        $this->setRequestContext($source);
+        $issueDoi = $this->createDoi($source, '10.1234/issue');
+        Repo::issue()->edit($issue, ['doiId' => $issueDoi]);
+        $publication = $submission->getCurrentPublication();
+        $publicationDoi = $this->createDoi($source, '10.1234/article');
+        Repo::publication()->edit($publication, ['doiId' => $publicationDoi]);
+        $representationDoi = $this->createDoi($source, '10.1234/galley');
+        $galley = Repo::galley()->newDataObject();
+        $galley->setData('publicationId', $publication->getId());
+        $galley->setData('label', 'Text');
+        $galley->setData('locale', 'en');
+        $galley->setData('seq', 1);
+        $galley->setData('submissionFileId', $submissionFile->getId());
+        $galley->setData('isApproved', true);
+        $galley->setData('doiId', $representationDoi);
+        Repo::galley()->dao->insert($galley);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
+        $document->documentElement->setAttribute('url_path', 'doi-imported-' . bin2hex(random_bytes(4)));
+        $importUser = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($importUser);
+        $deployment = new FullJournalImportExportDeployment($source, $importUser);
+        $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $created = $deployment->createContextData($document->documentElement);
+        $this->fileIds = array_merge($this->fileIds, array_values($deployment->getReferenceMap('file')));
+        $this->contexts[] = $created;
+        $importedIssue = Repo::issue()->getCollector()
+            ->filterByContextIds([(int) $created->getId()])
+            ->getMany()
+            ->first();
+        $importedSubmission = Repo::submission()->getCollector()
+            ->filterByContextIds([(int) $created->getId()])
+            ->getMany()
+            ->first();
+
+        $this->assertSame('10.1234/issue', $importedIssue->getStoredPubId('doi'));
+        $this->assertSame(
+            '10.1234/article',
+            $importedSubmission->getCurrentPublication()->getStoredPubId('doi')
+        );
+        $importedGalley = Repo::galley()->getCollector()
+            ->filterByPublicationIds([(int) $importedSubmission->getCurrentPublication()->getId()])
+            ->getMany()
+            ->first();
+        $this->assertSame('10.1234/galley', $importedGalley->getStoredPubId('doi'));
+        $this->doiIds[] = (int) $importedIssue->getData('doiId');
+        $this->doiIds[] = (int) $importedSubmission->getCurrentPublication()->getData('doiId');
+        $this->doiIds[] = (int) $importedGalley->getData('doiId');
+        Queue::assertNotPushed(DepositIssue::class);
+        Queue::assertNotPushed(DepositSubmission::class);
+    }
+
     private function createContext(string $label, array $locales = ['en']): Journal
     {
         $context = Application::get()->getContextDAO()->newDataObject();
@@ -635,6 +710,18 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $issue->setId(Repo::issue()->add($issue));
         $this->issueIds[] = (int) $issue->getId();
         return $issue;
+    }
+
+    private function createDoi(Journal $context, string $identifier): int
+    {
+        $doi = Repo::doi()->newDataObject([
+            'contextId' => (int) $context->getId(),
+            'doi' => $identifier,
+            'status' => 1,
+        ]);
+        $doiId = Repo::doi()->add($doi);
+        $this->doiIds[] = $doiId;
+        return $doiId;
     }
 
     private function createSection(Journal $context): \APP\section\Section

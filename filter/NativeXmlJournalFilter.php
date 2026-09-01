@@ -7,6 +7,8 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\JournalLocalePolicy;
+use APP\plugins\importexport\fullJournalTransfer\JournalSettingsPolicy;
 use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
@@ -14,45 +16,12 @@ use InvalidArgumentException;
 use JsonException;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;
 use PKP\plugins\ThemePlugin;
+use PKP\site\Site;
 use RuntimeException;
 
 class NativeXmlJournalFilter extends NativeImportFilter
 {
     private const NAMESPACE = 'http://pkp.sfu.ca';
-    private const SCALAR_SETTINGS = [
-        'contactEmail' => 'string',
-        'contactName' => 'string',
-        'contactPhone' => 'string',
-        'mailingAddress' => 'string',
-        'onlineIssn' => 'string',
-        'printIssn' => 'string',
-        'publisherInstitution' => 'string',
-        'supportEmail' => 'string',
-        'supportName' => 'string',
-        'supportPhone' => 'string',
-        'copyrightYearBasis' => 'string',
-        'defaultReviewMode' => 'integer',
-        'enableOai' => 'boolean',
-        'itemsPerPage' => 'integer',
-        'numPageLinks' => 'integer',
-        'numWeeksPerResponse' => 'integer',
-        'numWeeksPerReview' => 'integer',
-    ];
-    private const LOCALIZED_SETTINGS = [
-        'name',
-        'acronym',
-        'abbreviation',
-        'about',
-        'authorInformation',
-        'librarianInformation',
-        'readerInformation',
-        'privacyStatement',
-        'openAccessPolicy',
-        'contactAffiliation',
-        'description',
-        'editorialTeam',
-    ];
-
     public function hydrate(DOMElement $node, Journal $journal): void
     {
         $path = $node->getAttribute('url_path');
@@ -66,37 +35,77 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $journal->setPath($path);
         $journal->setSequence((float) $sequence);
         $journal->setEnabled(false);
-        $journal->setPrimaryLocale($node->getAttribute('primary_locale'));
+        $primaryLocale = $node->getAttribute('primary_locale');
+        $journal->setPrimaryLocale($primaryLocale);
         $supportedLocales = [];
         $supportedFormLocales = [];
         $supportedSubmissionLocales = [];
+        $seenLocales = [];
         foreach ($node->getElementsByTagNameNS(self::NAMESPACE, 'locale') as $localeNode) {
             $locale = $localeNode->getAttribute('code');
-            $supportedLocales[] = $locale;
-            if ($localeNode->getAttribute('enabled_for_forms') === 'true') {
-                $supportedFormLocales[(int) $localeNode->getAttribute('form_order')] = $locale;
+            if (isset($seenLocales[$locale])) {
+                throw new InvalidArgumentException('Duplicated locale: ' . $locale);
             }
-            if ($localeNode->getAttribute('enabled_for_submissions') === 'true') {
-                $supportedSubmissionLocales[(int) $localeNode->getAttribute('submission_order')] = $locale;
+            $seenLocales[$locale] = true;
+            if ($this->readBooleanAttribute($localeNode, 'enabled_for_ui')) {
+                $supportedLocales[] = $locale;
+            }
+            if ($this->readBooleanAttribute($localeNode, 'enabled_for_forms')) {
+                $formOrder = $this->readOrderAttribute($localeNode, 'form_order');
+                if (isset($supportedFormLocales[$formOrder])) {
+                    throw new InvalidArgumentException('Duplicated form locale order');
+                }
+                $supportedFormLocales[$formOrder] = $locale;
+            } elseif ($localeNode->hasAttribute('form_order')) {
+                throw new InvalidArgumentException('A disabled form locale must not declare form_order');
+            }
+            if ($this->readBooleanAttribute($localeNode, 'enabled_for_submissions')) {
+                $submissionOrder = $this->readOrderAttribute($localeNode, 'submission_order');
+                if (isset($supportedSubmissionLocales[$submissionOrder])) {
+                    throw new InvalidArgumentException('Duplicated submission locale order');
+                }
+                $supportedSubmissionLocales[$submissionOrder] = $locale;
+            } elseif ($localeNode->hasAttribute('submission_order')) {
+                throw new InvalidArgumentException('A disabled submission locale must not declare submission_order');
             }
         }
         ksort($supportedFormLocales);
         ksort($supportedSubmissionLocales);
-        $journal->setData('supportedLocales', $supportedLocales);
-        $journal->setData('supportedFormLocales', array_values($supportedFormLocales));
-        $journal->setData('supportedSubmissionLocales', array_values($supportedSubmissionLocales));
+        $site = Application::get()->getRequest()->getSite();
+        if (!$site instanceof Site) {
+            throw new InvalidArgumentException('The destination OJS site could not be loaded');
+        }
+        $locales = (new JournalLocalePolicy())->resolve(
+            $supportedLocales,
+            array_values($supportedFormLocales),
+            array_values($supportedSubmissionLocales),
+            $primaryLocale,
+            $site->getSupportedLocales()
+        );
+        $journal->setData('supportedLocales', $locales['supportedLocales']);
+        $journal->setData('supportedFormLocales', $locales['supportedFormLocales']);
+        $journal->setData('supportedSubmissionLocales', $locales['supportedSubmissionLocales']);
 
         $checklist = [];
-        foreach ($node->getElementsByTagNameNS(self::NAMESPACE, 'content') as $contentNode) {
-            $checklist[$contentNode->getAttribute('locale')] = $contentNode->textContent;
+        $checklistNode = $this->optionalChild($node, 'submission_checklist');
+        foreach ($checklistNode?->childNodes ?? [] as $contentNode) {
+            if (!$contentNode instanceof DOMElement || $contentNode->localName !== 'content') {
+                continue;
+            }
+            $locale = $contentNode->getAttribute('locale');
+            if (in_array($locale, $locales['supportedFormLocales'], true)) {
+                $checklist[$locale] = $contentNode->textContent;
+            }
         }
         $journal->setData('submissionChecklist', $checklist);
-        $this->importSettings($node, $journal);
+        $acceptedLocales = array_values(array_unique(array_merge(...array_values($locales))));
+        $this->importSettings($node, $journal, $acceptedLocales);
         $themeNode = $this->optionalChild($node, 'theme');
         if ($themeNode) {
             $theme = $this->getImportedTheme($themeNode);
             $journal->setData('themePluginPath', $theme->getDirName());
         }
+        (new JournalSettingsPolicy())->validateJournal($journal);
         $this->validateRequiredSettings($journal);
     }
 
@@ -160,8 +169,10 @@ class NativeXmlJournalFilter extends NativeImportFilter
         return 'journal';
     }
 
-    private function importSettings(DOMElement $node, Journal $journal): void
+    /** @param list<string> $acceptedLocales */
+    private function importSettings(DOMElement $node, Journal $journal, array $acceptedLocales): void
     {
+        $policy = new JournalSettingsPolicy();
         $containers = $node->getElementsByTagNameNS(self::NAMESPACE, 'context_settings');
         if ($containers->length !== 1) {
             throw new InvalidArgumentException('Expected exactly one context_settings element');
@@ -178,21 +189,41 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 throw new InvalidArgumentException('Duplicated context setting: ' . $property);
             }
             $seen[$key] = true;
+            $definition = $policy->definition($property);
+            $type = $settingNode->getAttribute('type');
             if ($locale === '') {
-                if (!isset(self::SCALAR_SETTINGS[$property])) {
-                    throw new InvalidArgumentException('Context setting is not allowed: ' . $property);
+                if ($definition['localized']) {
+                    throw new InvalidArgumentException('Context setting must be localized: ' . $property);
                 }
-                $journal->setData($property, $this->decodeSetting(
-                    $settingNode->textContent,
-                    self::SCALAR_SETTINGS[$property]
-                ));
+                $journal->setData($property, $policy->decode($property, $type, $settingNode->textContent));
                 continue;
             }
-            if (!in_array($property, self::LOCALIZED_SETTINGS, true)) {
+            if (!$definition['localized']) {
                 throw new InvalidArgumentException('Localized context setting is not allowed: ' . $property);
             }
-            $journal->setData($property, $settingNode->textContent, $locale);
+            if (!in_array($locale, $acceptedLocales, true)) {
+                continue;
+            }
+            $journal->setData($property, $policy->decode($property, $type, $settingNode->textContent), $locale);
         }
+    }
+
+    private function readBooleanAttribute(DOMElement $node, string $name): bool
+    {
+        $value = $node->getAttribute($name);
+        if (!in_array($value, ['true', 'false'], true)) {
+            throw new InvalidArgumentException('Invalid locale boolean attribute: ' . $name);
+        }
+        return $value === 'true';
+    }
+
+    private function readOrderAttribute(DOMElement $node, string $name): int
+    {
+        $value = $node->getAttribute($name);
+        if (!ctype_digit($value) || (int) $value < 1) {
+            throw new InvalidArgumentException('Invalid locale order attribute: ' . $name);
+        }
+        return (int) $value;
     }
 
     private function getImportedTheme(DOMElement $node): ThemePlugin
@@ -262,23 +293,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
             throw new InvalidArgumentException('Expected at most one ' . $name . ' element');
         }
         return $matches[0] ?? null;
-    }
-
-    private function decodeSetting(string $value, string $type)
-    {
-        if ($type === 'boolean') {
-            if (!in_array($value, ['true', 'false'], true)) {
-                throw new InvalidArgumentException('Invalid boolean context setting');
-            }
-            return $value === 'true';
-        }
-        if ($type === 'integer') {
-            if (filter_var($value, FILTER_VALIDATE_INT) === false) {
-                throw new InvalidArgumentException('Invalid integer context setting');
-            }
-            return (int) $value;
-        }
-        return $value;
     }
 
     private function validateRequiredSettings(Journal $journal): void

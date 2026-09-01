@@ -336,7 +336,8 @@ class ImportRollbackIntegrationTest extends DatabaseTestCase
     private function minimalJournalXml(string $path): string
     {
         return '<journal xmlns="http://pkp.sfu.ca" primary_locale="en" url_path="' . $path . '" '
-            . 'sequence="1" source_enabled="true"><locales><locale code="en" enabled_for_forms="true" '
+            . 'sequence="1" source_enabled="true"><locales><locale code="en" enabled_for_ui="true" '
+            . 'enabled_for_forms="true" '
             . 'form_order="1" enabled_for_submissions="true" submission_order="1"/></locales>'
             . '<context_settings><setting name="name" type="string" locale="en">Imported Journal</setting>'
             . '<setting name="contactName" type="string">Editorial Team</setting>'

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\JournalSettingsPolicy;
 use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
 use DOMDocument;
 use DOMElement;
@@ -14,40 +15,6 @@ use PKP\plugins\importexport\native\filter\NativeExportFilter;
 class JournalNativeXmlFilter extends NativeExportFilter
 {
     private const NAMESPACE = 'http://pkp.sfu.ca';
-    private const SCALAR_SETTINGS = [
-        'contactEmail' => 'string',
-        'contactName' => 'string',
-        'contactPhone' => 'string',
-        'mailingAddress' => 'string',
-        'onlineIssn' => 'string',
-        'printIssn' => 'string',
-        'publisherInstitution' => 'string',
-        'supportEmail' => 'string',
-        'supportName' => 'string',
-        'supportPhone' => 'string',
-        'copyrightYearBasis' => 'string',
-        'defaultReviewMode' => 'integer',
-        'enableOai' => 'boolean',
-        'itemsPerPage' => 'integer',
-        'numPageLinks' => 'integer',
-        'numWeeksPerResponse' => 'integer',
-        'numWeeksPerReview' => 'integer',
-    ];
-    private const LOCALIZED_SETTINGS = [
-        'name',
-        'acronym',
-        'abbreviation',
-        'about',
-        'authorInformation',
-        'librarianInformation',
-        'readerInformation',
-        'privacyStatement',
-        'openAccessPolicy',
-        'contactAffiliation',
-        'description',
-        'editorialTeam',
-    ];
-
     public function &process(&$journal)
     {
         if (!$journal instanceof Journal) {
@@ -88,7 +55,12 @@ class JournalNativeXmlFilter extends NativeExportFilter
 
         $this->addLocales($document, $root, $supportedLocales, $supportedFormLocales, $supportedSubmissionLocales);
         $this->addSubmissionChecklist($document, $root, $journal, $supportedFormLocales);
-        $this->addSettings($document, $root, $journal);
+        $acceptedLocales = array_values(array_unique(array_merge(
+            $supportedLocales,
+            $supportedFormLocales,
+            $supportedSubmissionLocales
+        )));
+        $this->addSettings($document, $root, $journal, $acceptedLocales);
         $this->addTheme($document, $root, $journal);
         $this->validateRequiredSettings($journal);
         if ((int) $journal->getId() > 0) {
@@ -109,9 +81,18 @@ class JournalNativeXmlFilter extends NativeExportFilter
         array $supportedSubmissionLocales
     ): void {
         $localesNode = $document->createElementNS(self::NAMESPACE, 'locales');
-        foreach ($supportedLocales as $locale) {
+        $locales = array_values(array_unique(array_merge(
+            $supportedLocales,
+            $supportedFormLocales,
+            $supportedSubmissionLocales
+        )));
+        foreach ($locales as $locale) {
             $localeNode = $document->createElementNS(self::NAMESPACE, 'locale');
             $localeNode->setAttribute('code', $locale);
+            $localeNode->setAttribute(
+                'enabled_for_ui',
+                in_array($locale, $supportedLocales, true) ? 'true' : 'false'
+            );
             $localeNode->setAttribute(
                 'enabled_for_forms',
                 in_array($locale, $supportedFormLocales, true) ? 'true' : 'false'
@@ -163,31 +144,40 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
     }
 
-    public function addSettings(DOMDocument $document, DOMElement $root, Journal $journal): void
-    {
+    /** @param list<string> $acceptedLocales */
+    public function addSettings(
+        DOMDocument $document,
+        DOMElement $root,
+        Journal $journal,
+        array $acceptedLocales
+    ): void {
+        $policy = new JournalSettingsPolicy();
         $settingsNode = $document->createElementNS(self::NAMESPACE, 'context_settings');
-        foreach (self::SCALAR_SETTINGS as $property => $type) {
-            $value = $journal->getData($property);
-            if ($value === null) {
-                continue;
-            }
-            $this->addContextSetting($document, $settingsNode, $property, $type, $value);
-        }
-        foreach (self::LOCALIZED_SETTINGS as $property) {
-            foreach ((array) $journal->getData($property, null) as $locale => $value) {
-                if ($value === null) {
+        foreach ($policy->definitions() as $property => $definition) {
+            if ($definition['localized']) {
+                $values = $journal->getData($property, null);
+                if ($values === null) {
                     continue;
                 }
-                $this->addContextSetting(
-                    $document,
-                    $settingsNode,
-                    $property,
-                    'string',
-                    $value,
-                    (string) $locale
-                );
+                if (!is_array($values)) {
+                    throw new InvalidArgumentException('Localized context setting must be an array: ' . $property);
+                }
+                foreach ($values as $locale => $value) {
+                    if ($value === null || !in_array($locale, $acceptedLocales, true)) {
+                        continue;
+                    }
+                    [$type, $payload] = $policy->encode($property, $value);
+                    $this->addContextSetting($document, $settingsNode, $property, $type, $payload, $locale);
+                }
+                continue;
+            }
+            $value = $journal->getData($property);
+            if ($value !== null) {
+                [$type, $payload] = $policy->encode($property, $value);
+                $this->addContextSetting($document, $settingsNode, $property, $type, $payload);
             }
         }
+        $policy->validateJournal($journal);
         $root->appendChild($settingsNode);
     }
 
@@ -240,7 +230,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         DOMElement $parent,
         string $property,
         string $type,
-        $value,
+        string $payload,
         ?string $locale = null
     ): void {
         $node = $document->createElementNS(self::NAMESPACE, 'setting');
@@ -249,10 +239,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
         if ($locale !== null) {
             $node->setAttribute('locale', $locale);
         }
-        if ($type === 'boolean') {
-            $value = $value ? 'true' : 'false';
-        }
-        $node->appendChild($document->createTextNode((string) $value));
+        $node->appendChild($document->createTextNode($payload));
         $parent->appendChild($node);
     }
 

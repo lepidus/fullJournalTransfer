@@ -36,6 +36,7 @@
             <element name="locale" minOccurs="1" maxOccurs="unbounded">
                 <complexType>
                     <attribute name="code" type="pkp:locale_code" use="required" />
+                    <attribute name="enabled_for_ui" type="boolean" use="required" />
                     <attribute name="enabled_for_forms" type="boolean" use="required" />
                     <attribute name="form_order" type="positiveInteger" use="optional" />
                     <attribute name="enabled_for_submissions" type="boolean" use="required" />
@@ -56,6 +57,7 @@
                                 <enumeration value="string" />
                                 <enumeration value="integer" />
                                 <enumeration value="boolean" />
+                                <enumeration value="string-list" />
                             </restriction>
                         </simpleType>
                     </attribute>

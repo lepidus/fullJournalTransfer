@@ -1,7 +1,7 @@
 [English](/README.md) | **Português Brasileiro**
 
 # Transferência Completa de Periódico
-Este plugin permite importar e exportar todo o conteúdo de um periódico.
+Este plugin transfere os dados do periódico cobertos pelos contratos explícitos descritos abaixo.
 
 ## Compatibilidade
 A versão mais recente deste plugin é compatível com as seguintes aplicações do PKP:
@@ -63,6 +63,42 @@ Alguns comportamentos são esperados ao executar a importação da revista:
   de destino. Quando ele não está disponível, o periódico importado usa o tema padrão com suas opções padrão.
 - Métricas institucionais exigem um identificador ROR válido; registros sem ROR estável são rejeitados.
 
+## Locales e configurações do periódico
+
+As listas de locales da interface, dos formulários e das submissões são transferidas independentemente. Na
+importação, cada lista é intersectada com os locales habilitados no site OJS de destino, preservando a ordem da
+origem. A importação para antes de criar o periódico quando o locale principal não está disponível ou quando não
+resta nenhum locale de formulário ou submissão. Os erros dessa validação inicial no fluxo CLI/filtro são
+mensagens determinísticas em inglês, pois os catálogos de locale do plugin ainda não estão carregados nesse ponto.
+
+As seguintes configurações do periódico são transferidas:
+
+- Identidade e contato: `name`, `acronym`, `abbreviation`, `about`, `description`, `editorialTeam`,
+  `authorInformation`, `librarianInformation`, `readerInformation`, `privacyStatement`, `openAccessPolicy`,
+  `contactAffiliation`, `contactEmail`, `contactName`, `contactPhone`, `mailingAddress`, `country`, `onlineIssn`,
+  `printIssn`, `publisherInstitution`, `publisherUrl`, `supportEmail`, `supportName`, `supportPhone`, `enableOai`,
+  `itemsPerPage` e `numPageLinks`.
+- DOI: `enableDois`, `enabledDoiTypes`, `doiPrefix`, `doiSuffixType`, `doiIssueSuffixPattern`,
+  `doiPublicationSuffixPattern`, `doiRepresentationSuffixPattern`, `doiVersioning` e `doiCreationTime`.
+- Licença e copyright: `copyrightYearBasis`, `copyrightHolderType`, `copyrightHolderOther`, `copyrightNotice`,
+  `licenseTerms`, `licenseUrl` e `rights`.
+- Submissão e metadados: `disableSubmissions`, `authorGuidelines`, `beginSubmissionHelp`, `contributorsHelp`,
+  `detailsHelp`, `forTheEditorsHelp`, `uploadFilesHelp`, `submissionChecklist`, `submissionAcknowledgement`,
+  `copySubmissionAckAddress`, `copySubmissionAckPrimaryContact`, `submitWithCategories`, `agencies`, `citations`,
+  `competingInterests`, `coverage`, `dataAvailability`, `disciplines`, `keywords`, `languages`, `subjects` e
+  `requireAuthorCompetingInterests`.
+- Avaliação e fluxo editorial: `defaultReviewMode`, `numWeeksPerResponse`, `numWeeksPerReview`,
+  `restrictReviewerFileAccess`, `reviewerAccessKeysEnabled`, `reviewGuidelines`, `reviewHelp`,
+  `numDaysBeforeInviteReminder`, `numDaysBeforeSubmitReminder`, `rateReviewerOnQuality` e `notifyAllAuthors`.
+- Publicação: `publishingMode` para periódicos de acesso aberto ou sem publicação. O modo por assinatura é
+  rejeitado antes da criação do periódico porque os registros de assinatura não são transferidos.
+
+Configurações localizadas são limitadas à união dos locales aceitos, e o checklist de submissão é limitado aos
+locales efetivos de formulário. Valores nulos permanecem ausentes. DOIs já atribuídos a edições, publicações e
+composições são preservados pelo Native XML. Depósito DOI automático, dados de conta da agência, credenciais,
+tokens e configurações privadas de plugins de depósito não são transferidos, e a importação nunca agenda um
+depósito DOI.
+
 ## Conteúdo Importado/Exportado do Periódico
 
 **Usando a importação/exportação nativa da PKP**:
@@ -79,7 +115,6 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - Progresso das submissões incompletas no assistente
 - Tema selecionado e opções do tema
 - Menus de Navegação
-- Configurações de Plugins
 - Seções
 - Formulários de Avaliação
 - Designações de Avaliação
