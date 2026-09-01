@@ -10,6 +10,7 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
 use DOMDocument;
+use PKP\core\PKPApplication;
 use PKP\tests\DatabaseTestCase;
 use Symfony\Component\Process\Process;
 
@@ -163,6 +164,24 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         ], $plugin->cliOutput);
     }
 
+    public function testItReportsImportProblemsAsHumanReadableCliOutput(): void
+    {
+        $user = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($user);
+        $arguments = ['import', $this->archivePath(), $user->getUsername()];
+        $plugin = new FailedImportCliTestPlugin();
+
+        $result = $plugin->executeCLI('tools/importExport.php', $arguments);
+
+        $this->assertFalse($result);
+        $this->assertSame([
+            "The journal package could not be imported.\n\n"
+                . __('plugins.importexport.common.errorsOccured') . "\n"
+                . '1.' . __('plugins.importexport.native.common.any') . "\n"
+                . '- The journal primary locale (pt_BR) is not available in the destination OJS.',
+        ], $plugin->cliErrors);
+    }
+
     private function createContext(): Journal
     {
         $context = Application::get()->getContextDAO()->newDataObject();
@@ -263,5 +282,31 @@ class SuccessfulImportDeployment extends FullJournalImportExportDeployment
             $progress('Importing journal data...');
         }
         return true;
+    }
+}
+
+class FailedImportCliTestPlugin extends CliTestPlugin
+{
+    public function getAppSpecificDeployment($context, $user)
+    {
+        return new FailedImportDeployment($context, $user);
+    }
+}
+
+class FailedImportDeployment extends FullJournalImportExportDeployment
+{
+    public function importPackage(
+        string $archivePath,
+        string $applicationVersion,
+        string $rootFilter,
+        ?\APP\plugins\importexport\fullJournalTransfer\ArchiveManager $archiveManager = null,
+        ?callable $progress = null
+    ): bool {
+        $this->addError(
+            PKPApplication::ASSOC_TYPE_NONE,
+            0,
+            'The journal primary locale (pt_BR) is not available in the destination OJS.'
+        );
+        return false;
     }
 }

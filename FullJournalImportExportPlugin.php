@@ -93,10 +93,12 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
             $this->writeCLIOutput($message);
         };
         if (!$deployment->importPackage($archivePath, $version, 'full-journal-xml=>journal', null, $progress)) {
-            $problems = json_encode($deployment->getWarningsAndErrors(), JSON_UNESCAPED_SLASHES);
-            throw new RuntimeException(
-                'The journal package could not be imported: ' . (is_string($problems) ? $problems : 'unknown error')
-            );
+            $message = 'The journal package could not be imported.';
+            $problems = $this->formatCLIProblems($deployment->getWarningsAndErrors());
+            if ($problems !== '') {
+                $message .= "\n\n" . $problems;
+            }
+            throw new RuntimeException($message);
         }
         $this->writeCLIOutput('Journal import completed');
         return true;
@@ -111,6 +113,41 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
     {
         fwrite(STDERR, 'Error: ' . $message . PHP_EOL);
         exit(1);
+    }
+
+    private function formatCLIProblems(array $problems): string
+    {
+        $sections = [];
+        $problemTypes = [
+            'warnings' => __('plugins.importexport.common.warningsEncountered'),
+            'errors' => __('plugins.importexport.common.errorsOccured'),
+        ];
+
+        foreach ($problemTypes as $problemType => $title) {
+            if (empty($problems[$problemType])) {
+                continue;
+            }
+
+            $lines = [$title];
+            $typeIndex = 0;
+            foreach ($problems[$problemType] as $objectTypeName => $objectTypeGroups) {
+                foreach ($objectTypeGroups as $objectTypeItems) {
+                    if ($objectTypeItems === []) {
+                        continue;
+                    }
+
+                    $lines[] = ++$typeIndex . '.' . $objectTypeName;
+                    foreach ($objectTypeItems as $itemMessages) {
+                        foreach ($itemMessages as $message) {
+                            $lines[] = '- ' . $message;
+                        }
+                    }
+                }
+            }
+            $sections[] = implode("\n", $lines);
+        }
+
+        return implode("\n", $sections);
     }
 
     public function getAppSpecificDeployment($context, $user)
