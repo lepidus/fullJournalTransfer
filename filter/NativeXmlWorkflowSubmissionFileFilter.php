@@ -31,17 +31,32 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
         $submissionId = $deployment->requireReference('submission', $submissionReference);
         $submission = Repo::submission()->get($submissionId);
         if (!$submission) {
-            throw new InvalidArgumentException('Workflow submission file submission was not imported');
+            throw new InvalidArgumentException(sprintf(
+                'Workflow submission file references unavailable submission_ref "%s" at line %d',
+                $submissionReference,
+                $node->getLineNo()
+            ));
         }
         $payload = $this->payload($node);
         $sourceSubmissionFileId = trim($payload->getAttribute('id'));
         if ($sourceSubmissionFileId === '') {
-            throw new InvalidArgumentException('Missing workflow submission file source id');
+            throw new InvalidArgumentException(sprintf(
+                'Missing workflow submission file source id for submission_ref "%s" at line %d',
+                $submissionReference,
+                $payload->getLineNo()
+            ));
         }
         $stageName = $payload->getAttribute('stage');
         $stageMapping = $deployment->getStageNameStageIdMapping();
         if (!isset($stageMapping[$stageName])) {
-            throw new InvalidArgumentException('Invalid workflow submission file stage');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid workflow submission file stage "%s" for file source id "%s" and submission_ref "%s" '
+                    . 'at line %d',
+                $stageName,
+                $sourceSubmissionFileId,
+                $submissionReference,
+                $payload->getLineNo()
+            ));
         }
         $fileStage = $stageMapping[$stageName];
         $reviewRoundId = null;
@@ -71,7 +86,11 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
             $deployment->setSubmission($previousSubmission);
         }
         if (!$submissionFile instanceof SubmissionFile) {
-            throw new InvalidArgumentException('Workflow submission file could not be imported');
+            throw new InvalidArgumentException(sprintf(
+                'Workflow submission file source id "%s" for submission_ref "%s" could not be imported',
+                $sourceSubmissionFileId,
+                $submissionReference
+            ));
         }
         $deployment->mapReference(
             'submission_file',
@@ -121,7 +140,12 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing workflow submission file value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing workflow submission file attribute "%s" for submission_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('submission_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }

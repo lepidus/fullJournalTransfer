@@ -31,7 +31,7 @@ class NativeXmlReviewFileFilter extends NativeImportFilter
             'submission_file',
             $this->required($node, 'submission_file_ref')
         );
-        $this->requireSubmissionFile($submissionFileId, $submissionId);
+        $this->requireSubmissionFile($node, $submissionFileId, $submissionId);
         DB::table('review_files')->insert([
             'review_id' => $reviewId,
             'submission_file_id' => $submissionFileId,
@@ -43,17 +43,27 @@ class NativeXmlReviewFileFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing review file value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing review file attribute "%s" for review_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
 
-    private function requireSubmissionFile(int $submissionFileId, int $submissionId): void
+    private function requireSubmissionFile($node, int $submissionFileId, int $submissionId): void
     {
         if ((int) DB::table('submission_files')->where('submission_file_id', $submissionFileId)
             ->value('submission_id') !== $submissionId
         ) {
-            throw new InvalidArgumentException('Review file does not belong to the review submission');
+            throw new InvalidArgumentException(sprintf(
+                'Review submission_file_ref "%s" does not belong to review_ref "%s" at line %d',
+                $node->getAttribute('submission_file_ref'),
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
     }
 }

@@ -406,7 +406,7 @@ class MetricsFilterIntegrationTest extends DatabaseTestCase
             $deployment->importMetrics($document->documentElement);
             $this->fail('An unmapped required metric dimension was accepted');
         } catch (\InvalidArgumentException $exception) {
-            $this->assertSame('Missing mapped submission reference', $exception->getMessage());
+            $this->assertSame('Missing mapped submission reference: "missing"', $exception->getMessage());
         }
 
         $this->assertSame(0, DB::table('metrics_context')->where('context_id', $destination->getId())->count());

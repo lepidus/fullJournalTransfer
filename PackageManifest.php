@@ -152,7 +152,12 @@ class PackageManifest
     {
         $value = $element->getAttribute($name);
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf('The %s attribute is required', $name));
+            throw new InvalidArgumentException(sprintf(
+                'The manifest attribute "%s" is required in element "%s" at line %d',
+                $name,
+                $element->localName,
+                $element->getLineNo()
+            ));
         }
         return $value;
     }

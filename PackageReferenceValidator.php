@@ -22,7 +22,12 @@ class PackageReferenceValidator
             foreach ($this->children($sections, 'section') as $section) {
                 $reference = trim($section->getAttribute('review_form_ref'));
                 if ($reference !== '' && !isset($reviewFormReferences[$reference])) {
-                    throw new InvalidArgumentException('Unknown review form reference in section');
+                    throw new InvalidArgumentException(sprintf(
+                        'Unknown review_form_ref "%s" in section source_ref "%s" at line %d',
+                        $reference,
+                        trim($section->getAttribute('source_ref')),
+                        $section->getLineNo()
+                    ));
                 }
             }
         }
@@ -36,10 +41,19 @@ class PackageReferenceValidator
         foreach ($this->children($container, $elementName) as $element) {
             $reference = trim($element->getAttribute('source_ref'));
             if ($reference === '') {
-                throw new InvalidArgumentException('Missing reference data attribute: source_ref');
+                throw new InvalidArgumentException(sprintf(
+                    'Missing source_ref in reference data element "%s" at line %d',
+                    $elementName,
+                    $element->getLineNo()
+                ));
             }
             if (isset($references[$reference])) {
-                throw new InvalidArgumentException('Duplicated source reference in reference data');
+                throw new InvalidArgumentException(sprintf(
+                    'Duplicated %s source_ref "%s" at line %d',
+                    $elementName,
+                    $reference,
+                    $element->getLineNo()
+                ));
             }
             $references[$reference] = true;
         }

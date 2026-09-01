@@ -31,11 +31,19 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
         $context = $this->getDeployment()->getContext();
         $sourceReference = trim($node->getAttribute('source_ref'));
         if ($sourceReference === '') {
-            throw new InvalidArgumentException('An imported user group must have a source_ref');
+            throw new InvalidArgumentException(sprintf(
+                'An imported user group must have a source_ref at line %d',
+                $node->getLineNo()
+            ));
         }
         $roleId = (int) $this->requiredText($node, 'role_id');
         if (!in_array($roleId, self::ALLOWED_ROLES, true)) {
-            throw new InvalidArgumentException('Unacceptable role_id ' . $roleId);
+            throw new InvalidArgumentException(sprintf(
+                'Unacceptable role_id "%d" for user group source_ref "%s" at line %d',
+                $roleId,
+                $sourceReference,
+                $node->getLineNo()
+            ));
         }
         $names = $this->localizedValues($node, 'name');
         $abbreviations = $this->localizedValues($node, 'abbrev');
@@ -114,7 +122,13 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
             if ($child instanceof DOMElement && $child->localName === $elementName) {
                 $locale = trim($child->getAttribute('locale'));
                 if ($locale === '' || isset($values[$locale])) {
-                    throw new InvalidArgumentException('Invalid localized ' . $elementName . ' in user group');
+                    throw new InvalidArgumentException(sprintf(
+                        'Invalid localized %s locale "%s" for user group source_ref "%s" at line %d',
+                        $elementName,
+                        $locale,
+                        $node->getAttribute('source_ref'),
+                        $child->getLineNo()
+                    ));
                 }
                 $values[$locale] = $child->textContent;
             }
@@ -129,14 +143,25 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
                 return trim($child->textContent);
             }
         }
-        throw new InvalidArgumentException('Missing user group element: ' . $elementName);
+        throw new InvalidArgumentException(sprintf(
+            'Missing user group element "%s" for source_ref "%s" at line %d',
+            $elementName,
+            $node->getAttribute('source_ref'),
+            $node->getLineNo()
+        ));
     }
 
     private function booleanValue(DOMElement $node, string $elementName): bool
     {
         $value = $this->requiredText($node, $elementName);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid boolean user group element: ' . $elementName);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid user group %s "%s" for source_ref "%s" at line %d; expected "true" or "false"',
+                $elementName,
+                $value,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value === 'true';
     }
@@ -148,7 +173,12 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
         foreach ($value === '' ? [] : explode(':', $value) as $stage) {
             $stageId = (int) $stage;
             if ($stageId < WORKFLOW_STAGE_ID_SUBMISSION || $stageId > WORKFLOW_STAGE_ID_PRODUCTION) {
-                throw new InvalidArgumentException('Invalid workflow stage for imported user group');
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid workflow stage "%s" for user group source_ref "%s" at line %d',
+                    $stage,
+                    $node->getAttribute('source_ref'),
+                    $node->getLineNo()
+                ));
             }
             $stageIds[] = $stageId;
         }

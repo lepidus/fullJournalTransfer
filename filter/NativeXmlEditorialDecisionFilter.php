@@ -30,7 +30,12 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
         $editorId = $deployment->requireReference('user', $this->required($node, 'editor_ref'));
         $decisionType = $this->positiveInteger($node, 'decision');
         if (!Repo::decision()->getDecisionType($decisionType)) {
-            throw new InvalidArgumentException('Invalid editorial decision type');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid editorial decision type "%d" for source_ref "%s" at line %d',
+                $decisionType,
+                $sourceReference,
+                $node->getLineNo()
+            ));
         }
         $reviewRoundId = null;
         $reviewRoundReference = trim($node->getAttribute('review_round_ref'));
@@ -62,7 +67,12 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing editorial decision value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing editorial decision attribute "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -72,7 +82,13 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
         $value = $this->required($node, $attribute);
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException('Invalid editorial decision date');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid editorial decision %s "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $value,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -81,7 +97,13 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException('Invalid editorial decision integer: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid editorial decision %s "%s" for source_ref "%s" at line %d; expected a positive integer',
+                $attribute,
+                $node->getAttribute($attribute),
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -94,7 +116,13 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
         }
         $value = filter_var($rawValue, FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException('Invalid editorial decision integer: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid editorial decision %s "%s" for source_ref "%s" at line %d; expected a positive integer',
+                $attribute,
+                $rawValue,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }

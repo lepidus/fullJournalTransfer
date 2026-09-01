@@ -45,7 +45,14 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         if ((int) DB::table('review_rounds')->where('review_round_id', $reviewRoundId)->value('submission_id')
             !== $submissionId
         ) {
-            throw new InvalidArgumentException('Review assignment does not belong to its review round submission');
+            throw new InvalidArgumentException(sprintf(
+                'Review assignment source_ref "%s" submission_ref "%s" does not belong to review_round_ref "%s" '
+                    . 'at line %d',
+                $sourceReference,
+                $node->getAttribute('submission_ref'),
+                $node->getAttribute('review_round_ref'),
+                $node->getLineNo()
+            ));
         }
         $values = [
             'submission_id' => $submissionId,
@@ -82,7 +89,12 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing review assignment value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing review assignment attribute "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -94,7 +106,13 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         }
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false) {
-            throw new InvalidArgumentException('Invalid review assignment integer: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review assignment %s "%s" for source_ref "%s" at line %d; expected an integer',
+                $attribute,
+                $node->getAttribute($attribute),
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -107,7 +125,13 @@ class NativeXmlReviewAssignmentFilter extends NativeImportFilter
         $value = $node->getAttribute($attribute);
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException('Invalid review assignment date: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review assignment %s "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $value,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }

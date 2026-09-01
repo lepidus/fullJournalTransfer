@@ -44,7 +44,11 @@ class NativeDataReferenceValidator
         foreach ($this->children($this->requiredChild($root, 'issue_orders'), 'issue_order') as $order) {
             $sourceReference = trim($order->getAttribute('issue_ref'));
             if (!isset($issueReferences[$sourceReference])) {
-                throw new InvalidArgumentException('Unknown issue order reference');
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown issue order reference "%s" at line %d',
+                    $sourceReference,
+                    $order->getLineNo()
+                ));
             }
         }
         $this->validateArticles($articles, $submissionReferences, $authorReferences);
@@ -66,7 +70,11 @@ class NativeDataReferenceValidator
         foreach ($this->children($this->requiredChild($historicalDatesNode, 'issues'), 'issue') as $issueNode) {
             $sourceReference = trim($issueNode->getAttribute('issue_ref'));
             if (!isset($issueReferences[$sourceReference])) {
-                throw new InvalidArgumentException('Unknown historical issue date reference');
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown historical issue date reference "%s" at line %d',
+                    $sourceReference,
+                    $issueNode->getLineNo()
+                ));
             }
             $this->addUnique($metadataIssueReferences, $sourceReference, 'historical issue date');
             $this->validateOptionalDateTime($issueNode, 'date_published');
@@ -80,7 +88,11 @@ class NativeDataReferenceValidator
         ) as $submissionNode) {
             $sourceReference = trim($submissionNode->getAttribute('submission_ref'));
             if (!isset($submissionReferences[$sourceReference])) {
-                throw new InvalidArgumentException('Unknown historical submission date reference');
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown historical submission date reference "%s" at line %d',
+                    $sourceReference,
+                    $submissionNode->getLineNo()
+                ));
             }
             $this->addUnique(
                 $metadataSubmissionReferences,
@@ -106,7 +118,15 @@ class NativeDataReferenceValidator
         $value = $node->getAttribute($attribute);
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException('Invalid historical date: ' . $attribute);
+            $referenceAttribute = $node->hasAttribute('issue_ref') ? 'issue_ref' : 'submission_ref';
+            throw new InvalidArgumentException(sprintf(
+                'Invalid historical %s "%s" for %s "%s" at line %d',
+                $attribute,
+                $value,
+                $referenceAttribute,
+                $node->getAttribute($referenceAttribute),
+                $node->getLineNo()
+            ));
         }
     }
 
@@ -125,15 +145,26 @@ class NativeDataReferenceValidator
         array &$authorReferences
     ): void {
         foreach ($this->children($articles, 'article') as $article) {
+            $sourceReference = $this->internalId($article, 'submission');
             if (!$article->hasAttribute('submission_progress')) {
-                throw new InvalidArgumentException('Missing submission progress');
+                throw new InvalidArgumentException(sprintf(
+                    'Missing submission_progress for submission source_ref "%s" at line %d',
+                    $sourceReference,
+                    $article->getLineNo()
+                ));
             }
-            if (!in_array($article->getAttribute('submission_progress'), self::SUBMISSION_PROGRESS_VALUES, true)) {
-                throw new InvalidArgumentException('Invalid submission progress');
+            $submissionProgress = $article->getAttribute('submission_progress');
+            if (!in_array($submissionProgress, self::SUBMISSION_PROGRESS_VALUES, true)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid submission_progress "%s" for submission source_ref "%s" at line %d',
+                    $submissionProgress,
+                    $sourceReference,
+                    $article->getLineNo()
+                ));
             }
             $this->addUnique(
                 $submissionReferences,
-                $this->internalId($article, 'submission'),
+                $sourceReference,
                 'submission'
             );
             $publicationReferences = [];
@@ -155,7 +186,12 @@ class NativeDataReferenceValidator
             }
             $current = trim($article->getAttribute('current_publication_id'));
             if ($current === '' || !isset($publicationReferences[$current])) {
-                throw new InvalidArgumentException('Unknown current publication reference');
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown current_publication_id "%s" for submission source_ref "%s" at line %d',
+                    $current,
+                    $sourceReference,
+                    $article->getLineNo()
+                ));
             }
         }
     }
@@ -166,7 +202,11 @@ class NativeDataReferenceValidator
         foreach ($this->children($metadataNode, 'author') as $authorNode) {
             $sourceReference = trim($authorNode->getAttribute('author_ref'));
             if (!isset($authorReferences[$sourceReference])) {
-                throw new InvalidArgumentException('Unknown author metadata reference');
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown author metadata reference "%s" at line %d',
+                    $sourceReference,
+                    $authorNode->getLineNo()
+                ));
             }
             $this->addUnique($metadataReferences, $sourceReference, 'author metadata');
             $seen = [];
@@ -215,7 +255,11 @@ class NativeDataReferenceValidator
                 $seen[$key] = true;
             }
             if ($seen === []) {
-                throw new InvalidArgumentException('Author metadata entry must not be empty');
+                throw new InvalidArgumentException(sprintf(
+                    'Author metadata entry for author_ref "%s" must not be empty at line %d',
+                    $sourceReference,
+                    $authorNode->getLineNo()
+                ));
             }
         }
     }
@@ -232,7 +276,11 @@ class NativeDataReferenceValidator
                 || in_array('.', $segments, true)
                 || str_contains($source, "\0")
             ) {
-                throw new InvalidArgumentException('Unsafe native file reference');
+                throw new InvalidArgumentException(sprintf(
+                    'Unsafe native file reference "%s" at line %d',
+                    $source,
+                    $href->getLineNo()
+                ));
             }
         }
     }

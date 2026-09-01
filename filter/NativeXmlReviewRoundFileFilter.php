@@ -32,7 +32,12 @@ class NativeXmlReviewRoundFileFilter extends NativeImportFilter
         if ((int) DB::table('review_rounds')->where('review_round_id', $reviewRoundId)
             ->value('submission_id') !== $submissionId
         ) {
-            throw new InvalidArgumentException('Review round file does not belong to the review submission');
+            throw new InvalidArgumentException(sprintf(
+                'Review round_ref "%s" does not belong to submission_ref "%s" at line %d',
+                $node->getAttribute('review_round_ref'),
+                $node->getAttribute('submission_ref'),
+                $node->getLineNo()
+            ));
         }
         $submissionFileId = $deployment->requireReference(
             'submission_file',
@@ -41,7 +46,12 @@ class NativeXmlReviewRoundFileFilter extends NativeImportFilter
         if ((int) DB::table('submission_files')->where('submission_file_id', $submissionFileId)
             ->value('submission_id') !== $submissionId
         ) {
-            throw new InvalidArgumentException('Review round file does not belong to the review submission');
+            throw new InvalidArgumentException(sprintf(
+                'Review round submission_file_ref "%s" does not belong to submission_ref "%s" at line %d',
+                $node->getAttribute('submission_file_ref'),
+                $node->getAttribute('submission_ref'),
+                $node->getLineNo()
+            ));
         }
         DB::table('review_round_files')->updateOrInsert(
             [
@@ -58,7 +68,12 @@ class NativeXmlReviewRoundFileFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing review round file value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing review round file attribute "%s" for review_round_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('review_round_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -67,7 +82,13 @@ class NativeXmlReviewRoundFileFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException('Invalid review round file stage');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review round file %s "%s" for review_round_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute($attribute),
+                $node->getAttribute('review_round_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }

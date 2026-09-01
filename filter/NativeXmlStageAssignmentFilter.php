@@ -47,7 +47,12 @@ class NativeXmlStageAssignmentFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing stage assignment reference: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing stage assignment attribute "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -57,7 +62,13 @@ class NativeXmlStageAssignmentFilter extends NativeImportFilter
         $value = trim($node->getAttribute($attribute));
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException('Invalid stage assignment date');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid stage assignment %s "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $value,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -66,7 +77,13 @@ class NativeXmlStageAssignmentFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($attribute);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid stage assignment boolean');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid stage assignment %s "%s" for source_ref "%s" at line %d; expected "true" or "false"',
+                $attribute,
+                $value,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value === 'true' ? 1 : 0;
     }

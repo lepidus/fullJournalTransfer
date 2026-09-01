@@ -20,7 +20,7 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsUnknownIssueOrderReference(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown issue order reference');
+        $this->expectExceptionMessage('Unknown issue order reference "2" at line 1');
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData('<issue_order issue_ref="2" position="1"/>', $this->issue(), '')
         );
@@ -47,7 +47,7 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsUnsafeExternalFileReferences(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unsafe native file reference');
+        $this->expectExceptionMessage('Unsafe native file reference "../private.txt" at line 1');
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData('', $this->issue(), $this->article('../private.txt'))
         );
@@ -56,7 +56,7 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsUnknownAuthorMetadataReference(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown author metadata reference');
+        $this->expectExceptionMessage('Unknown author metadata reference "99" at line 1');
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData(
                 '',
@@ -165,7 +165,7 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsUnknownHistoricalSubmissionDateReference(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown historical submission date reference');
+        $this->expectExceptionMessage('Unknown historical submission date reference "99" at line 1');
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData(
                 '',
@@ -181,7 +181,9 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsInvalidHistoricalDate(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid historical date: date_published');
+        $this->expectExceptionMessage(
+            'Invalid historical date_published "2024-02-30 12:00:00" for issue_ref "1" at line 1'
+        );
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData(
                 '',
@@ -212,7 +214,7 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsMissingSubmissionProgress(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Missing submission progress');
+        $this->expectExceptionMessage('Missing submission_progress for submission source_ref "10" at line 1');
         $article = str_replace(' submission_progress=""', '', $this->articleWithAuthor());
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData('', $this->issue(), $article)
@@ -222,10 +224,33 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsInvalidSubmissionProgress(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid submission progress');
+        $this->expectExceptionMessage(
+            'Invalid submission_progress "unknown" for submission source_ref "10" at line 1'
+        );
         $article = str_replace('submission_progress=""', 'submission_progress="unknown"', $this->articleWithAuthor());
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData('', $this->issue(), $article)
+        );
+    }
+
+    public function testItReportsAnUnknownCurrentPublicationReference(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Unknown current_publication_id "999" for submission source_ref "10" at line 1'
+        );
+        $article = str_replace('current_publication_id="20"', 'current_publication_id="999"', $this->articleWithAuthor());
+
+        (new NativeDataReferenceValidator())->validate($this->nativeData('', $this->issue(), $article));
+    }
+
+    public function testItReportsAnEmptyAuthorMetadataEntry(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Author metadata entry for author_ref "50" must not be empty at line 1');
+
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData('', $this->issue(), $this->articleWithAuthor(), '<author author_ref="50"/>')
         );
     }
 

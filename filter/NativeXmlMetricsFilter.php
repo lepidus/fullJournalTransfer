@@ -115,7 +115,7 @@ class NativeXmlMetricsFilter extends NativeImportFilter
             return;
         }
         if ($granularity !== 'monthly') {
-            throw new InvalidArgumentException('Invalid geographic metric granularity');
+            throw new InvalidArgumentException($this->invalidMetricValue($node, 'granularity', $granularity));
         }
         $month = $this->month($node);
         $dimensions = $this->geoDimensions($node);
@@ -152,12 +152,12 @@ class NativeXmlMetricsFilter extends NativeImportFilter
     private function geoDimension(DOMElement $node, string $attribute, int $maximumLength): string
     {
         if (!$node->hasAttribute($attribute)) {
-            throw new InvalidArgumentException('Missing geographic metric value: ' . $attribute);
+            throw new InvalidArgumentException($this->missingMetricValue($node, $attribute));
         }
         $value = trim($node->getAttribute($attribute));
         if (mb_strlen($value) > $maximumLength || ($attribute === 'country'
             && preg_match('/^(?:|[A-Z]{2})$/', $value) !== 1)) {
-            throw new InvalidArgumentException('Invalid geographic metric value: ' . $attribute);
+            throw new InvalidArgumentException($this->invalidMetricValue($node, $attribute, $value));
         }
         return $value;
     }
@@ -183,7 +183,7 @@ class NativeXmlMetricsFilter extends NativeImportFilter
             return;
         }
         if ($granularity !== 'monthly') {
-            throw new InvalidArgumentException('Invalid COUNTER metric granularity');
+            throw new InvalidArgumentException($this->invalidMetricValue($node, 'granularity', $granularity));
         }
         $this->importMonthlyCounterMetric(
             $node,
@@ -197,7 +197,7 @@ class NativeXmlMetricsFilter extends NativeImportFilter
     {
         $granularity = $this->required($node, 'granularity');
         if (!in_array($granularity, ['daily', 'monthly'], true)) {
-            throw new InvalidArgumentException('Invalid institutional metric granularity');
+            throw new InvalidArgumentException($this->invalidMetricValue($node, 'granularity', $granularity));
         }
         $institutionId = $this->destinationInstitutionId($node, $granularity);
         if ($institutionId === null) {
@@ -362,7 +362,7 @@ class NativeXmlMetricsFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing metric value: ' . $attribute);
+            throw new InvalidArgumentException($this->missingMetricValue($node, $attribute));
         }
         return $value;
     }
@@ -372,7 +372,7 @@ class NativeXmlMetricsFilter extends NativeImportFilter
         $value = $this->required($node, 'date');
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
         if (!$date || $date->format('Y-m-d') !== $value) {
-            throw new InvalidArgumentException('Invalid metric date');
+            throw new InvalidArgumentException($this->invalidMetricValue($node, 'date', $value));
         }
         return $value;
     }
@@ -381,7 +381,7 @@ class NativeXmlMetricsFilter extends NativeImportFilter
     {
         $value = $this->required($node, $attribute);
         if (preg_match('/^(0|[1-9][0-9]*)$/', $value) !== 1) {
-            throw new InvalidArgumentException('Invalid metric value: ' . $attribute);
+            throw new InvalidArgumentException($this->invalidMetricValue($node, $attribute, $value));
         }
         return (int) $value;
     }
@@ -404,9 +404,40 @@ class NativeXmlMetricsFilter extends NativeImportFilter
         $value = $this->required($node, 'month');
         $month = \DateTimeImmutable::createFromFormat('!Ym', $value);
         if (!$month || $month->format('Ym') !== $value) {
-            throw new InvalidArgumentException('Invalid metric month');
+            throw new InvalidArgumentException($this->invalidMetricValue($node, 'month', $value));
         }
         return (int) $value;
+    }
+
+    private function missingMetricValue(DOMElement $node, string $attribute): string
+    {
+        return sprintf(
+            'Missing metric attribute "%s" in %s at line %d',
+            $attribute,
+            $this->metricContext($node),
+            $node->getLineNo()
+        );
+    }
+
+    private function invalidMetricValue(DOMElement $node, string $attribute, string $value): string
+    {
+        return sprintf(
+            'Invalid metric %s "%s" in %s at line %d',
+            $attribute,
+            $value,
+            $this->metricContext($node),
+            $node->getLineNo()
+        );
+    }
+
+    private function metricContext(DOMElement $node): string
+    {
+        foreach (['submission_ref', 'issue_ref', 'context_ref'] as $attribute) {
+            if ($node->hasAttribute($attribute)) {
+                return sprintf('%s %s "%s"', $node->localName, $attribute, $node->getAttribute($attribute));
+            }
+        }
+        return $node->localName;
     }
 
     private function monthRange(int $month): array

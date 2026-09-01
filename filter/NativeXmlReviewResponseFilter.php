@@ -37,14 +37,31 @@ class NativeXmlReviewResponseFilter extends NativeImportFilter
         }
         $type = $this->required($node, 'type');
         if (!in_array($type, ['string', 'int', 'object'], true)) {
-            throw new InvalidArgumentException('Invalid review response type');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review response type "%s" for review_ref "%s" and element_ref "%s" at line %d',
+                $type,
+                $node->getAttribute('review_ref'),
+                $node->getAttribute('element_ref'),
+                $node->getLineNo()
+            ));
         }
         if (!$node->hasAttribute('is_null') || $node->getAttribute('is_null') === '') {
-            throw new InvalidArgumentException('Missing review response value: is_null');
+            throw new InvalidArgumentException(sprintf(
+                'Missing review response attribute "is_null" for review_ref "%s" and element_ref "%s" at line %d',
+                $node->getAttribute('review_ref'),
+                $node->getAttribute('element_ref'),
+                $node->getLineNo()
+            ));
         }
         $isNull = $node->getAttribute('is_null');
         if (!in_array($isNull, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid review response null marker');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review response is_null "%s" for review_ref "%s" and element_ref "%s" at line %d',
+                $isNull,
+                $node->getAttribute('review_ref'),
+                $node->getAttribute('element_ref'),
+                $node->getLineNo()
+            ));
         }
         if ($isNull === 'true' && $node->textContent !== '') {
             throw new InvalidArgumentException('Null review response must not contain text');
@@ -62,7 +79,12 @@ class NativeXmlReviewResponseFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing review response value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing review response attribute "%s" for review_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }

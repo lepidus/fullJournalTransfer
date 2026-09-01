@@ -223,7 +223,9 @@ class JournalFilterTest extends TestCase
         $locale = $document->getElementsByTagNameNS('http://pkp.sfu.ca', 'locale')->item(0);
         $locale->setAttribute('enabled_for_forms', 'false');
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('A disabled form locale must not declare form_order');
+        $this->expectExceptionMessage(
+            'Locale "en" is disabled for forms but declares form_order "1"'
+        );
 
         (new FullJournalImportExportDeployment(new Journal(), null))
             ->importContextData($document->documentElement);
@@ -236,7 +238,9 @@ class JournalFilterTest extends TestCase
         $locale = $document->getElementsByTagNameNS('http://pkp.sfu.ca', 'locale')->item(0);
         $locale->setAttribute('enabled_for_ui', '1');
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid locale boolean attribute: enabled_for_ui');
+        $this->expectExceptionMessage(
+            'Invalid enabled_for_ui value "1" for locale "en"; expected "true" or "false"'
+        );
 
         (new FullJournalImportExportDeployment(new Journal(), null))
             ->importContextData($document->documentElement);

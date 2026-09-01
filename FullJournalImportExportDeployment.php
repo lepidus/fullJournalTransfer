@@ -355,7 +355,11 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     {
         $destinationId = $this->referenceMaps[$entity][$sourceReference] ?? null;
         if (!is_int($destinationId)) {
-            throw new InvalidArgumentException('Missing mapped ' . $entity . ' reference');
+            throw new InvalidArgumentException(sprintf(
+                'Missing mapped %s reference: "%s"',
+                $entity,
+                $sourceReference
+            ));
         }
         return $destinationId;
     }

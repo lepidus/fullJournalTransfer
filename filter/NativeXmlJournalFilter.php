@@ -53,20 +53,42 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($this->readBooleanAttribute($localeNode, 'enabled_for_forms')) {
                 $formOrder = $this->readOrderAttribute($localeNode, 'form_order');
                 if (isset($supportedFormLocales[$formOrder])) {
-                    throw new InvalidArgumentException('Duplicated form locale order');
+                    throw new InvalidArgumentException(sprintf(
+                        'Duplicated form_order "%d" for locales "%s" and "%s"%s',
+                        $formOrder,
+                        $supportedFormLocales[$formOrder],
+                        $locale,
+                        $this->line($localeNode)
+                    ));
                 }
                 $supportedFormLocales[$formOrder] = $locale;
             } elseif ($localeNode->hasAttribute('form_order')) {
-                throw new InvalidArgumentException('A disabled form locale must not declare form_order');
+                throw new InvalidArgumentException(sprintf(
+                    'Locale "%s" is disabled for forms but declares form_order "%s"%s',
+                    $locale,
+                    $localeNode->getAttribute('form_order'),
+                    $this->line($localeNode)
+                ));
             }
             if ($this->readBooleanAttribute($localeNode, 'enabled_for_submissions')) {
                 $submissionOrder = $this->readOrderAttribute($localeNode, 'submission_order');
                 if (isset($supportedSubmissionLocales[$submissionOrder])) {
-                    throw new InvalidArgumentException('Duplicated submission locale order');
+                    throw new InvalidArgumentException(sprintf(
+                        'Duplicated submission_order "%d" for locales "%s" and "%s"%s',
+                        $submissionOrder,
+                        $supportedSubmissionLocales[$submissionOrder],
+                        $locale,
+                        $this->line($localeNode)
+                    ));
                 }
                 $supportedSubmissionLocales[$submissionOrder] = $locale;
             } elseif ($localeNode->hasAttribute('submission_order')) {
-                throw new InvalidArgumentException('A disabled submission locale must not declare submission_order');
+                throw new InvalidArgumentException(sprintf(
+                    'Locale "%s" is disabled for submissions but declares submission_order "%s"%s',
+                    $locale,
+                    $localeNode->getAttribute('submission_order'),
+                    $this->line($localeNode)
+                ));
             }
         }
         ksort($supportedFormLocales);
@@ -186,7 +208,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $locale = trim($settingNode->getAttribute('locale'));
             $key = $property . ':' . $locale;
             if (isset($seen[$key])) {
-                throw new InvalidArgumentException('Duplicated context setting: ' . $property);
+                throw new InvalidArgumentException(sprintf(
+                    'Duplicated context setting "%s" for locale "%s"%s',
+                    $property,
+                    $locale,
+                    $this->line($settingNode)
+                ));
             }
             $seen[$key] = true;
             $definition = $policy->definition($property);
@@ -212,7 +239,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($name);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid locale boolean attribute: ' . $name);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid %s value "%s" for locale "%s"%s; expected "true" or "false"',
+                $name,
+                $value,
+                $node->getAttribute('code'),
+                $this->line($node)
+            ));
         }
         return $value === 'true';
     }
@@ -221,9 +254,20 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($name);
         if (!ctype_digit($value) || (int) $value < 1) {
-            throw new InvalidArgumentException('Invalid locale order attribute: ' . $name);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid %s value "%s" for locale "%s"%s; expected a positive integer',
+                $name,
+                $value,
+                $node->getAttribute('code'),
+                $this->line($node)
+            ));
         }
         return (int) $value;
+    }
+
+    private function line(DOMElement $node): string
+    {
+        return $node->getLineNo() > 0 ? ' at line ' . $node->getLineNo() : '';
     }
 
     private function getImportedTheme(DOMElement $node): ThemePlugin

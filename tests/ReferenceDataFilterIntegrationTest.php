@@ -144,7 +144,10 @@ class ReferenceDataFilterIntegrationTest extends DatabaseTestCase
             (new FullJournalImportExportDeployment($destination, null))->importReferenceData($document->documentElement);
             $this->fail('Unknown review form relation was accepted');
         } catch (InvalidArgumentException $exception) {
-            $this->assertSame('Unknown review form reference in section', $exception->getMessage());
+            $this->assertSame(
+                'Unknown review_form_ref "missing-form" in section source_ref "section-1" at line 1',
+                $exception->getMessage()
+            );
         }
 
         $this->assertNotNull(Repo::section()->get($sectionId, (int) $destination->getId()));

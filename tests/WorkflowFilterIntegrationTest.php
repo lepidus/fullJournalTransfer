@@ -457,8 +457,18 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
     public function invalidReviewResponseNullMarkers(): array
     {
         return [
-            'missing marker' => ['', '', 'Missing review response value: is_null'],
-            'invalid marker' => [' is_null="invalid"', '', 'Invalid review response null marker'],
+            'missing marker' => [
+                '',
+                '',
+                'Missing review response attribute "is_null" for review_ref "review-1" and element_ref "element-1" '
+                    . 'at line 1',
+            ],
+            'invalid marker' => [
+                ' is_null="invalid"',
+                '',
+                'Invalid review response is_null "invalid" for review_ref "review-1" and element_ref "element-1" '
+                    . 'at line 1',
+            ],
             'null response with text' => [
                 ' is_null="true"',
                 'Unexpected response',
@@ -758,7 +768,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             $deployment->importWorkflow($document->documentElement);
             $this->fail('Unknown reviewer reference was accepted');
         } catch (\InvalidArgumentException $exception) {
-            $this->assertSame('Missing mapped user reference', $exception->getMessage());
+            $this->assertSame('Missing mapped user reference: "missing-user"', $exception->getMessage());
         }
 
         $this->assertSame($rounds, DB::table('review_rounds')->count());
@@ -787,7 +797,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             $deployment->importWorkflow($document->documentElement);
             $this->fail('Unknown discussion participant was accepted');
         } catch (\InvalidArgumentException $exception) {
-            $this->assertSame('Missing mapped user reference', $exception->getMessage());
+            $this->assertSame('Missing mapped user reference: "missing-user"', $exception->getMessage());
         }
 
         $this->assertSame($discussions, DB::table('queries')->count());
@@ -823,7 +833,8 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             $this->fail('A review assignment from another submission was accepted');
         } catch (\InvalidArgumentException $exception) {
             $this->assertSame(
-                'Review assignment does not belong to its review round submission',
+                'Review assignment source_ref "review-1" submission_ref "submission-2" does not belong to '
+                    . 'review_round_ref "round-1" at line 1',
                 $exception->getMessage()
             );
         }

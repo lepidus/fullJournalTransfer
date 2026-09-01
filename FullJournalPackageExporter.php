@@ -134,7 +134,10 @@ class FullJournalPackageExporter
             $size = filesize($absolutePath);
             $checksum = hash_file('sha256', $absolutePath);
             if (!is_int($size) || !is_string($checksum)) {
-                throw new RuntimeException('The package file metadata could not be calculated');
+                throw new RuntimeException(sprintf(
+                    'The package file metadata for "%s" could not be calculated',
+                    $path
+                ));
             }
             $file = $document->createElement('file');
             $file->setAttribute('path', $path);
@@ -168,15 +171,18 @@ class FullJournalPackageExporter
             if ($source === false || !is_file($source) || is_link($source)
                 || !str_starts_with($source, $filesDirectory . DIRECTORY_SEPARATOR)
             ) {
-                throw new RuntimeException('A referenced journal file is unavailable');
+                throw new RuntimeException(sprintf('Referenced journal file "%s" is unavailable', $path));
             }
             $destination = $stagingPath . DIRECTORY_SEPARATOR . $path;
             $directory = dirname($destination);
             if (!is_dir($directory) && !mkdir($directory, 0700, true)) {
-                throw new RuntimeException('A package file directory could not be created');
+                throw new RuntimeException(sprintf(
+                    'Package directory for referenced journal file "%s" could not be created',
+                    $path
+                ));
             }
             if (!copy($source, $destination)) {
-                throw new RuntimeException('A referenced journal file could not be staged');
+                throw new RuntimeException(sprintf('Referenced journal file "%s" could not be staged', $path));
             }
             $paths[$path] = true;
         }
@@ -188,11 +194,11 @@ class FullJournalPackageExporter
     private function validatePackagePath(string $path): void
     {
         if ($path === '' || $path[0] === '/' || str_contains($path, '\\') || str_contains($path, "\0")) {
-            throw new InvalidArgumentException('A referenced journal file path is invalid');
+            throw new InvalidArgumentException(sprintf('Referenced journal file path "%s" is invalid', $path));
         }
         foreach (explode('/', $path) as $component) {
             if ($component === '' || $component === '.' || $component === '..') {
-                throw new InvalidArgumentException('A referenced journal file path is invalid');
+                throw new InvalidArgumentException(sprintf('Referenced journal file path "%s" is invalid', $path));
             }
         }
     }

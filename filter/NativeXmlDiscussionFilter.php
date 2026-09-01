@@ -64,7 +64,12 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing discussion value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing discussion attribute "%s" for reference "%s" at line %d',
+                $attribute,
+                $this->reference($node),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -73,7 +78,13 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException('Invalid discussion integer: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid discussion %s "%s" for reference "%s" at line %d; expected a positive integer',
+                $attribute,
+                $node->getAttribute($attribute),
+                $this->reference($node),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -82,7 +93,13 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($attribute);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid discussion boolean');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid discussion %s "%s" for reference "%s" at line %d; expected "true" or "false"',
+                $attribute,
+                $value,
+                $this->reference($node),
+                $node->getLineNo()
+            ));
         }
         return $value === 'true' ? 1 : 0;
     }
@@ -91,9 +108,22 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_FLOAT);
         if ($value === false || $value < 0) {
-            throw new InvalidArgumentException('Invalid discussion sequence');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid discussion %s "%s" for reference "%s" at line %d; expected a non-negative number',
+                $attribute,
+                $node->getAttribute($attribute),
+                $this->reference($node),
+                $node->getLineNo()
+            ));
         }
         return (float) $value;
+    }
+
+    private function reference(DOMElement $node): string
+    {
+        return $node->hasAttribute('source_ref')
+            ? $node->getAttribute('source_ref')
+            : $node->getAttribute('discussion_ref');
     }
 
     private function childrenDocument(DOMElement $parent, string $element, string $container): ?DOMDocument

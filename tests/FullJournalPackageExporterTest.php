@@ -71,7 +71,10 @@ class FullJournalPackageExporterTest extends TestCase
             (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
             $this->fail('The missing referenced file was not rejected');
         } catch (\RuntimeException $exception) {
-            $this->assertSame('A referenced journal file is unavailable', $exception->getMessage());
+            $this->assertSame(
+                'Referenced journal file "journals/1/missing.txt" is unavailable',
+                $exception->getMessage()
+            );
         } finally {
             $this->assertSame($stagingDirectories, $this->stagingDirectories());
             $this->assertFileDoesNotExist($archivePath);
@@ -102,7 +105,10 @@ class FullJournalPackageExporterTest extends TestCase
             (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
             $this->fail('The inconsistent native data was not rejected');
         } catch (InvalidArgumentException $exception) {
-            $this->assertSame('Unknown current publication reference', $exception->getMessage());
+            $this->assertSame(
+                'Unknown current_publication_id "21" for submission source_ref "10" at line 1',
+                $exception->getMessage()
+            );
             $this->assertFileDoesNotExist($archivePath);
         } finally {
             if (is_file($archivePath)) {

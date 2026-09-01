@@ -19,7 +19,14 @@ trait NativeXmlReferenceDataFilterTrait
         foreach ($nodes as $node) {
             $locale = $this->localeAttribute($node);
             if (isset($locales[$locale])) {
-                throw new InvalidArgumentException('Duplicated localized reference data: ' . $name);
+                throw new InvalidArgumentException(sprintf(
+                    'Duplicated localized %s locale "%s" for %s source_ref "%s" at line %d',
+                    $name,
+                    $locale,
+                    $parent->localName,
+                    $parent->getAttribute('source_ref'),
+                    $node->getLineNo()
+                ));
             }
             $locales[$locale] = true;
             $setter($node->textContent, $locale);
@@ -50,7 +57,12 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $reference = $this->requiredAttribute($node, 'source_ref');
         if (isset($map[$reference])) {
-            throw new InvalidArgumentException('Duplicated source reference in reference data');
+            throw new InvalidArgumentException(sprintf(
+                'Duplicated %s source_ref "%s" at line %d',
+                $node->localName,
+                $reference,
+                $node->getLineNo()
+            ));
         }
         return $reference;
     }
@@ -59,7 +71,13 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = trim($node->getAttribute($name));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing reference data attribute: ' . $name);
+            throw new InvalidArgumentException(sprintf(
+                'Missing reference data attribute "%s" in %s source_ref "%s" at line %d',
+                $name,
+                $node->localName,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -68,7 +86,14 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = $this->requiredAttribute($node, $name);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid boolean reference data attribute: ' . $name);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid %s value "%s" in %s source_ref "%s" at line %d; expected "true" or "false"',
+                $name,
+                $value,
+                $node->localName,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value === 'true';
     }
@@ -77,7 +102,14 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = $this->requiredAttribute($node, $name);
         if (filter_var($value, FILTER_VALIDATE_INT) === false) {
-            throw new InvalidArgumentException('Invalid integer reference data attribute: ' . $name);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid integer %s "%s" in %s source_ref "%s" at line %d',
+                $name,
+                $value,
+                $node->localName,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return (int) $value;
     }
@@ -86,7 +118,14 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = $this->requiredAttribute($node, $name);
         if (!is_numeric($value)) {
-            throw new InvalidArgumentException('Invalid numeric reference data attribute: ' . $name);
+            throw new InvalidArgumentException(sprintf(
+                'Invalid numeric %s "%s" in %s source_ref "%s" at line %d',
+                $name,
+                $value,
+                $node->localName,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return (float) $value;
     }
@@ -95,7 +134,14 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $locale = $this->requiredAttribute($node, 'locale');
         if (preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1) {
-            throw new InvalidArgumentException('Invalid locale in reference data');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid locale "%s" in localized %s for %s source_ref "%s" at line %d',
+                $locale,
+                $node->localName,
+                $node->parentNode instanceof DOMElement ? $node->parentNode->localName : 'reference data',
+                $node->parentNode instanceof DOMElement ? $node->parentNode->getAttribute('source_ref') : '',
+                $node->getLineNo()
+            ));
         }
         return $locale;
     }

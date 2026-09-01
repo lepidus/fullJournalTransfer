@@ -46,7 +46,12 @@ class NativeXmlReviewCommentFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing review comment value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing review comment attribute "%s" for review_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -55,7 +60,13 @@ class NativeXmlReviewCommentFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false) {
-            throw new InvalidArgumentException('Invalid review comment integer');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review comment %s "%s" for review_ref "%s" at line %d; expected an integer',
+                $attribute,
+                $node->getAttribute($attribute),
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -65,7 +76,13 @@ class NativeXmlReviewCommentFilter extends NativeImportFilter
         $value = $this->required($node, $attribute);
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException('Invalid review comment date');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review comment %s "%s" for review_ref "%s" at line %d',
+                $attribute,
+                $value,
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -74,7 +91,13 @@ class NativeXmlReviewCommentFilter extends NativeImportFilter
     {
         $value = $this->required($node, $attribute);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException('Invalid review comment boolean');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid review comment %s "%s" for review_ref "%s" at line %d; expected "true" or "false"',
+                $attribute,
+                $value,
+                $node->getAttribute('review_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value === 'true' ? 1 : 0;
     }

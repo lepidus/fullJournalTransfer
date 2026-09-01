@@ -54,7 +54,12 @@ class NativeXmlDiscussionNoteFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException('Missing discussion note value: ' . $attribute);
+            throw new InvalidArgumentException(sprintf(
+                'Missing discussion note attribute "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
@@ -62,20 +67,26 @@ class NativeXmlDiscussionNoteFilter extends NativeImportFilter
     private function requiredDate($node, string $attribute): string
     {
         $value = $this->required($node, $attribute);
-        return $this->date($value);
+        return $this->date($node, $attribute, $value);
     }
 
     private function optionalDate($node, string $attribute): ?string
     {
         $value = trim($node->getAttribute($attribute));
-        return $value === '' ? null : $this->date($value);
+        return $value === '' ? null : $this->date($node, $attribute, $value);
     }
 
-    private function date(string $value): string
+    private function date(DOMElement $node, string $attribute, string $value): string
     {
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException('Invalid discussion note date');
+            throw new InvalidArgumentException(sprintf(
+                'Invalid discussion note %s "%s" for source_ref "%s" at line %d',
+                $attribute,
+                $value,
+                $node->getAttribute('source_ref'),
+                $node->getLineNo()
+            ));
         }
         return $value;
     }
