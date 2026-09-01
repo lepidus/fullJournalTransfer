@@ -77,7 +77,7 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
                 $deployment->mapReference('author', (string) $sourceId, (int) $destinationId);
             }
             $this->importAuthorMetadata($this->requiredChild($root, 'author_metadata'));
-            $this->importHistoricalDates($this->requiredChild($root, 'historical_dates'));
+            $this->restoreHistoricalDates($this->requiredChild($root, 'historical_dates'));
             foreach ((array) $deployment->getSubmissionFileDBIds() as $sourceId => $destinationId) {
                 $deployment->mapReference('submission_file', (string) $sourceId, (int) $destinationId);
             }
@@ -88,7 +88,7 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
         });
     }
 
-    private function importHistoricalDates(DOMElement $historicalDatesNode): void
+    public function restoreHistoricalDates(DOMElement $historicalDatesNode): void
     {
         $deployment = $this->getDeployment();
         $contextId = (int) $deployment->getContext()->getId();

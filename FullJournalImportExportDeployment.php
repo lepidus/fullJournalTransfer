@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\file\PublicFileManager;
+use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlNativeDataFilter;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
 use DOMDocument;
 use DOMElement;
@@ -25,6 +26,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private ?int $currentReviewFormId = null;
     private array $submissionsByIssue = [];
     private array $metricRejections = [];
+    private ?DOMElement $historicalDatesNode = null;
 
     public function getStageNameStageIdMapping()
     {
@@ -71,6 +73,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     {
         $this->createdFiles = [];
         $this->createdDirectories = [];
+        $this->historicalDatesNode = null;
         try {
             $this->runNativeImport($rootFilter, $importXml);
         } catch (Throwable $exception) {
@@ -273,9 +276,16 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function importNativeData(DOMElement $nativeDataNode): array
     {
+        $this->historicalDatesNode = null;
         $filter = PKPImportExportFilter::getFilter('full-journal-xml=>native-data', $this);
         $document = $this->documentFor($nativeDataNode);
         $filter->execute($document);
+        foreach ($document->documentElement->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === 'historical_dates') {
+                $this->historicalDatesNode = $child;
+                break;
+            }
+        }
         return [
             'issue_id_map' => $this->getReferenceMap('issue'),
             'submission_id_map' => $this->getReferenceMap('submission'),
@@ -300,6 +310,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         $filter = PKPImportExportFilter::getFilter('full-journal-xml=>workflow', $this);
         $document = $this->documentFor($workflowNode);
         $filter->execute($document);
+        $this->restoreHistoricalDates();
         return [
             'stage_assignment_id_map' => $this->getReferenceMap('stage_assignment'),
             'review_round_id_map' => $this->getReferenceMap('review_round'),
@@ -309,6 +320,18 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             'discussion_attachment_id_map' => $this->getReferenceMap('discussion_attachment'),
             'editorial_decision_id_map' => $this->getReferenceMap('editorial_decision'),
         ];
+    }
+
+    private function restoreHistoricalDates(): void
+    {
+        if (!$this->historicalDatesNode) {
+            return;
+        }
+        $filter = PKPImportExportFilter::getFilter('full-journal-xml=>native-data', $this);
+        if (!$filter instanceof NativeXmlNativeDataFilter) {
+            throw new InvalidArgumentException('The native data filter cannot restore historical dates');
+        }
+        $filter->restoreHistoricalDates($this->historicalDatesNode);
     }
 
     public function exportMetrics(): DOMDocument

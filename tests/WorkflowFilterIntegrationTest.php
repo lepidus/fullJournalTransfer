@@ -477,7 +477,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         ];
     }
 
-    public function testItRestoresReviewRevisionAfterCreatingItsReviewRound(): void
+    public function testItRestoresReviewRevisionWithoutChangingHistoricalActivity(): void
     {
         Event::fake();
         Queue::fake();
@@ -503,6 +503,10 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             Application::ASSOC_TYPE_REVIEW_ROUND,
             (int) $roundId
         );
+        $historicalDateLastActivity = '2020-03-04 05:06:07';
+        DB::table('submissions')
+            ->where('submission_id', $submission->getId())
+            ->update(['date_last_activity' => $historicalDateLastActivity]);
 
         $sourceDeployment = new FullJournalImportExportDeployment($source, null);
         $nativeData = $sourceDeployment->exportNativeData();
@@ -534,10 +538,19 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             (int) $destinationGenre->getId()
         );
         $nativeMaps = $destinationDeployment->importNativeData($nativeData->documentElement);
+        $importedSubmissionId = $nativeMaps['submission_id_map'][(string) $submission->getId()];
+        $this->assertSame(
+            $historicalDateLastActivity,
+            DB::table('submissions')->where('submission_id', $importedSubmissionId)->value('date_last_activity')
+        );
         $workflowMaps = $destinationDeployment->importWorkflow($workflow->documentElement);
         $this->fileIds = array_merge(
             $this->fileIds,
             array_values($destinationDeployment->getReferenceMap('file'))
+        );
+        $this->assertSame(
+            $historicalDateLastActivity,
+            DB::table('submissions')->where('submission_id', $importedSubmissionId)->value('date_last_activity')
         );
 
         $importedRoundId = $workflowMaps['review_round_id_map'][(string) $roundId];
@@ -545,7 +558,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $importedRevision = Repo::submissionFile()->get($importedRevisionId);
         $this->assertNotNull($importedRevision);
         $this->assertSame(
-            $nativeMaps['submission_id_map'][(string) $submission->getId()],
+            $importedSubmissionId,
             (int) $importedRevision->getData('submissionId')
         );
         $this->assertSame(SubmissionFile::SUBMISSION_FILE_REVIEW_REVISION, $importedRevision->getFileStage());
