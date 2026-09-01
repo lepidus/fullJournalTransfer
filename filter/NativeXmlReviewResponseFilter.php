@@ -39,11 +39,21 @@ class NativeXmlReviewResponseFilter extends NativeImportFilter
         if (!in_array($type, ['string', 'int', 'object'], true)) {
             throw new InvalidArgumentException('Invalid review response type');
         }
+        if (!$node->hasAttribute('is_null') || $node->getAttribute('is_null') === '') {
+            throw new InvalidArgumentException('Missing review response value: is_null');
+        }
+        $isNull = $node->getAttribute('is_null');
+        if (!in_array($isNull, ['true', 'false'], true)) {
+            throw new InvalidArgumentException('Invalid review response null marker');
+        }
+        if ($isNull === 'true' && $node->textContent !== '') {
+            throw new InvalidArgumentException('Null review response must not contain text');
+        }
         DB::table('review_form_responses')->insert([
             'review_form_element_id' => $elementId,
             'review_id' => $reviewId,
             'response_type' => $type,
-            'response_value' => $node->textContent,
+            'response_value' => $isNull === 'true' ? null : $node->textContent,
         ]);
         return DAORegistry::getDAO('ReviewFormResponseDAO')->getReviewFormResponse($reviewId, $elementId);
     }

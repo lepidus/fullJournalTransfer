@@ -83,6 +83,7 @@ Some expected behaviors when importing the journal:
 - Sections
 - Review Forms
 - Review Assignments
+- Review form responses, preserving null and empty values independently
 - Review Rounds
 - Review Files
 - Reviewer Files

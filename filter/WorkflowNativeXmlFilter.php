@@ -184,7 +184,10 @@ class WorkflowNativeXmlFilter extends NativeExportFilter
             $node->setAttribute('review_ref', (string) $response->review_id);
             $node->setAttribute('element_ref', (string) $response->review_form_element_id);
             $node->setAttribute('type', (string) $response->response_type);
-            $node->appendChild($document->createTextNode((string) $response->response_value));
+            $node->setAttribute('is_null', $response->response_value === null ? 'true' : 'false');
+            if ($response->response_value !== null) {
+                $node->appendChild($document->createTextNode((string) $response->response_value));
+            }
             $parent->appendChild($node);
         }
     }

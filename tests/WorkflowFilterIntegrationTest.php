@@ -17,6 +17,7 @@ use PKP\db\DAORegistry;
 use PKP\decision\Decision;
 use PKP\install\Installer;
 use PKP\observers\events\DecisionAdded;
+use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\security\Role;
 use PKP\submissionFile\SubmissionFile;
 use PKP\tests\DatabaseTestCase;
@@ -203,6 +204,10 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $submissionFile = $this->createSubmissionFile($source, $submission, (int) $sourceGenre->getId());
         [$sourceFormId, $sourceElementId] = $this->createReviewForm($source);
         [$destinationFormId, $destinationElementId] = $this->createReviewForm($destination);
+        $sourceEmptyElementId = $this->createReviewFormElement($sourceFormId, 2, 'Empty response');
+        $sourceNullElementId = $this->createReviewFormElement($sourceFormId, 3, 'Null response');
+        $destinationEmptyElementId = $this->createReviewFormElement($destinationFormId, 2, 'Empty response');
+        $destinationNullElementId = $this->createReviewFormElement($destinationFormId, 3, 'Null response');
         $roundId = DB::table('review_rounds')->insertGetId([
             'submission_id' => $submission->getId(),
             'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
@@ -240,10 +245,24 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             'request_resent' => 0,
         ]), 'review_id');
         DB::table('review_form_responses')->insert([
-            'review_form_element_id' => $sourceElementId,
-            'review_id' => $reviewId,
-            'response_type' => 'string',
-            'response_value' => 'Detailed response',
+            [
+                'review_form_element_id' => $sourceElementId,
+                'review_id' => $reviewId,
+                'response_type' => 'string',
+                'response_value' => 'Detailed response',
+            ],
+            [
+                'review_form_element_id' => $sourceEmptyElementId,
+                'review_id' => $reviewId,
+                'response_type' => 'string',
+                'response_value' => '',
+            ],
+            [
+                'review_form_element_id' => $sourceNullElementId,
+                'review_id' => $reviewId,
+                'response_type' => 'string',
+                'response_value' => null,
+            ],
         ]);
         DB::table('review_round_files')->insert([
             'submission_id' => $submission->getId(),
@@ -288,7 +307,16 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $xpath = new \DOMXPath($workflow);
         $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
         $this->assertSame(1, $xpath->query('//pkp:review_assignment')->length);
-        $this->assertSame(1, $xpath->query('//pkp:review_response')->length);
+        $this->assertSame(3, $xpath->query('//pkp:review_response')->length);
+        $this->assertSame('false', $xpath->evaluate(
+            'string(//pkp:review_response[@element_ref="' . $sourceElementId . '"]/@is_null)'
+        ));
+        $this->assertSame('false', $xpath->evaluate(
+            'string(//pkp:review_response[@element_ref="' . $sourceEmptyElementId . '"]/@is_null)'
+        ));
+        $this->assertSame('true', $xpath->evaluate(
+            'string(//pkp:review_response[@element_ref="' . $sourceNullElementId . '"]/@is_null)'
+        ));
         $this->assertSame(2, $xpath->query('//pkp:review_comment')->length);
         $this->assertSame(1, $xpath->query('//pkp:review_round_file')->length);
         $this->assertSame(1, $xpath->query('//pkp:review_file')->length);
@@ -307,6 +335,16 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             (string) $sourceElementId,
             $destinationElementId
         );
+        $destinationDeployment->mapReference(
+            'review_form_element',
+            (string) $sourceEmptyElementId,
+            $destinationEmptyElementId
+        );
+        $destinationDeployment->mapReference(
+            'review_form_element',
+            (string) $sourceNullElementId,
+            $destinationNullElementId
+        );
         $notifications = DB::table('notifications')->count();
         $emailLogs = DB::table('email_log')->count();
         $eventLogs = DB::table('event_log')->count();
@@ -321,6 +359,19 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $this->assertSame(
             'Detailed response',
             DB::table('review_form_responses')->where('review_id', $importedReviewId)->value('response_value')
+        );
+        $this->assertSame(
+            '',
+            DB::table('review_form_responses')
+                ->where('review_id', $importedReviewId)
+                ->where('review_form_element_id', $destinationEmptyElementId)
+                ->value('response_value')
+        );
+        $this->assertNull(
+            DB::table('review_form_responses')
+                ->where('review_id', $importedReviewId)
+                ->where('review_form_element_id', $destinationNullElementId)
+                ->value('response_value')
         );
         $this->assertSame(
             [0, 1],
@@ -350,6 +401,70 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             ->where('review_id', $importedReviewId)
             ->where('submission_file_id', $importedSubmissionFileId)
             ->exists());
+    }
+
+    /**
+     * @dataProvider invalidReviewResponseNullMarkers
+     */
+    public function testItRejectsInvalidReviewResponseNullMarkers(
+        string $nullAttribute,
+        string $content,
+        string $expectedMessage
+    ): void {
+        $destination = $this->createContext('response-marker');
+        $section = $this->createSection($destination);
+        $submission = $this->createSubmission($destination, $section, 'Review response marker');
+        [$formId, $elementId] = $this->createReviewForm($destination);
+        $reviewer = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($reviewer);
+        $roundId = DB::table('review_rounds')->insertGetId([
+            'submission_id' => $submission->getId(),
+            'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
+            'round' => 1,
+            'status' => 1,
+        ], 'review_round_id');
+        $reviewId = DB::table('review_assignments')->insertGetId([
+            'submission_id' => $submission->getId(),
+            'reviewer_id' => $reviewer->getId(),
+            'stage_id' => WORKFLOW_STAGE_ID_EXTERNAL_REVIEW,
+            'review_method' => 2,
+            'round' => 1,
+            'step' => 1,
+            'declined' => 0,
+            'cancelled' => 0,
+            'reminder_was_automatic' => 0,
+            'review_form_id' => $formId,
+            'review_round_id' => $roundId,
+            'considered' => 0,
+            'request_resent' => 0,
+        ], 'review_id');
+        $deployment = new FullJournalImportExportDeployment($destination, null);
+        $deployment->mapReference('review_assignment', 'review-1', (int) $reviewId);
+        $deployment->mapReference('review_form_element', 'element-1', $elementId);
+        $filter = PKPImportExportFilter::getFilter('full-journal-workflow-xml=>review-response', $deployment);
+        $document = new \DOMDocument();
+        $this->assertTrue($document->loadXML(
+            '<review_responses xmlns="http://pkp.sfu.ca"><review_response review_ref="review-1" '
+            . 'element_ref="element-1" type="string"' . $nullAttribute . '>' . $content
+            . '</review_response></review_responses>'
+        ));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+        $filter->execute($document);
+    }
+
+    public function invalidReviewResponseNullMarkers(): array
+    {
+        return [
+            'missing marker' => ['', '', 'Missing review response value: is_null'],
+            'invalid marker' => [' is_null="invalid"', '', 'Invalid review response null marker'],
+            'null response with text' => [
+                ' is_null="true"',
+                'Unexpected response',
+                'Null review response must not contain text',
+            ],
+        ];
     }
 
     public function testItRestoresReviewRevisionAfterCreatingItsReviewRound(): void
@@ -801,16 +916,22 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         $form->setTitle('Workflow Review Form', 'en');
         $form->setDescription('Workflow review form', 'en');
         $formId = $formDao->insertObject($form);
+        $elementId = $this->createReviewFormElement($formId, 1, 'Review response');
+        return [$formId, $elementId];
+    }
+
+    private function createReviewFormElement(int $formId, int $sequence, string $question): int
+    {
+        $elementDao = DAORegistry::getDAO('ReviewFormElementDAO');
         $element = $elementDao->newDataObject();
         $element->setReviewFormId($formId);
-        $element->setSequence(1);
+        $element->setSequence($sequence);
         $element->setElementType(1);
         $element->setRequired(true);
         $element->setIncluded(true);
-        $element->setQuestion('Review response', 'en');
+        $element->setQuestion($question, 'en');
         $element->setDescription('Review response description', 'en');
-        $elementId = $elementDao->insertObject($element);
-        return [$formId, $elementId];
+        return $elementDao->insertObject($element);
     }
 
     private function createGenre(Journal $context, string $name)

@@ -83,6 +83,7 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - Seções
 - Formulários de Avaliação
 - Designações de Avaliação
+- Respostas dos formulários de avaliação, preservando separadamente valores nulos e vazios
 - Rodadas de Avaliação
 - Arquivos de Avaliação
 - Arquivos do Avaliador
