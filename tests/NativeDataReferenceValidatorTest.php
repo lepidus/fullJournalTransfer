@@ -80,7 +80,10 @@ class NativeDataReferenceValidatorTest extends TestCase
     public function testItRejectsDuplicatedLocalizedAuthorMetadata(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid localized author metadata');
+        $this->expectExceptionMessage(
+            'Duplicated author metadata locale for author_ref "50": '
+            . 'element "competing_interests" has locale "en" at line 1'
+        );
         (new NativeDataReferenceValidator())->validate(
             $this->nativeData(
                 '',
@@ -88,6 +91,73 @@ class NativeDataReferenceValidatorTest extends TestCase
                 $this->articleWithAuthor(),
                 '<author author_ref="50"><competing_interests locale="en">First</competing_interests>'
                 . '<competing_interests locale="en">Second</competing_interests></author>'
+            )
+        );
+    }
+
+    public function testItAcceptsFormattedAuthorMetadata(): void
+    {
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                "\n  <author author_ref=\"50\">\n"
+                . "    <preferred_public_name locale=\"en\">Ada</preferred_public_name>\n"
+                . "  </author>\n"
+            )
+        );
+
+        $this->addToAssertionCount(1);
+    }
+
+    public function testItReportsAnUnexpectedAuthorMetadataElement(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Invalid author metadata element for author_ref "50": found "biography" at line 1'
+        );
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                '<author author_ref="50"><biography locale="en">Ada</biography></author>'
+            )
+        );
+    }
+
+    public function testItReportsNonWhitespaceTextInsideAuthorMetadata(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Invalid author metadata node for author_ref "50": found "#text" at line 1'
+        );
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                '<author author_ref="50">unexpected'
+                . '<preferred_public_name locale="en">Ada</preferred_public_name></author>'
+            )
+        );
+    }
+
+    public function testItReportsAnInvalidAuthorMetadataLocale(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Invalid author metadata locale for author_ref "50": '
+            . 'element "preferred_public_name" has locale "pt_br" at line 1'
+        );
+        (new NativeDataReferenceValidator())->validate(
+            $this->nativeData(
+                '',
+                $this->issue(),
+                $this->articleWithAuthor(),
+                '<author author_ref="50">'
+                . '<preferred_public_name locale="pt_br">Ada</preferred_public_name></author>'
             )
         );
     }

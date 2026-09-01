@@ -171,15 +171,46 @@ class NativeDataReferenceValidator
             $this->addUnique($metadataReferences, $sourceReference, 'author metadata');
             $seen = [];
             foreach ($authorNode->childNodes as $valueNode) {
-                if (!$valueNode instanceof DOMElement
-                    || !in_array($valueNode->localName, ['preferred_public_name', 'competing_interests'], true)
-                ) {
-                    throw new InvalidArgumentException('Invalid author metadata element');
+                if ($valueNode->nodeType === XML_TEXT_NODE && trim($valueNode->textContent) === '') {
+                    continue;
+                }
+                if (!$valueNode instanceof DOMElement) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Invalid author metadata node for author_ref "%s": found "%s" at line %d',
+                        $sourceReference,
+                        $valueNode->nodeName,
+                        $valueNode->getLineNo()
+                    ));
+                }
+                if (!in_array($valueNode->localName, ['preferred_public_name', 'competing_interests'], true)) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Invalid author metadata element for author_ref "%s": found "%s" at line %d',
+                        $sourceReference,
+                        $valueNode->localName,
+                        $valueNode->getLineNo()
+                    ));
                 }
                 $locale = trim($valueNode->getAttribute('locale'));
                 $key = $valueNode->localName . ':' . $locale;
-                if (preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1 || isset($seen[$key])) {
-                    throw new InvalidArgumentException('Invalid localized author metadata');
+                if (preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Invalid author metadata locale for author_ref "%s": '
+                            . 'element "%s" has locale "%s" at line %d',
+                        $sourceReference,
+                        $valueNode->localName,
+                        $locale,
+                        $valueNode->getLineNo()
+                    ));
+                }
+                if (isset($seen[$key])) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Duplicated author metadata locale for author_ref "%s": '
+                            . 'element "%s" has locale "%s" at line %d',
+                        $sourceReference,
+                        $valueNode->localName,
+                        $locale,
+                        $valueNode->getLineNo()
+                    ));
                 }
                 $seen[$key] = true;
             }
