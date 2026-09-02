@@ -56,6 +56,9 @@ Some expected behaviors when importing the journal:
 - The imported journal is initially disabled.
 - A second import of the same journal path is rejected without duplicating content.
 - Export archives contain author competing interests and must be handled as sensitive data.
+- The plugin does not include historical editorial events or sent-email records from `event_log`,
+  `event_log_settings`, `email_log`, or `email_log_users`. Events created in the destination during import belong
+  to the import operation and do not reproduce the source history.
 - Historical submission modification times are preserved. After import, rebuild the search index and clear the
   application caches according to the destination site's operational procedure. OAI consumers should perform a full
   harvest after switching to the destination journal instead of relying only on an incremental date window.

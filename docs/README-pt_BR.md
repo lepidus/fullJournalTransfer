@@ -56,6 +56,9 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 - O periódico importado é criado inicialmente desabilitado.
 - Uma segunda importação do mesmo caminho de periódico é rejeitada sem duplicar conteúdo.
 - Os pacotes exportados contêm conflitos de interesse dos autores e devem ser tratados como dados sensíveis.
+- O plugin não inclui eventos editoriais históricos nem registros de e-mails enviados das tabelas `event_log`,
+  `event_log_settings`, `email_log` e `email_log_users`. Eventos criados no destino durante
+  a importação pertencem à própria operação e não reproduzem o histórico da origem.
 - As datas históricas de modificação das submissões são preservadas. Após a importação, reconstrua o índice de busca e
   limpe os caches da aplicação conforme o procedimento operacional da instalação de destino. Consumidores OAI devem
   fazer uma coleta completa após mudar para a revista de destino, em vez de depender apenas de uma janela incremental.

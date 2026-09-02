@@ -31,8 +31,8 @@ transferência.
   de confiar em nomes arbitrários recebidos no XML.
 - Conflitos de usuários serão tratados por uma política explícita e auditável, sem alterar login de
   forma implícita.
-- Histórico editorial e métricas serão gravados por caminhos próprios de restauração, preservando
-  autor, data e dimensões sem disparar novamente o workflow normal.
+- Métricas serão gravadas por caminhos próprios de restauração, preservando data e dimensões sem
+  disparar novamente o workflow normal.
 
 ### Descartados
 
@@ -41,6 +41,8 @@ transferência.
 - Dependência de caminhos absolutos ou IDs fixos da instalação de origem.
 - Perda silenciosa de métricas, datas, autoria ou relações que o pacote declara suportar.
 - Efeitos colaterais do workflow durante a restauração, como novos e-mails e notificações.
+- Histórico de eventos editoriais e e-mails enviados (`event_log`, `event_log_settings`, `email_log` e
+  `email_log_users`).
 - Aceitação irrestrita de entradas, propriedades ou arquivos indicados pelo pacote.
 
 ## Fixtures
