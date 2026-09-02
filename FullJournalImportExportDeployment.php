@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\submissionFile\SubmissionFile;
+use PKP\user\Collector;
 use Throwable;
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
@@ -142,6 +143,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         if ($workflowUserIds !== []) {
             $workflowUsers = Repo::user()->getCollector()
                 ->filterByUserIds($workflowUserIds)
+                ->filterByStatus(Collector::STATUS_ALL)
                 ->getMany();
             foreach ($workflowUsers as $user) {
                 $usersById[(int) $user->getId()] = $user;

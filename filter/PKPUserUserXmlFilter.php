@@ -24,6 +24,9 @@ class PKPUserUserXmlFilter extends BasePKPUserUserXmlFilter
         foreach ($references as $reference) {
             $node->removeChild($reference);
         }
+        if ($user->getDisabled()) {
+            return $node;
+        }
         $context = $this->getDeployment()->getContext();
         $userGroups = Repo::userGroup()->getCollector()
             ->filterByUserIds([$user->getId()])

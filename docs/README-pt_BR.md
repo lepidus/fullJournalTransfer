@@ -103,7 +103,8 @@ depósito DOI.
 
 **Usando a importação/exportação nativa da PKP**:
 
-- Usuários e Papéis de Usuário
+- Usuários ativos e seus papéis; usuários desabilitados são incluídos somente quando referenciados pelo workflow
+  e são transferidos sem papéis
 - Artigos
 - Edições
 

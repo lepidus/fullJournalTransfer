@@ -102,7 +102,8 @@ deposit-plugin settings are not transferred, and importing a package never sched
 
 **Using PKP native import/export**:
 
-- Users and User Roles
+- Active users and their user roles; disabled users are included only when referenced by the workflow and are
+  transferred without user roles
 - Articles
 - Issues
 

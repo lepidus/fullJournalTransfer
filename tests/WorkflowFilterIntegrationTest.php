@@ -28,6 +28,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
     private array $contexts = [];
     private array $fileIds = [];
     private array $userGroups = [];
+    private array $users = [];
 
     protected function getAffectedTables()
     {
@@ -53,6 +54,9 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         }
         foreach (array_reverse($this->userGroups) as $userGroup) {
             Repo::userGroup()->delete($userGroup);
+        }
+        foreach (array_reverse($this->users) as $user) {
+            Repo::user()->delete($user);
         }
         foreach (array_unique($this->fileIds) as $fileId) {
             if (Services::get('file')->get($fileId)) {
@@ -144,14 +148,26 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
         );
     }
 
-    public function testItExportsAWorkflowUserWithoutRestoringContextMembership(): void
+    public function testItExportsADisabledWorkflowUserWithoutUserGroupReferences(): void
     {
         $source = $this->createContext('historical-user-source');
         $sourceSection = $this->createSection($source);
         $sourceGroup = $this->createUserGroup($source, 'Historical Editors');
-        $user = Repo::user()->getCollector()->getMany()->first();
-        $this->assertNotNull($user);
-        $this->assertFalse(Repo::userGroup()->userInGroup((int) $user->getId(), (int) $sourceGroup->getId()));
+        $suffix = bin2hex(random_bytes(6));
+        $user = Repo::user()->newDataObject();
+        $user->setUsername('disabled-workflow-' . $suffix);
+        $user->setEmail('disabled-workflow-' . $suffix . '@example.com');
+        $user->setPassword(password_hash('disabled-password', PASSWORD_BCRYPT));
+        $user->setGivenName('Disabled', 'en');
+        $user->setFamilyName('Workflow', 'en');
+        $user->setDateRegistered('2026-08-10 00:00:00');
+        $user->setMustChangePassword(false);
+        $user->setDisabled(true);
+        $user->setInlineHelp(false);
+        Repo::user()->add($user);
+        $this->users[] = $user;
+        Repo::userGroup()->assignUserToGroup((int) $user->getId(), (int) $sourceGroup->getId());
+        $this->assertTrue(Repo::userGroup()->userInGroup((int) $user->getId(), (int) $sourceGroup->getId()));
         $this->setRequestContext($source);
         $submission = $this->createSubmission($source, $sourceSection, 'Historical assignment');
         DB::table('stage_assignments')->insert([
@@ -177,6 +193,10 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             $usersXpath->evaluate('string(//pkp:user[@source_ref="' . $userReference . '"]/@source_ref)')
         );
         $this->assertSame(
+            'true',
+            $usersXpath->evaluate('string(//pkp:user[@source_ref="' . $userReference . '"]/pkp:password/@is_disabled)')
+        );
+        $this->assertSame(
             0,
             $usersXpath->query('//pkp:user[@source_ref="' . $userReference . '"]/pkp:user_group_ref')->length
         );
@@ -184,7 +204,7 @@ class WorkflowFilterIntegrationTest extends DatabaseTestCase
             $userReference,
             $workflowXpath->evaluate('string(//pkp:stage_assignment/@user_ref)')
         );
-        $this->assertFalse(Repo::userGroup()->userInGroup((int) $user->getId(), (int) $sourceGroup->getId()));
+        $this->assertTrue(Repo::userGroup()->userInGroup((int) $user->getId(), (int) $sourceGroup->getId()));
     }
 
     public function testItRestoresReviewAssignmentsResponsesAndCommentsWithoutSideEffects(): void

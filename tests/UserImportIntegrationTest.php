@@ -149,4 +149,42 @@ class UserImportIntegrationTest extends DatabaseTestCase
         );
     }
 
+    public function testItDoesNotExportDisabledUsersWithOnlyContextMembership(): void
+    {
+        $context = Application::get()->getContextDAO()->getById(1);
+        $this->assertNotNull($context);
+        $locale = $context->getPrimaryLocale();
+        $suffix = bin2hex(random_bytes(6));
+        $user = Repo::user()->newDataObject();
+        $user->setUsername('disabled-membership-' . $suffix);
+        $user->setEmail('disabled-membership-' . $suffix . '@example.com');
+        $user->setPassword(password_hash('disabled-password', PASSWORD_BCRYPT));
+        $user->setGivenName('Disabled', 'en');
+        $user->setFamilyName('Member', 'en');
+        $user->setDateRegistered('2026-08-10 00:00:00');
+        $user->setMustChangePassword(false);
+        $user->setDisabled(true);
+        $user->setInlineHelp(false);
+        $userId = Repo::user()->add($user);
+        $this->createdUser = $user;
+        $group = Repo::userGroup()->newDataObject();
+        $group->setContextId($context->getId());
+        $group->setRoleId(1048576);
+        $group->setDefault(false);
+        $group->setShowTitle(false);
+        $group->setPermitSelfRegistration(false);
+        $group->setPermitMetadataEdit(false);
+        $group->setName('Disabled Membership ' . $suffix, $locale);
+        $group->setAbbrev('DM', $locale);
+        $groupId = Repo::userGroup()->add($group);
+        $this->createdGroup = $group;
+        Repo::userGroup()->assignUserToGroup($userId, $groupId);
+
+        $exportedDocument = (new FullJournalImportExportDeployment($context, null))->exportUsers();
+        $xpath = new DOMXPath($exportedDocument);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+
+        $this->assertSame(0, $xpath->query('//pkp:user[@source_ref="' . $userId . '"]')->length);
+    }
+
 }
