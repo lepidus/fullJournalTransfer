@@ -74,6 +74,10 @@ origem. A importação para antes de criar o periódico quando o locale principa
 resta nenhum locale de formulário ou submissão. Os erros dessa validação inicial no fluxo CLI/filtro são
 mensagens determinísticas em inglês, pois os catálogos de locale do plugin ainda não estão carregados nesse ponto.
 
+Para migrar todos os metadados localizados, instale e habilite no site OJS de destino todos os locales usados pelo
+periódico de origem antes da importação. A interface de linha de comando avisa quais locales indisponíveis serão
+filtrados da importação.
+
 As seguintes configurações do periódico são transferidas:
 
 - Identidade e contato: `name`, `acronym`, `abbreviation`, `about`, `description`, `editorialTeam`,

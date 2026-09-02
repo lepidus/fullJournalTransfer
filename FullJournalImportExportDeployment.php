@@ -14,6 +14,7 @@ use DOMElement;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
+use PKP\site\Site;
 use PKP\submissionFile\SubmissionFile;
 use PKP\user\Collector;
 use Throwable;
@@ -57,6 +58,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
                 $this->setImportPath($stagingPath);
                 try {
+                    $this->warnAboutUnavailableLocales($journalXml, $progress);
                     if ($progress) {
                         $progress('Importing journal data...');
                     }
@@ -67,6 +69,45 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
                 }
             },
             $progress
+        );
+    }
+
+    private function warnAboutUnavailableLocales(string $journalXml, ?callable $progress): void
+    {
+        if (!$progress) {
+            return;
+        }
+        $document = new DOMDocument('1.0', 'UTF-8');
+        if (!$document->loadXML($journalXml, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) {
+            return;
+        }
+        $root = $document->documentElement;
+        if (!$root instanceof DOMElement) {
+            return;
+        }
+        $sourceLocales = [];
+        foreach ($root->childNodes as $child) {
+            if (!$child instanceof DOMElement || $child->localName !== 'locales') {
+                continue;
+            }
+            foreach ($child->childNodes as $localeNode) {
+                if ($localeNode instanceof DOMElement && $localeNode->localName === 'locale') {
+                    $sourceLocales[] = trim($localeNode->getAttribute('code'));
+                }
+            }
+        }
+        $site = $this->getSite();
+        if (!$site instanceof Site) {
+            return;
+        }
+        $unavailableLocales = array_values(array_diff(array_unique($sourceLocales), $site->getSupportedLocales()));
+        if ($unavailableLocales === []) {
+            return;
+        }
+        $progress(
+            'Warning: To migrate all localized metadata, the locales used by the source journal must be installed '
+                . 'and enabled in the destination OJS site before import. Metadata in the following unavailable '
+                . 'locales will not be imported: ' . implode(', ', $unavailableLocales) . '.'
         );
     }
 

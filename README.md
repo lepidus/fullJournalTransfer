@@ -74,6 +74,9 @@ before the journal is created when the primary locale is unavailable or when no 
 remains. Validation errors in this early CLI/filter path are deterministic English messages because plugin
 locale catalogs are not loaded at that point.
 
+To migrate all localized metadata, install and enable every locale used by the source journal in the destination
+OJS site before import. The CLI warns which unavailable locales will be filtered from the import.
+
 The following journal settings are transferred:
 
 - Identity and contact: `name`, `acronym`, `abbreviation`, `about`, `description`, `editorialTeam`,

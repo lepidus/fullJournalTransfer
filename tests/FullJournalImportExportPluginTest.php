@@ -10,6 +10,7 @@ use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployme
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
 use APP\plugins\importexport\native\NativeImportExportPlugin;
 use PHPUnit\Framework\TestCase;
+use PKP\site\Site;
 
 class FullJournalImportExportPluginTest extends TestCase
 {
@@ -102,6 +103,43 @@ class FullJournalImportExportPluginTest extends TestCase
             rmdir($directory);
         }
     }
+
+    public function testPackageImportWarnsAboutUnavailableLocalesBeforeImportingData(): void
+    {
+        $directory = sys_get_temp_dir() . '/full-journal-staging-' . bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        file_put_contents(
+            $directory . '/journal.xml',
+            '<journal xmlns="http://pkp.sfu.ca"><locales>'
+                . '<locale code="en"/><locale code="fr_FR"/><locale code="es"/>'
+                . '</locales></journal>'
+        );
+        $deployment = new LocaleWarningFullJournalImportExportDeployment(new Journal(), null, ['en']);
+        $progress = [];
+
+        try {
+            $result = $deployment->importPackage(
+                '/unused/archive.tar.gz',
+                '3.4.0.10',
+                'native-xml=>journal',
+                new ValidatedStagingArchiveManager($directory),
+                static function (string $message) use (&$progress): void {
+                    $progress[] = $message;
+                }
+            );
+
+            $this->assertTrue($result);
+            $this->assertSame([
+                'Warning: To migrate all localized metadata, the locales used by the source journal must be '
+                    . 'installed and enabled in the destination OJS site before import. Metadata in the following '
+                    . 'unavailable locales will not be imported: fr_FR, es.',
+                'Importing journal data...',
+            ], $progress);
+        } finally {
+            unlink($directory . '/journal.xml');
+            rmdir($directory);
+        }
+    }
 }
 
 class FailingFullJournalImportExportDeployment extends FullJournalImportExportDeployment
@@ -162,6 +200,23 @@ class CapturingFullJournalImportExportDeployment extends FullJournalImportExport
     public function isProcessFailed()
     {
         return false;
+    }
+}
+
+class LocaleWarningFullJournalImportExportDeployment extends CapturingFullJournalImportExportDeployment
+{
+    private Site $site;
+
+    public function __construct($context, $user, array $supportedLocales)
+    {
+        parent::__construct($context, $user);
+        $this->site = new Site();
+        $this->site->setSupportedLocales($supportedLocales);
+    }
+
+    public function getSite(): Site
+    {
+        return $this->site;
     }
 }
 
