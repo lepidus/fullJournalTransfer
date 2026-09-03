@@ -6,6 +6,7 @@ namespace APP\plugins\importexport\fullJournalTransfer;
 
 use APP\core\Application;
 use APP\facades\Repo;
+use APP\plugins\importexport\fullJournalTransfer\package\FullJournalPackageExporter;
 use APP\plugins\importexport\native\NativeImportExportPlugin;
 use InvalidArgumentException;
 use PKP\config\Config;
