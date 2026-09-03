@@ -22,6 +22,14 @@ class PackageManifestTest extends TestCase
         $this->assertSame(['journal', 'users', 'workflow', 'metrics'], $manifest->getCapabilities());
         $this->assertSame(
             [
+                'submissions' => 2,
+                'review_rounds' => 3,
+                'metrics_submission' => 5,
+            ],
+            $manifest->getIntegrityCounts()
+        );
+        $this->assertSame(
+            [
                 'journal.xml' => [
                     'size' => 128,
                     'checksum' => str_repeat('a', 64),
@@ -51,6 +59,7 @@ class PackageManifestTest extends TestCase
         );
         $journal = $directory . '/journal.xml';
 
+        $this->assertSame([], $manifest->getIntegrityCounts());
         $this->assertSame(filesize($journal), $manifest->getFiles()['journal.xml']['size']);
         $this->assertSame(hash_file('sha256', $journal), $manifest->getFiles()['journal.xml']['checksum']);
     }
@@ -126,6 +135,43 @@ class PackageManifestTest extends TestCase
         $manifest->validatePackageEntries(['manifest.xml', 'journal.xml', 'journal.xml']);
     }
 
+    /**
+     * @dataProvider invalidIntegrityCountProvider
+     */
+    public function testItRejectsInvalidIntegrityCounts(string $integrity, string $message): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        PackageManifest::fromXml(
+            str_replace($this->integrity(), $integrity, $this->validManifest()),
+            self::RELEASE
+        );
+    }
+
+    public function invalidIntegrityCountProvider(): array
+    {
+        return [
+            'duplicate entity' => [
+                '<integrity><entity name="submissions" count="2"/>'
+                    . '<entity name="submissions" count="3"/></integrity>',
+                'duplicate entity submissions',
+            ],
+            'unknown entity' => [
+                '<integrity><entity name="unknown" count="2"/></integrity>',
+                'unknown entity unknown',
+            ],
+            'invalid count' => [
+                '<integrity><entity name="submissions" count="-1"/></integrity>',
+                'count for submissions is invalid',
+            ],
+            'multiple integrity elements' => [
+                '<integrity><entity name="submissions" count="2"/></integrity><integrity/>',
+                'at most one integrity element',
+            ],
+        ];
+    }
+
     private function validManifest(): string
     {
         return '<?xml version="1.0" encoding="UTF-8"?>'
@@ -133,8 +179,16 @@ class PackageManifestTest extends TestCase
             . 'format_version="1.1" created_at="2026-08-10T15:00:00-04:00">'
             . '<capabilities><capability name="journal"/><capability name="users"/>'
             . '<capability name="workflow"/><capability name="metrics"/></capabilities>'
+            . $this->integrity()
             . '<files>' . $this->journalFile() . '</files>'
             . '</full_journal_package>';
+    }
+
+    private function integrity(): string
+    {
+        return '<integrity><entity name="submissions" count="2"/>'
+            . '<entity name="review_rounds" count="3"/>'
+            . '<entity name="metrics_submission" count="5"/></integrity>';
     }
 
     private function journalFile(): string

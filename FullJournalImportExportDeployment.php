@@ -29,6 +29,8 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     private array $submissionsByIssue = [];
     private array $metricRejections = [];
     private ?DOMElement $historicalDatesNode = null;
+    /** @var array<string, int> */
+    private array $expectedIntegrityCounts = [];
 
     public function getStageNameStageIdMapping()
     {
@@ -50,21 +52,37 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return $archiveManager->withExtractedPackage(
             $archivePath,
             $applicationVersion,
-            function (string $stagingPath) use ($rootFilter, $progress): bool {
+            function (string $stagingPath, PackageManifest $manifest) use ($rootFilter, $progress): bool {
                 $journalXml = file_get_contents($stagingPath . DIRECTORY_SEPARATOR . 'journal.xml');
                 if ($journalXml === false) {
                     throw new \RuntimeException('The journal XML could not be read');
                 }
 
-                $this->setImportPath($stagingPath);
+                $this->expectedIntegrityCounts = $manifest->getIntegrityCounts();
                 try {
+                    if ($this->expectedIntegrityCounts !== []) {
+                        PackageIntegrity::assertCounts(
+                            $this->expectedIntegrityCounts,
+                            PackageIntegrity::countXml($journalXml),
+                            'journal XML'
+                        );
+                    }
+                    $this->setImportPath($stagingPath);
                     $this->warnAboutUnavailableLocales($journalXml, $progress);
                     if ($progress) {
                         $progress('Importing journal data...');
                     }
                     $this->import($rootFilter, $journalXml);
-                    return !$this->isProcessFailed();
+                    $succeeded = !$this->isProcessFailed();
+                    if ($succeeded && $progress && $this->expectedIntegrityCounts !== []) {
+                        $progress(__(
+                            'plugins.importexport.fullJournal.integrityValidated',
+                            ['count' => count($this->expectedIntegrityCounts)]
+                        ));
+                    }
+                    return $succeeded;
                 } finally {
+                    $this->expectedIntegrityCounts = [];
                     $this->setImportPath('');
                 }
             },
@@ -400,6 +418,90 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
     public function getMetricRejections(): array
     {
         return $this->metricRejections;
+    }
+
+    public function validateImportedIntegrity(): void
+    {
+        if ($this->expectedIntegrityCounts === []) {
+            return;
+        }
+        PackageIntegrity::assertCounts(
+            $this->expectedIntegrityCounts,
+            $this->getImportedIntegrityCounts(),
+            'imported journal'
+        );
+    }
+
+    /** @return array<string, int> */
+    protected function getImportedIntegrityCounts(): array
+    {
+        $contextId = (int) $this->getContext()->getId();
+        $counts = [
+            'users' => count($this->getReferenceMap('user')),
+            'user_groups' => count($this->getReferenceMap('user_group')),
+            'review_forms' => count($this->getReferenceMap('review_form')),
+            'review_form_elements' => count($this->getReferenceMap('review_form_element')),
+            'issues' => count($this->getReferenceMap('issue')),
+            'submissions' => count($this->getReferenceMap('submission')),
+            'publications' => count($this->getReferenceMap('publication')),
+            'submission_files' => count($this->getReferenceMap('submission_file')),
+            'stage_assignments' => count($this->getReferenceMap('stage_assignment')),
+            'review_rounds' => count($this->getReferenceMap('review_round')),
+            'review_assignments' => count($this->getReferenceMap('review_assignment')),
+            'discussions' => count($this->getReferenceMap('discussion')),
+            'discussion_notes' => count($this->getReferenceMap('discussion_note')),
+            'discussion_attachments' => count($this->getReferenceMap('discussion_attachment')),
+            'editorial_decisions' => count($this->getReferenceMap('editorial_decision')),
+        ];
+        $counts['review_form_responses'] = DB::table('review_form_responses as response')
+            ->join('review_assignments as review', 'review.review_id', '=', 'response.review_id')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'review.submission_id')
+            ->where('submission.context_id', $contextId)
+            ->count();
+        $counts['review_comments'] = DB::table('submission_comments as comment')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'comment.submission_id')
+            ->where('submission.context_id', $contextId)
+            ->where('comment.comment_type', 1)
+            ->count();
+        $counts['review_round_files'] = DB::table('review_round_files as file')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'file.submission_id')
+            ->where('submission.context_id', $contextId)
+            ->count();
+        $counts['review_files'] = DB::table('review_files as file')
+            ->join('review_assignments as review', 'review.review_id', '=', 'file.review_id')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'review.submission_id')
+            ->where('submission.context_id', $contextId)
+            ->count();
+        $counts['discussion_participants'] = DB::table('query_participants as participant')
+            ->join('queries as discussion', 'discussion.query_id', '=', 'participant.query_id')
+            ->join('submissions as submission', 'submission.submission_id', '=', 'discussion.assoc_id')
+            ->where('discussion.assoc_type', Application::ASSOC_TYPE_SUBMISSION)
+            ->where('submission.context_id', $contextId)
+            ->count();
+        $metricTables = [
+            'metrics_context' => 'metrics_context',
+            'metrics_issue' => 'metrics_issue',
+            'metrics_submission' => 'metrics_submission',
+            'metrics_geo_daily' => 'metrics_submission_geo_daily',
+            'metrics_geo_monthly' => 'metrics_submission_geo_monthly',
+            'metrics_counter_daily' => 'metrics_counter_submission_daily',
+            'metrics_counter_monthly' => 'metrics_counter_submission_monthly',
+            'metrics_institution_daily' => 'metrics_counter_submission_institution_daily',
+            'metrics_institution_monthly' => 'metrics_counter_submission_institution_monthly',
+        ];
+        foreach ($metricTables as $name => $table) {
+            $counts[$name] = DB::table($table)->where('context_id', $contextId)->count();
+        }
+        foreach ($this->metricRejections as $rejection) {
+            if (($rejection['family'] ?? null) !== 'counter_submission_institution') {
+                continue;
+            }
+            $name = ($rejection['granularity'] ?? null) === 'daily'
+                ? 'metrics_institution_daily'
+                : 'metrics_institution_monthly';
+            $counts[$name]++;
+        }
+        return $counts;
     }
 
     public function mapReference(string $entity, string $sourceReference, int $destinationId): void

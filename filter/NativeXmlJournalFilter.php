@@ -177,6 +177,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
                     $deployment->{$method}($child);
                 }
             }
+            $deployment->validateImportedIntegrity();
             return $createdJournal;
         });
     }

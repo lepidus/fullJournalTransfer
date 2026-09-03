@@ -8,7 +8,9 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\ArchiveManager;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
+use APP\plugins\importexport\fullJournalTransfer\PackageManifest;
 use APP\plugins\importexport\native\NativeImportExportPlugin;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use PKP\site\Site;
 
@@ -140,6 +142,38 @@ class FullJournalImportExportPluginTest extends TestCase
             rmdir($directory);
         }
     }
+
+    public function testPackageImportRejectsJournalXmlThatDoesNotMatchTheIntegrityManifest(): void
+    {
+        $directory = sys_get_temp_dir() . '/full-journal-staging-' . bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        file_put_contents($directory . '/journal.xml', '<journal><extended_article/></journal>');
+        $deployment = new CapturingFullJournalImportExportDeployment(new Journal(), null);
+        $exception = null;
+
+        try {
+            try {
+                $deployment->importPackage(
+                    '/unused/archive.tar.gz',
+                    '3.4.0.10',
+                    'native-xml=>journal',
+                    new ValidatedStagingArchiveManager($directory, ['submissions' => 2])
+                );
+            } catch (InvalidArgumentException $caught) {
+                $exception = $caught;
+            }
+
+            $this->assertInstanceOf(InvalidArgumentException::class, $exception);
+            $this->assertSame(
+                'The integrity count for submissions in journal XML is invalid: expected 2, found 1',
+                $exception->getMessage()
+            );
+            $deployment->validateImportedIntegrity();
+        } finally {
+            unlink($directory . '/journal.xml');
+            rmdir($directory);
+        }
+    }
 }
 
 class FailingFullJournalImportExportDeployment extends FullJournalImportExportDeployment
@@ -240,10 +274,26 @@ class ThrowingFullJournalImportExportDeployment extends FullJournalImportExportD
 class ValidatedStagingArchiveManager extends ArchiveManager
 {
     private string $stagingPath;
+    private PackageManifest $manifest;
 
-    public function __construct(string $stagingPath)
+    public function __construct(string $stagingPath, array $integrityCounts = [])
     {
         $this->stagingPath = $stagingPath;
+        $integrity = '';
+        if ($integrityCounts !== []) {
+            $integrity = '<integrity>';
+            foreach ($integrityCounts as $name => $count) {
+                $integrity .= '<entity name="' . $name . '" count="' . $count . '"/>';
+            }
+            $integrity .= '</integrity>';
+        }
+        $this->manifest = PackageManifest::fromXml(
+            '<full_journal_package application="ojs" application_version="3.4.0.10" '
+                . 'format_version="1.1" created_at="2026-09-03T00:00:00+00:00">'
+                . $integrity . '<files><file path="journal.xml" size="1" checksum="'
+                . str_repeat('a', 64) . '"/></files></full_journal_package>',
+            '3.4.0.10'
+        );
     }
 
     public function withExtractedPackage(
@@ -252,6 +302,6 @@ class ValidatedStagingArchiveManager extends ArchiveManager
         callable $importer,
         ?callable $progress = null
     ) {
-        return $importer($this->stagingPath);
+        return $importer($this->stagingPath, $this->manifest);
     }
 }

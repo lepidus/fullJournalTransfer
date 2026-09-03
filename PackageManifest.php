@@ -24,22 +24,28 @@ class PackageManifest
     /** @var array<string, array{size: int, checksum: string}> */
     private array $files;
 
+    /** @var array<string, int> */
+    private array $integrityCounts;
+
     /**
      * @param list<string> $capabilities
      * @param array<string, array{size: int, checksum: string}> $files
+     * @param array<string, int> $integrityCounts
      */
     private function __construct(
         string $application,
         string $applicationVersion,
         string $formatVersion,
         array $capabilities,
-        array $files
+        array $files,
+        array $integrityCounts
     ) {
         $this->application = $application;
         $this->applicationVersion = $applicationVersion;
         $this->formatVersion = $formatVersion;
         $this->capabilities = $capabilities;
         $this->files = $files;
+        $this->integrityCounts = $integrityCounts;
     }
 
     public static function fromXml(string $xml, string $expectedApplicationVersion): self
@@ -109,7 +115,39 @@ class PackageManifest
             $files[$path] = ['size' => (int) $size, 'checksum' => $checksum];
         }
 
-        return new self($application, $applicationVersion, $formatVersion, $capabilities, $files);
+        $integrityElements = $xpath->query('/full_journal_package/integrity');
+        if ($integrityElements === false || $integrityElements->length > 1) {
+            throw new InvalidArgumentException('The manifest must declare at most one integrity element');
+        }
+
+        $integrityCounts = [];
+        foreach ($xpath->query('/full_journal_package/integrity/entity') ?: [] as $entity) {
+            if (!$entity instanceof DOMElement) {
+                continue;
+            }
+            $name = self::requireAttribute($entity, 'name');
+            if (!PackageIntegrity::isSupported($name)) {
+                throw new InvalidArgumentException('The manifest integrity declares unknown entity ' . $name);
+            }
+            if (isset($integrityCounts[$name])) {
+                throw new InvalidArgumentException('The manifest integrity declares duplicate entity ' . $name);
+            }
+            $count = self::requireAttribute($entity, 'count');
+            $validatedCount = filter_var($count, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+            if ($validatedCount === false) {
+                throw new InvalidArgumentException('The manifest integrity count for ' . $name . ' is invalid');
+            }
+            $integrityCounts[$name] = $validatedCount;
+        }
+
+        return new self(
+            $application,
+            $applicationVersion,
+            $formatVersion,
+            $capabilities,
+            $files,
+            $integrityCounts
+        );
     }
 
     /** @param list<string> $entries */
@@ -146,6 +184,12 @@ class PackageManifest
     public function getFiles(): array
     {
         return $this->files;
+    }
+
+    /** @return array<string, int> */
+    public function getIntegrityCounts(): array
+    {
+        return $this->integrityCounts;
     }
 
     private static function requireAttribute(DOMElement $element, string $name): string

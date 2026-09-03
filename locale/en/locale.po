@@ -70,6 +70,9 @@ msgstr "Importing metrics..."
 msgid "plugins.importexport.fullJournal.importCompleted"
 msgstr "Import completed successfully"
 
+msgid "plugins.importexport.fullJournal.integrityValidated"
+msgstr "Journal integrity validated: {$count} entity counts matched."
+
 msgid "plugins.importexport.fullJournal.error.userNotFound"
 msgstr "User with email {$email} is not present on the site."
 

@@ -24,7 +24,11 @@ class FullJournalPackageExporterTest extends TestCase
         file_put_contents($filesDirectory . '/' . $referencedFile, 'example file');
         $archivePath = $directory . '/journal.tar.gz';
         $document = new DOMDocument('1.0', 'UTF-8');
-        $document->loadXML('<journal><href src="' . $referencedFile . '"/></journal>');
+        $document->loadXML(
+            '<journal><extended_article><publication/><href src="' . $referencedFile . '"/>'
+                . '</extended_article><workflow_history><review_round/><review_assignment/>'
+                . '</workflow_history><metrics><submission_metric/></metrics></journal>'
+        );
         $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
 
         try {
@@ -39,6 +43,11 @@ class FullJournalPackageExporterTest extends TestCase
             $manifest = $this->runTar(['-xOzf', $archivePath, 'manifest.xml']);
             $this->assertStringContainsString('application_version="3.4.0.10"', $manifest);
             $this->assertStringContainsString('format_version="1.1"', $manifest);
+            $this->assertStringContainsString('<entity name="submissions" count="1"/>', $manifest);
+            $this->assertStringContainsString('<entity name="publications" count="1"/>', $manifest);
+            $this->assertStringContainsString('<entity name="review_rounds" count="1"/>', $manifest);
+            $this->assertStringContainsString('<entity name="review_assignments" count="1"/>', $manifest);
+            $this->assertStringContainsString('<entity name="metrics_submission" count="1"/>', $manifest);
             $this->assertStringContainsString('path="journal.xml"', $manifest);
             $this->assertStringContainsString('path="' . $referencedFile . '"', $manifest);
             $this->assertSame('example file', $this->runTar(['-xOzf', $archivePath, $referencedFile]));

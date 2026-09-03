@@ -44,6 +44,19 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 
 **Obs**.: Journals containing substantial data will consume a large memory resources. In such instances, employ the PHP parameter `-d memory_limit=-1` during import/export operations.
 
+### Package integrity validation
+
+Newly exported packages record counts for 29 entity families in `manifest.xml`, covering users, issues,
+submissions, publications, files, editorial workflow, and every transferred metric table. Import validates these
+counts first against `journal.xml` and then against the persisted destination data or explicitly reported
+institution-metric rejections. A mismatch fails the import; the database transaction is rolled back and files
+created by the failed attempt are removed.
+
+This check adds one parse of the journal XML with count expressions during import and 14 aggregate database queries
+after persistence. Export reuses the journal XML already in memory. Packages using format 1.1 that were created
+before this feature do not contain integrity counts and remain compatible; they continue to receive the existing
+archive size and SHA-256 validations, but not the new entity-count validation.
+
 ## Troubleshooting
 
 This plugin uses features from the users and the native import/export plugin. If the execution does not work as expected, test with the PKP import/export plugins to resolve any problems before proceeding with this one.

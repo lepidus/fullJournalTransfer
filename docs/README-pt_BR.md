@@ -44,6 +44,20 @@ php tools/importExport.php FullJournalImportExportPlugin import [nomeDoArquivoTa
 
 **Obs**.: Periódicos contendo uma quantidade substancial de dados irão consumir muitos recursos de memória. Nesses casos, utilize o parâmetro PHP `-d memory_limit=-1` durante as operações de importação/exportação.
 
+### Validação de integridade do pacote
+
+Os novos pacotes exportados registram no `manifest.xml` contagens de 29 famílias de entidades, abrangendo
+usuários, edições, submissões, publicações, arquivos, workflow editorial e todas as tabelas de métricas
+transferidas. A importação confere essas contagens primeiro no `journal.xml` e depois nos dados persistidos no
+destino ou nas rejeições de métricas institucionais explicitamente informadas. Uma divergência interrompe a
+importação; a transação do banco é revertida e os arquivos criados pela tentativa malsucedida são removidos.
+
+A conferência acrescenta uma leitura do XML do periódico com expressões de contagem durante a importação e 14
+consultas agregadas ao banco depois da persistência. Na exportação, ela reutiliza o XML do periódico que já está
+em memória. Pacotes do formato 1.1 criados antes deste recurso não possuem as contagens e permanecem compatíveis;
+eles continuam recebendo as validações existentes de tamanho e SHA-256 do arquivo, mas não a nova conferência de
+entidades.
+
 ## Solução de problemas
 
 Este plugin utiliza recursos dos plugins de importação/exportação nativo e de usuários. Se a execução não funcionar como esperado, teste os plugins de importação/exportação do PKP para resolver quaisquer problemas antes de continuar com este.

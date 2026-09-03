@@ -70,6 +70,9 @@ msgstr "Importando métricas..."
 msgid "plugins.importexport.fullJournal.importCompleted"
 msgstr "Importação concluída com sucesso"
 
+msgid "plugins.importexport.fullJournal.integrityValidated"
+msgstr "Integridade da revista validada: {$count} contagens de entidades conferidas."
+
 msgid "plugins.importexport.fullJournal.error.userNotFound"
 msgstr "Usuário com email {$email} não está presente no site."
 

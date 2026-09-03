@@ -7,9 +7,14 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests;
 use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\ArchiveManager;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\PackageIntegrity;
+use APP\plugins\importexport\fullJournalTransfer\PackageManifest;
+use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
+use PKP\facades\Locale;
 use PKP\tests\DatabaseTestCase;
 
 class ContextCreationIntegrationTest extends DatabaseTestCase
@@ -62,6 +67,85 @@ class ContextCreationIntegrationTest extends DatabaseTestCase
         $this->expectExceptionMessage('A context with this path already exists');
 
         $deployment->createContextData($document->documentElement);
+    }
+
+    public function testPackageImportRollsBackTheContextWhenPersistedIntegrityDoesNotMatch(): void
+    {
+        $path = 'rejected-integrity-' . bin2hex(random_bytes(4));
+        $source = new Journal();
+        $source->setPath($path);
+        $source->setSequence(1);
+        $source->setPrimaryLocale('en');
+        $source->setData('supportedLocales', ['en']);
+        $source->setData('supportedFormLocales', ['en']);
+        $source->setData('supportedSubmissionLocales', ['en']);
+        $source->setData('name', ['en' => 'Integrity Journal']);
+        $source->setData('contactName', 'Editorial Team');
+        $source->setData('contactEmail', 'editor@example.com');
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
+        $directory = sys_get_temp_dir() . '/full-journal-integrity-' . bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        file_put_contents($directory . '/journal.xml', $document->saveXML());
+        $result = null;
+
+        try {
+            $result = (new MismatchedIntegrityDeployment(new Journal(), null))->importPackage(
+                '/unused/archive.tar.gz',
+                '3.4.0.10',
+                'full-journal-xml=>journal',
+                new IntegrityStagingArchiveManager($directory, $document)
+            );
+        } finally {
+            unlink($directory . '/journal.xml');
+            rmdir($directory);
+        }
+
+        $this->assertFalse($result);
+        $this->assertNull(Application::get()->getContextDAO()->getByPath($path));
+    }
+
+    public function testPackageImportAcceptsMatchingPersistedIntegrity(): void
+    {
+        Locale::registerPath(dirname(__DIR__) . '/locale');
+        $path = 'accepted-integrity-' . bin2hex(random_bytes(4));
+        $source = new Journal();
+        $source->setPath($path);
+        $source->setSequence(1);
+        $source->setPrimaryLocale('en');
+        $source->setData('supportedLocales', ['en']);
+        $source->setData('supportedFormLocales', ['en']);
+        $source->setData('supportedSubmissionLocales', ['en']);
+        $source->setData('name', ['en' => 'Integrity Journal']);
+        $source->setData('contactName', 'Editorial Team');
+        $source->setData('contactEmail', 'editor@example.com');
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
+        $directory = sys_get_temp_dir() . '/full-journal-integrity-' . bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        file_put_contents($directory . '/journal.xml', $document->saveXML());
+        $progress = [];
+
+        try {
+            $result = (new FullJournalImportExportDeployment(new Journal(), null))->importPackage(
+                '/unused/archive.tar.gz',
+                '3.4.0.10',
+                'full-journal-xml=>journal',
+                new IntegrityStagingArchiveManager($directory, $document),
+                static function (string $message) use (&$progress): void {
+                    $progress[] = $message;
+                }
+            );
+            $this->createdContext = Application::get()->getContextDAO()->getByPath($path);
+        } finally {
+            unlink($directory . '/journal.xml');
+            rmdir($directory);
+        }
+
+        $this->assertTrue($result);
+        $this->assertInstanceOf(Journal::class, $this->createdContext);
+        $this->assertSame([
+            'Importing journal data...',
+            __('plugins.importexport.fullJournal.integrityValidated', ['count' => 29]),
+        ], $progress);
     }
 
     /**
@@ -210,5 +294,47 @@ class ContextCreationIntegrationTest extends DatabaseTestCase
                 'Subscription publishing mode is not supported because subscriptions are not transferred.',
             ],
         ];
+    }
+}
+
+class MismatchedIntegrityDeployment extends FullJournalImportExportDeployment
+{
+    protected function getImportedIntegrityCounts(): array
+    {
+        $counts = parent::getImportedIntegrityCounts();
+        $counts['submissions']++;
+        return $counts;
+    }
+}
+
+class IntegrityStagingArchiveManager extends ArchiveManager
+{
+    private string $stagingPath;
+    private PackageManifest $manifest;
+
+    public function __construct(string $stagingPath, DOMDocument $journal)
+    {
+        $this->stagingPath = $stagingPath;
+        $integrity = '<integrity>';
+        foreach (PackageIntegrity::countDocument($journal) as $name => $count) {
+            $integrity .= '<entity name="' . $name . '" count="' . $count . '"/>';
+        }
+        $integrity .= '</integrity>';
+        $this->manifest = PackageManifest::fromXml(
+            '<full_journal_package application="ojs" application_version="3.4.0.10" '
+                . 'format_version="1.1" created_at="2026-09-03T00:00:00+00:00">'
+                . $integrity . '<files><file path="journal.xml" size="1" checksum="'
+                . str_repeat('a', 64) . '"/></files></full_journal_package>',
+            '3.4.0.10'
+        );
+    }
+
+    public function withExtractedPackage(
+        string $archivePath,
+        string $applicationVersion,
+        callable $importer,
+        ?callable $progress = null
+    ) {
+        return $importer($this->stagingPath, $this->manifest);
     }
 }

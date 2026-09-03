@@ -58,7 +58,10 @@ class FullJournalPackageExporter
             if ($progress) {
                 $progress('Creating journal archive...');
             }
-            if (file_put_contents($manifestPath, $this->createManifest($stagingPath, $packageFiles)) === false) {
+            if (file_put_contents(
+                $manifestPath,
+                $this->createManifest($stagingPath, $packageFiles, $document)
+            ) === false) {
                 throw new RuntimeException('The package manifest could not be written');
             }
             $arguments = [
@@ -110,7 +113,7 @@ class FullJournalPackageExporter
         (new JournalUserReferenceValidator())->validate($root);
     }
 
-    private function createManifest(string $stagingPath, array $packageFiles): string
+    private function createManifest(string $stagingPath, array $packageFiles, DOMDocument $journal): string
     {
         $document = new DOMDocument('1.0', 'UTF-8');
         $document->formatOutput = true;
@@ -127,6 +130,14 @@ class FullJournalPackageExporter
             $capabilities->appendChild($capability);
         }
         $root->appendChild($capabilities);
+        $integrity = $document->createElement('integrity');
+        foreach (PackageIntegrity::countDocument($journal) as $name => $count) {
+            $entity = $document->createElement('entity');
+            $entity->setAttribute('name', $name);
+            $entity->setAttribute('count', (string) $count);
+            $integrity->appendChild($entity);
+        }
+        $root->appendChild($integrity);
         $files = $document->createElement('files');
         sort($packageFiles);
         foreach ($packageFiles as $path) {
