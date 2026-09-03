@@ -7,7 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\file\PublicFileManager;
-use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlNativeDataFilter;
+use APP\plugins\importexport\fullJournalTransfer\filter\nativeData\NativeXmlNativeDataFilter;
 use APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager;
 use APP\plugins\importexport\fullJournalTransfer\persistence\WorkflowUserFinder;
 use APP\plugins\importexport\fullJournalTransfer\transfer\ImportedResourceJournal;

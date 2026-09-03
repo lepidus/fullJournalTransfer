@@ -10,6 +10,17 @@ use PKP\core\DataObject;
 
 class FilterConfigurationTest extends TestCase
 {
+    public function testEveryRegisteredFilterClassCanBeLoaded(): void
+    {
+        $document = new DOMDocument();
+        $this->assertTrue($document->load(dirname(__DIR__, 3) . '/filter/filterConfig.xml'));
+
+        foreach ($document->getElementsByTagName('filter') as $filter) {
+            $class = $filter->getAttribute('class');
+            $this->assertTrue(class_exists($class), $class);
+        }
+    }
+
     public function testEveryRegisteredFilterTransformsAPkpEntity(): void
     {
         $document = new DOMDocument();
