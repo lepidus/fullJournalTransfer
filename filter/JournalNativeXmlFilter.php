@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\JournalSettingsPolicy;
-use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
+use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
+use APP\plugins\importexport\fullJournalTransfer\theme\ThemeSettingsTransfer;
 use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;
@@ -144,7 +144,6 @@ class JournalNativeXmlFilter extends NativeExportFilter
         }
     }
 
-    /** @param list<string> $acceptedLocales */
     public function addSettings(
         DOMDocument $document,
         DOMElement $root,

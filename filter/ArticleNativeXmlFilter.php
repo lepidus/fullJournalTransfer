@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
-use APP\plugins\importexport\fullJournalTransfer\SubmissionFileTransferPlanner;
+use APP\plugins\importexport\fullJournalTransfer\transfer\SubmissionFileTransferPlanner;
 use APP\publication\Publication;
 use APP\submission\Submission;
 use DOMDocument;

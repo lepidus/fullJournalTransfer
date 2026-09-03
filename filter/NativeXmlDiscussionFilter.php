@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
-use APP\plugins\importexport\fullJournalTransfer\HistoricalDiscussionPersistenceAdapter;
+use APP\plugins\importexport\fullJournalTransfer\persistence\HistoricalDiscussionPersistenceAdapter;
 use DOMDocument;
 use DOMElement;
 use InvalidArgumentException;

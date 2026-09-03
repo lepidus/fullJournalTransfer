@@ -7,9 +7,9 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\JournalLocalePolicy;
-use APP\plugins\importexport\fullJournalTransfer\JournalSettingsPolicy;
-use APP\plugins\importexport\fullJournalTransfer\ThemeSettingsTransfer;
+use APP\plugins\importexport\fullJournalTransfer\policy\JournalLocalePolicy;
+use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
+use APP\plugins\importexport\fullJournalTransfer\theme\ThemeSettingsTransfer;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -191,7 +191,6 @@ class NativeXmlJournalFilter extends NativeImportFilter
         return 'journal';
     }
 
-    /** @param list<string> $acceptedLocales */
     private function importSettings(DOMElement $node, Journal $journal, array $acceptedLocales): void
     {
         $policy = new JournalSettingsPolicy();

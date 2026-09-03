@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
-use APP\plugins\importexport\fullJournalTransfer\HistoricalDiscussionPersistenceAdapter;
+use APP\plugins\importexport\fullJournalTransfer\persistence\HistoricalDiscussionPersistenceAdapter;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\core\PKPApplication;

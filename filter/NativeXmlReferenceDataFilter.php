@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\DefaultContextDataCleaner;
-use APP\plugins\importexport\fullJournalTransfer\PackageReferenceValidator;
+use APP\plugins\importexport\fullJournalTransfer\transfer\DefaultContextDataCleaner;
+use APP\plugins\importexport\fullJournalTransfer\validation\PackageReferenceValidator;
 use DOMDocument;
 use Illuminate\Support\Facades\DB;
 use PKP\plugins\importexport\native\filter\NativeImportFilter;

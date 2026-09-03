@@ -6,7 +6,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\NativeDataReferenceValidator;
+use APP\plugins\importexport\fullJournalTransfer\validation\NativeDataReferenceValidator;
 use DOMDocument;
 use DOMElement;
 use Illuminate\Support\Facades\DB;

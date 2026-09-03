@@ -113,7 +113,6 @@ class NativeXmlWorkflowFilter extends NativeImportFilter
         return $document;
     }
 
-    /** @return list<DOMElement> */
     private function children(DOMElement $parent, string $name): array
     {
         $children = [];

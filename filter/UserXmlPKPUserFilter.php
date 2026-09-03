@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\facades\Repo;
-use APP\plugins\importexport\fullJournalTransfer\UserIdentityPolicy;
+use APP\plugins\importexport\fullJournalTransfer\policy\UserIdentityPolicy;
 use DOMElement;
 use InvalidArgumentException;
 use PKP\plugins\importexport\users\filter\UserXmlPKPUserFilter as BaseUserXmlPKPUserFilter;

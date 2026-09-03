@@ -7,7 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\journal\Journal;
-use APP\plugins\importexport\fullJournalTransfer\SubmissionFileTransferPlanner;
+use APP\plugins\importexport\fullJournalTransfer\transfer\SubmissionFileTransferPlanner;
 use DOMDocument;
 use DOMElement;
 use Illuminate\Support\Facades\DB;

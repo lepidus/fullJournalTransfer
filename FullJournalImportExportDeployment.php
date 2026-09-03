@@ -8,10 +8,13 @@ use APP\core\Application;
 use APP\facades\Repo;
 use APP\file\PublicFileManager;
 use APP\plugins\importexport\fullJournalTransfer\filter\NativeXmlNativeDataFilter;
+use APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager;
+use APP\plugins\importexport\fullJournalTransfer\persistence\WorkflowUserFinder;
+use APP\plugins\importexport\fullJournalTransfer\transfer\ImportedResourceJournal;
+use APP\plugins\importexport\fullJournalTransfer\transfer\TransferState;
 use APP\plugins\importexport\native\NativeImportExportDeployment;
 use DOMDocument;
 use DOMElement;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\site\Site;
@@ -21,13 +24,8 @@ use Throwable;
 
 class FullJournalImportExportDeployment extends NativeImportExportDeployment
 {
-    private array $createdFiles = [];
-    private array $createdDirectories = [];
-    private array $referenceMaps = [];
-    private array $userConflicts = [];
-    private ?int $currentReviewFormId = null;
-    private array $submissionsByIssue = [];
-    private array $metricRejections = [];
+    private ?ImportedResourceJournal $resourceJournal = null;
+    private ?TransferState $transferState = null;
     private ?DOMElement $historicalDatesNode = null;
 
     public function getStageNameStageIdMapping()
@@ -113,40 +111,30 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function import($rootFilter, $importXml)
     {
-        $this->createdFiles = [];
-        $this->createdDirectories = [];
+        $this->resourceJournal()->reset();
         $this->historicalDatesNode = null;
         try {
             $this->runNativeImport($rootFilter, $importXml);
         } catch (Throwable $exception) {
-            $this->compensateCreatedFiles();
-            $this->compensateCreatedDirectories();
+            $this->compensateCreatedResources();
             throw $exception;
         }
 
         if ($this->isProcessFailed()) {
-            $this->compensateCreatedFiles();
-            $this->compensateCreatedDirectories();
+            $this->compensateCreatedResources();
         } else {
-            $this->createdFiles = [];
-            $this->createdDirectories = [];
+            $this->resourceJournal()->reset();
         }
     }
 
     public function recordCreatedFile(string $path): void
     {
-        if ($path === '' || $path[0] !== DIRECTORY_SEPARATOR) {
-            throw new \InvalidArgumentException('A created file journal entry must use an absolute path');
-        }
-        $this->createdFiles[] = $path;
+        $this->resourceJournal()->recordFile($path);
     }
 
     public function recordCreatedDirectory(string $path): void
     {
-        if ($path === '' || $path[0] !== DIRECTORY_SEPARATOR) {
-            throw new \InvalidArgumentException('A created directory journal entry must use an absolute path');
-        }
-        $this->createdDirectories[] = $path;
+        $this->resourceJournal()->recordDirectory($path);
     }
 
     public function exportContextData(): DOMDocument
@@ -180,7 +168,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         foreach ($contextUsers as $user) {
             $usersById[(int) $user->getId()] = $user;
         }
-        $workflowUserIds = $this->getWorkflowUserIds((int) $this->getContext()->getId());
+        $workflowUserIds = (new WorkflowUserFinder())->findIds((int) $this->getContext()->getId());
         if ($workflowUserIds !== []) {
             $workflowUsers = Repo::user()->getCollector()
                 ->filterByUserIds($workflowUserIds)
@@ -208,72 +196,13 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return $document;
     }
 
-    private function getWorkflowUserIds(int $contextId): array
-    {
-        $userIds = [];
-        $queries = [
-            DB::table('stage_assignments as assignment')
-                ->join('submissions as submission', 'submission.submission_id', '=', 'assignment.submission_id')
-                ->where('submission.context_id', $contextId)
-                ->pluck('assignment.user_id'),
-            DB::table('review_assignments as assignment')
-                ->join('review_rounds as round', function ($join): void {
-                    $join->on('round.review_round_id', '=', 'assignment.review_round_id')
-                        ->on('round.submission_id', '=', 'assignment.submission_id');
-                })
-                ->join('submissions as submission', 'submission.submission_id', '=', 'round.submission_id')
-                ->where('submission.context_id', $contextId)
-                ->pluck('assignment.reviewer_id'),
-            DB::table('submission_comments as comment')
-                ->join('review_assignments as assignment', function ($join): void {
-                    $join->on('assignment.review_id', '=', 'comment.assoc_id')
-                        ->on('assignment.submission_id', '=', 'comment.submission_id');
-                })
-                ->join('review_rounds as round', function ($join): void {
-                    $join->on('round.review_round_id', '=', 'assignment.review_round_id')
-                        ->on('round.submission_id', '=', 'assignment.submission_id');
-                })
-                ->join('submissions as submission', 'submission.submission_id', '=', 'round.submission_id')
-                ->where('comment.comment_type', 1)
-                ->where('submission.context_id', $contextId)
-                ->pluck('comment.author_id'),
-            DB::table('query_participants as participant')
-                ->join('queries as discussion', 'discussion.query_id', '=', 'participant.query_id')
-                ->join('submissions as submission', 'submission.submission_id', '=', 'discussion.assoc_id')
-                ->where('discussion.assoc_type', Application::ASSOC_TYPE_SUBMISSION)
-                ->where('submission.context_id', $contextId)
-                ->pluck('participant.user_id'),
-            DB::table('notes as note')
-                ->join('queries as discussion', 'discussion.query_id', '=', 'note.assoc_id')
-                ->join('submissions as submission', 'submission.submission_id', '=', 'discussion.assoc_id')
-                ->where('note.assoc_type', Application::ASSOC_TYPE_QUERY)
-                ->where('discussion.assoc_type', Application::ASSOC_TYPE_SUBMISSION)
-                ->where('submission.context_id', $contextId)
-                ->pluck('note.user_id'),
-            DB::table('edit_decisions as decision')
-                ->join('submissions as submission', 'submission.submission_id', '=', 'decision.submission_id')
-                ->where('submission.context_id', $contextId)
-                ->pluck('decision.editor_id'),
-        ];
-        foreach ($queries as $queryUserIds) {
-            foreach ($queryUserIds as $userId) {
-                if ((int) $userId > 0) {
-                    $userIds[(int) $userId] = true;
-                }
-            }
-        }
-        $userIds = array_keys($userIds);
-        sort($userIds, SORT_NUMERIC);
-        return $userIds;
-    }
-
     public function importUsers(DOMElement $usersNode): array
     {
         $userGroupsNode = $this->getRequiredChild($usersNode, 'user_groups');
         $userListNode = $this->getRequiredChild($usersNode, 'users');
-        $this->referenceMaps['user_group'] = [];
-        $this->referenceMaps['user'] = [];
-        $this->userConflicts = [];
+        $this->resetReferenceMap('user_group');
+        $this->resetReferenceMap('user');
+        $this->transferState()->resetUserConflicts();
         $userGroupFilter = PKPImportExportFilter::getFilter('full-journal-user-xml=>user-group', $this);
         $userGroupsDocument = $this->documentFor($userGroupsNode);
         $userGroupFilter->execute($userGroupsDocument);
@@ -283,7 +212,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         return [
             'user_id_map' => $this->getReferenceMap('user'),
             'user_group_id_map' => $this->getReferenceMap('user_group'),
-            'conflicts' => $this->userConflicts,
+            'conflicts' => $this->getUserConflicts(),
         ];
     }
 
@@ -386,7 +315,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function importMetrics(DOMElement $metricsNode): void
     {
-        $this->metricRejections = [];
+        $this->transferState()->resetMetricRejections();
         $filter = PKPImportExportFilter::getFilter('full-journal-xml=>metrics', $this);
         $document = $this->documentFor($metricsNode);
         $filter->execute($document);
@@ -394,50 +323,42 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function addMetricRejection(array $rejection): void
     {
-        $this->metricRejections[] = $rejection;
+        $this->transferState()->addMetricRejection($rejection);
     }
 
     public function getMetricRejections(): array
     {
-        return $this->metricRejections;
+        return $this->transferState()->getMetricRejections();
     }
 
     public function mapReference(string $entity, string $sourceReference, int $destinationId): void
     {
-        $this->referenceMaps[$entity][$sourceReference] = $destinationId;
+        $this->transferState()->mapReference($entity, $sourceReference, $destinationId);
     }
 
     public function getReferenceMap(string $entity): array
     {
-        return $this->referenceMaps[$entity] ?? [];
+        return $this->transferState()->getReferenceMap($entity);
     }
 
     public function resetReferenceMap(string $entity): void
     {
-        $this->referenceMaps[$entity] = [];
+        $this->transferState()->resetReferenceMap($entity);
     }
 
     public function requireReference(string $entity, string $sourceReference): int
     {
-        $destinationId = $this->referenceMaps[$entity][$sourceReference] ?? null;
-        if (!is_int($destinationId)) {
-            throw new InvalidArgumentException(sprintf(
-                'Missing mapped %s reference: "%s"',
-                $entity,
-                $sourceReference
-            ));
-        }
-        return $destinationId;
+        return $this->transferState()->requireReference($entity, $sourceReference);
     }
 
     public function addUserConflict(array $conflict): void
     {
-        $this->userConflicts[] = $conflict;
+        $this->transferState()->addUserConflict($conflict);
     }
 
     public function getUserConflicts(): array
     {
-        return $this->userConflicts;
+        return $this->transferState()->getUserConflicts();
     }
 
     public function getSite()
@@ -447,22 +368,30 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function setCurrentReviewFormId(?int $reviewFormId): void
     {
-        $this->currentReviewFormId = $reviewFormId;
+        $this->transferState()->setCurrentReviewFormId($reviewFormId);
     }
 
     public function getCurrentReviewFormId(): ?int
     {
-        return $this->currentReviewFormId;
+        return $this->transferState()->getCurrentReviewFormId();
     }
 
     public function setSubmissionsByIssue(array $submissionsByIssue): void
     {
-        $this->submissionsByIssue = $submissionsByIssue;
+        $this->transferState()->setSubmissionsByIssue($submissionsByIssue);
     }
 
     public function getSubmissionsForIssue(int $issueId): array
     {
-        return $this->submissionsByIssue[$issueId] ?? [];
+        return $this->transferState()->getSubmissionsForIssue($issueId);
+    }
+
+    private function transferState(): TransferState
+    {
+        if (!$this->transferState) {
+            $this->transferState = new TransferState();
+        }
+        return $this->transferState;
     }
 
     protected function runNativeImport($rootFilter, $importXml): void
@@ -476,29 +405,23 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         parent::import($rootFilter, $importXml);
     }
 
-    private function compensateCreatedFiles(): void
-    {
-        foreach (array_reverse($this->createdFiles) as $path) {
-            if ((is_file($path) || is_link($path)) && !unlink($path)) {
-                $this->addError(\PKP\core\PKPApplication::ASSOC_TYPE_NONE, 0, 'Failed to compensate an imported file');
-            }
-        }
-        $this->createdFiles = [];
-    }
-
-    private function compensateCreatedDirectories(): void
+    private function compensateCreatedResources(): void
     {
         $publicFileManager = new PublicFileManager();
-        foreach (array_reverse($this->createdDirectories) as $path) {
-            if (is_dir($path) && !$publicFileManager->rmtree($path)) {
-                $this->addError(
-                    \PKP\core\PKPApplication::ASSOC_TYPE_NONE,
-                    0,
-                    'Failed to compensate an imported directory'
-                );
-            }
+        $errors = $this->resourceJournal()->compensate(function (string $path) use ($publicFileManager): bool {
+            return $publicFileManager->rmtree($path);
+        });
+        foreach ($errors as $error) {
+            $this->addError(\PKP\core\PKPApplication::ASSOC_TYPE_NONE, 0, $error);
         }
-        $this->createdDirectories = [];
+    }
+
+    private function resourceJournal(): ImportedResourceJournal
+    {
+        if (!$this->resourceJournal) {
+            $this->resourceJournal = new ImportedResourceJournal();
+        }
+        return $this->resourceJournal;
     }
 
     private function getRequiredChild(DOMElement $parent, string $name): DOMElement
