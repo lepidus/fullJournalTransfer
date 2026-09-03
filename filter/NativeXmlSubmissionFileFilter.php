@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter;
 
 use APP\core\Services;
+use DOMElement;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\config\Config;
 use PKP\file\TemporaryFileManager;
@@ -27,6 +29,7 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
 
     public function handleRevisionElement($node)
     {
+        $exportedMimeType = $this->getExportedMimeType($node);
         $temporaryFileManager = new TemporaryFileManager();
         $temporaryPath = $temporaryFileManager->getBasePath();
         if (!is_dir($temporaryPath) && !$temporaryFileManager->mkdirtree($temporaryPath)) {
@@ -47,7 +50,35 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
             throw new InvalidArgumentException('Imported file path could not be resolved');
         }
         $this->getDeployment()->recordCreatedFile($absolutePath);
+        if ($exportedMimeType !== null) {
+            DB::table('files')->where('file_id', $fileId)->update(['mimetype' => $exportedMimeType]);
+        }
         return $fileId;
     }
 
+    private function getExportedMimeType($node): ?string
+    {
+        $mimeType = null;
+        foreach ($node->childNodes as $child) {
+            if (!$child instanceof DOMElement || $child->localName !== 'href' || !$child->hasAttribute('mime_type')) {
+                continue;
+            }
+            $value = $child->getAttribute('mime_type');
+            $token = "[a-z0-9!#$%&'*+.^_`|~-]+";
+            if (strlen($value) > 255 || preg_match('@\\A' . $token . '/' . $token . '\\z@iD', $value) !== 1) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid exported MIME type for file revision at line %d',
+                    $child->getLineNo()
+                ));
+            }
+            if ($mimeType !== null && $mimeType !== $value) {
+                throw new InvalidArgumentException(sprintf(
+                    'Conflicting exported MIME types for file revision at line %d',
+                    $node->getLineNo()
+                ));
+            }
+            $mimeType = $value;
+        }
+        return $mimeType;
+    }
 }

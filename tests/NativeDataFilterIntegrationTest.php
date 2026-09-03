@@ -13,6 +13,7 @@ use APP\issue\IssueFile;
 use APP\jobs\doi\DepositIssue;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use InvalidArgumentException;
@@ -490,6 +491,120 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
                 $this->fileChecksum($destinationFileId)
             );
         }
+    }
+
+    public function testItPreservesTheExportedSubmissionFileMimeType(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('mime-source');
+        $destination = $this->createContext('mime-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $sourceGenre = $this->createGenre($source, 'MIME Manuscript');
+        $this->createGenre($destination, 'MIME Manuscript');
+        $submission = $this->createSubmission($source, $sourceSection, 'Article with preserved MIME', null);
+        $submissionFile = $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $sourceGenre->getId(),
+            ['content detected as plain text']
+        );
+        $sourceRevision = Repo::submissionFile()->getRevisions((int) $submissionFile->getId())->first();
+        $exportedMimeType = 'application/vnd.full-journal-transfer-test';
+        DB::table('files')->where('file_id', $sourceRevision->fileId)->update(['mimetype' => $exportedMimeType]);
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $this->assertSame($exportedMimeType, $xpath->evaluate('string(//pkp:file/pkp:href/@mime_type)'));
+
+        $this->setRequestContext($destination);
+        $importUser = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($importUser);
+        $deployment = new FullJournalImportExportDeployment($destination, $importUser);
+        $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $maps = $deployment->importNativeData($document->documentElement);
+        $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
+        $destinationFileId = $maps['file_id_map'][(string) $sourceRevision->fileId];
+
+        $this->assertSame($exportedMimeType, Services::get('file')->get($destinationFileId)->mimetype);
+    }
+
+    public function testItRejectsAnInvalidExportedSubmissionFileMimeType(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('invalid-mime-source');
+        $destination = $this->createContext('invalid-mime-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $sourceGenre = $this->createGenre($source, 'Invalid MIME Manuscript');
+        $this->createGenre($destination, 'Invalid MIME Manuscript');
+        $submission = $this->createSubmission($source, $sourceSection, 'Article with invalid MIME', null);
+        $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $sourceGenre->getId(),
+            ['invalid MIME payload']
+        );
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $xpath->query('//pkp:file/pkp:href')->item(0)->setAttribute('mime_type', 'text/plain; charset=utf-8');
+
+        $this->setRequestContext($destination);
+        $importUser = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($importUser);
+        $deployment = new FullJournalImportExportDeployment($destination, $importUser);
+        $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        try {
+            $maps = $deployment->importNativeData($document->documentElement);
+            $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
+            $this->fail('An invalid exported MIME type was accepted');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Invalid exported MIME type', $exception->getMessage());
+        }
+    }
+
+    public function testItUsesDetectedMimeTypeWhenTheExportedValueIsAbsent(): void
+    {
+        Event::fake([BatchMetadataChanged::class]);
+        Queue::fake();
+        $source = $this->createContext('missing-mime-source');
+        $destination = $this->createContext('missing-mime-destination');
+        $sourceSection = $this->createSection($source);
+        $this->createSection($destination);
+        $sourceGenre = $this->createGenre($source, 'Missing MIME Manuscript');
+        $this->createGenre($destination, 'Missing MIME Manuscript');
+        $submission = $this->createSubmission($source, $sourceSection, 'Article without exported MIME', null);
+        $submissionFile = $this->createSubmissionFile(
+            $source,
+            $submission,
+            (int) $sourceGenre->getId(),
+            ['content detected as plain text']
+        );
+        $sourceRevision = Repo::submissionFile()->getRevisions((int) $submissionFile->getId())->first();
+
+        $this->setRequestContext($source);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
+        $xpath->query('//pkp:file/pkp:href')->item(0)->removeAttribute('mime_type');
+
+        $this->setRequestContext($destination);
+        $importUser = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($importUser);
+        $deployment = new FullJournalImportExportDeployment($destination, $importUser);
+        $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
+        $maps = $deployment->importNativeData($document->documentElement);
+        $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
+        $destinationFileId = $maps['file_id_map'][(string) $sourceRevision->fileId];
+
+        $this->assertSame('text/plain', Services::get('file')->get($destinationFileId)->mimetype);
     }
 
     public function testItOrdersAndRemapsDependentSubmissionFiles(): void
