@@ -1,18 +1,18 @@
 [English](/README.md) | **Português Brasileiro**
 
 # Transferência Completa de Periódico
-Este plugin permite importar e exportar todo o conteúdo de um periódico.
+Este plugin transfere os dados do periódico cobertos pelos contratos explícitos descritos abaixo.
 
 ## Compatibilidade
 A versão mais recente deste plugin é compatível com as seguintes aplicações do PKP:
 
-* OJS 3.3.0
+* OJS 3.4.0
 
-**Nota:** Este plugin é projetado para a exportação e importação de periódicos dentro da mesma versão do OJS. Exemplo: de `3.3.0-16` para `3.3.0-16`. Para melhores resultados, recomenda-se utilizar a versão OJS 3.3.0-16 ou mais recente.
+**Nota:** Os pacotes só podem ser transferidos entre instalações da mesma linha OJS 3.4.0.
 
 ## Requisitos
 
-- PHP >= 7.4
+- PHP >= 8.0.2
 - php-mbstring
 - php-intl
 - php-xml
@@ -42,8 +42,6 @@ Para importar um periódico a partir de um arquivo tar.gz, execute o comando no 
 php tools/importExport.php FullJournalImportExportPlugin import [nomeDoArquivoTarGz] [nome_do_usuario]
 ```
 
-⚠️ Durante o processo de importação, um email de "Registro de Periódico" é enviado para todos os usuários importados. Para fins de teste, recomendamos fortemente desativar a funcionalidade de email no arquivo config.inc.php antes de rodar o script de importação.
-
 **Obs**.: Periódicos contendo uma quantidade substancial de dados irão consumir muitos recursos de memória. Nesses casos, utilize o parâmetro PHP `-d memory_limit=-1` durante as operações de importação/exportação.
 
 ## Solução de problemas
@@ -55,27 +53,80 @@ Este plugin utiliza recursos dos plugins de importação/exportação nativo e d
 Alguns comportamentos são esperados ao executar a importação da revista:
 
 - Todos os IDs no banco de dados serão modificados, invalidando referências externas.
-- Os logins dos usuários serão alterados.
-- Alguns registros de métricas podem ser perdidos.
-- O histórico de atividades da submissão não é preservado; as datas e usuários são substituídos pela
-  data e usuário da execução do plugin.
+- O periódico importado é criado inicialmente desabilitado.
+- Uma segunda importação do mesmo caminho de periódico é rejeitada sem duplicar conteúdo.
+- Os pacotes exportados contêm conflitos de interesse dos autores e devem ser tratados como dados sensíveis.
+- O plugin não inclui eventos editoriais históricos nem registros de e-mails enviados das tabelas `event_log`,
+  `event_log_settings`, `email_log` e `email_log_users`. Eventos criados no destino durante
+  a importação pertencem à própria operação e não reproduzem o histórico da origem.
+- As datas históricas de modificação das submissões são preservadas. Após a importação, reconstrua o índice de busca e
+  limpe os caches da aplicação conforme o procedimento operacional da instalação de destino. Consumidores OAI devem
+  fazer uma coleta completa após mudar para a revista de destino, em vez de depender apenas de uma janela incremental.
+- O tema selecionado e suas opções declaradas são transferidos quando o código do plugin de tema está instalado no OJS
+  de destino. Quando ele não está disponível, o periódico importado usa o tema padrão com suas opções padrão.
+- Métricas institucionais exigem um identificador ROR válido; registros sem ROR estável são rejeitados.
+
+## Locales e configurações do periódico
+
+As listas de locales da interface, dos formulários e das submissões são transferidas independentemente. Na
+importação, cada lista é intersectada com os locales habilitados no site OJS de destino, preservando a ordem da
+origem. A importação para antes de criar o periódico quando o locale principal não está disponível ou quando não
+resta nenhum locale de formulário ou submissão. Os erros dessa validação inicial no fluxo CLI/filtro são
+mensagens determinísticas em inglês, pois os catálogos de locale do plugin ainda não estão carregados nesse ponto.
+
+Para migrar todos os metadados localizados, instale e habilite no site OJS de destino todos os locales usados pelo
+periódico de origem antes da importação. A interface de linha de comando avisa quais locales indisponíveis serão
+filtrados da importação.
+
+As seguintes configurações do periódico são transferidas:
+
+- Identidade e contato: `name`, `acronym`, `abbreviation`, `about`, `description`, `editorialTeam`,
+  `authorInformation`, `librarianInformation`, `readerInformation`, `privacyStatement`, `openAccessPolicy`,
+  `contactAffiliation`, `contactEmail`, `contactName`, `contactPhone`, `mailingAddress`, `country`, `onlineIssn`,
+  `printIssn`, `publisherInstitution`, `publisherUrl`, `supportEmail`, `supportName`, `supportPhone`, `enableOai`,
+  `itemsPerPage` e `numPageLinks`.
+- DOI: `enableDois`, `enabledDoiTypes`, `doiPrefix`, `doiSuffixType`, `doiIssueSuffixPattern`,
+  `doiPublicationSuffixPattern`, `doiRepresentationSuffixPattern`, `doiVersioning` e `doiCreationTime`.
+- Licença e copyright: `copyrightYearBasis`, `copyrightHolderType`, `copyrightHolderOther`, `copyrightNotice`,
+  `licenseTerms`, `licenseUrl` e `rights`.
+- Submissão e metadados: `disableSubmissions`, `authorGuidelines`, `beginSubmissionHelp`, `contributorsHelp`,
+  `detailsHelp`, `forTheEditorsHelp`, `uploadFilesHelp`, `submissionChecklist`, `submissionAcknowledgement`,
+  `copySubmissionAckAddress`, `copySubmissionAckPrimaryContact`, `submitWithCategories`, `agencies`, `citations`,
+  `competingInterests`, `coverage`, `dataAvailability`, `disciplines`, `keywords`, `languages`, `subjects` e
+  `requireAuthorCompetingInterests`.
+- Avaliação e fluxo editorial: `defaultReviewMode`, `numWeeksPerResponse`, `numWeeksPerReview`,
+  `restrictReviewerFileAccess`, `reviewerAccessKeysEnabled`, `reviewGuidelines`, `reviewHelp`,
+  `numDaysBeforeInviteReminder`, `numDaysBeforeSubmitReminder`, `rateReviewerOnQuality` e `notifyAllAuthors`.
+- Publicação: `publishingMode` para periódicos de acesso aberto ou sem publicação. O modo por assinatura é
+  rejeitado antes da criação do periódico porque os registros de assinatura não são transferidos.
+
+Configurações localizadas são limitadas à união dos locales aceitos, e o checklist de submissão é limitado aos
+locales efetivos de formulário. Valores nulos permanecem ausentes. DOIs já atribuídos a edições, publicações e
+composições são preservados pelo Native XML. Depósito DOI automático, dados de conta da agência, credenciais,
+tokens e configurações privadas de plugins de depósito não são transferidos, e a importação nunca agenda um
+depósito DOI.
 
 ## Conteúdo Importado/Exportado do Periódico
 
 **Usando a importação/exportação nativa da PKP**:
 
-- Usuários e Papéis de Usuário
+- Usuários ativos e seus papéis; usuários desabilitados são incluídos somente quando referenciados pelo workflow
+  e são transferidos sem papéis
 - Artigos
 - Edições
 
 **Adicionado**:
 
 - Dados do Periódico
+- Nomes públicos preferenciais e conflitos de interesse dos autores
+- Datas históricas das submissões e horários de publicação das edições
+- Progresso das submissões incompletas no assistente
+- Tema selecionado e opções do tema
 - Menus de Navegação
-- Configurações de Plugins
 - Seções
 - Formulários de Avaliação
 - Designações de Avaliação
+- Respostas dos formulários de avaliação, preservando separadamente valores nulos e vazios
 - Rodadas de Avaliação
 - Arquivos de Avaliação
 - Arquivos do Avaliador
@@ -91,7 +142,22 @@ Alguns comportamentos são esperados ao executar a importação da revista:
 ### Testes de Unidade
 Para executar os testes unitários, rode o seguinte comando no diretório raiz da Aplicação PKP:
 ```bash
-lib/pkp/lib/vendor/phpunit/phpunit/phpunit -c lib/pkp/tests/phpunit-env2.xml plugins/importexport/fullJournalTransfer/tests
+lib/pkp/lib/vendor/bin/phpunit -c lib/pkp/tests/phpunit.xml --no-coverage plugins/importexport/fullJournalTransfer/tests
+```
+
+### Round trip
+
+```bash
+php plugins/importexport/fullJournalTransfer/tests/round-trip/run \
+  --fixture plugins/importexport/fullJournalTransfer/tests/round-trip/fixture-ojs-3.4.0.10-v1.tar.gz \
+  --expected plugins/importexport/fullJournalTransfer/tests/round-trip/expected-ojs-3.4.0.10-v1.json \
+  --app-root [raiz_do_ojs] \
+  --files-dir [diretorio_de_arquivos] \
+  --public-dir [diretorio_publico] \
+  --database [nome_da_base] \
+  --mysql-command [comando_mysql] \
+  --inventory-command plugins/importexport/fullJournalTransfer/tests/round-trip/inventory \
+  --apply
 ```
 
 # Créditos
@@ -104,4 +170,4 @@ Desenvolvido pela Lepidus Tecnologia.
 # Licença
 Este plugin é licenciado sob a Licença Pública Geral GNU v3.0
 
-Copyright (c) 2014-2024 Lepidus Tecnologia
+Copyright (c) 2014-2026 Lepidus Tecnologia

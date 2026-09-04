@@ -1,0 +1,352 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+function fail(string $message): void
+{
+    fwrite(STDERR, $message . PHP_EOL);
+    exit(1);
+}
+
+function option(array $arguments, string $name): string
+{
+    $position = array_search($name, $arguments, true);
+    if ($position === false || !isset($arguments[$position + 1])) {
+        fail('Missing required option ' . $name);
+    }
+
+    return $arguments[$position + 1];
+}
+
+function command(array $arguments): array
+{
+    $process = proc_open($arguments, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes);
+    if (!is_resource($process)) {
+        fail('Unable to inspect fixture archive');
+    }
+    fclose($pipes[0]);
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = proc_close($process);
+    if ($exitCode !== 0) {
+        fail(trim((string) $stderr));
+    }
+
+    return preg_split('/\R/', trim((string) $stdout)) ?: [];
+}
+
+function execute(array $arguments, ?string $input = null, ?string $password = null): void
+{
+    $previousPassword = getenv('MYSQL_PWD');
+    if ($password !== null) {
+        putenv('MYSQL_PWD=' . $password);
+    }
+    $process = proc_open($arguments, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes);
+    if (!is_resource($process)) {
+        fail('Unable to execute round trip command');
+    }
+    if ($input !== null) {
+        fwrite($pipes[0], $input);
+    }
+    fclose($pipes[0]);
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = proc_close($process);
+    if ($password !== null) {
+        $previousPassword === false ? putenv('MYSQL_PWD') : putenv('MYSQL_PWD=' . $previousPassword);
+    }
+    if ($exitCode !== 0) {
+        fail(trim((string) $stdout . "\n" . (string) $stderr));
+    }
+}
+
+function capture(array $arguments): string
+{
+    $process = proc_open($arguments, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes);
+    if (!is_resource($process)) {
+        fail('Unable to execute inventory command');
+    }
+    fclose($pipes[0]);
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = proc_close($process);
+    if ($exitCode !== 0) {
+        fail(trim((string) $stderr));
+    }
+
+    return (string) $stdout;
+}
+
+function executeExpectingFailure(array $arguments): void
+{
+    $process = proc_open($arguments, [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes);
+    if (!is_resource($process)) {
+        fail('Unable to execute conflicting import');
+    }
+    fclose($pipes[0]);
+    stream_get_contents($pipes[1]);
+    stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    if (proc_close($process) === 0) {
+        fail('Conflicting import was not rejected');
+    }
+}
+
+function assertInventory(string $output, array $expected, string $phase): void
+{
+    $actual = json_decode($output, true);
+    if (!is_array($actual)) {
+        fail('Inventory command returned invalid JSON during ' . $phase);
+    }
+    if ($actual != $expected) {
+        fail('Inventory mismatch during ' . $phase);
+    }
+}
+
+function removeContents(string $directory): void
+{
+    $iterator = new FilesystemIterator($directory, FilesystemIterator::SKIP_DOTS);
+    foreach ($iterator as $item) {
+        if ($item->isLink()) {
+            fail('Restoration target contains a symbolic link');
+        }
+        if ($item->isDir()) {
+            removeContents($item->getPathname());
+            if (!rmdir($item->getPathname())) {
+                fail('Unable to clear restoration directory');
+            }
+        } elseif (!unlink($item->getPathname())) {
+            fail('Unable to clear restoration directory');
+        }
+    }
+}
+
+function copyContents(string $source, string $target): void
+{
+    if (!is_dir($source) || is_link($source)) {
+        fail('Fixture restoration directory is invalid');
+    }
+    if (!file_exists($target) && !mkdir($target, 0700)) {
+        fail('Unable to create restoration directory');
+    }
+    if (!is_dir($target) || is_link($target)) {
+        fail('Restoration directory is invalid');
+    }
+    removeContents($target);
+    $iterator = new FilesystemIterator($source, FilesystemIterator::SKIP_DOTS);
+    foreach ($iterator as $item) {
+        if ($item->isLink()) {
+            fail('Fixture contains a symbolic link');
+        }
+        $destination = $target . '/' . $item->getFilename();
+        if ($item->isDir()) {
+            if (!mkdir($destination, 0700)) {
+                fail('Unable to create restoration directory');
+            }
+            copyContents($item->getPathname(), $destination);
+        } elseif (!copy($item->getPathname(), $destination)) {
+            fail('Unable to restore fixture file');
+        }
+    }
+}
+
+function removeTemporaryDirectory(string $directory): void
+{
+    if (!is_dir($directory) || is_link($directory)) {
+        return;
+    }
+    removeContents($directory);
+    rmdir($directory);
+}
+
+$arguments = array_slice($argv, 1);
+$fixture = option($arguments, '--fixture');
+$expectedPath = option($arguments, '--expected');
+$checksumPath = $fixture . '.sha256';
+
+foreach ([$fixture, $expectedPath, $checksumPath] as $path) {
+    if (!is_file($path)) {
+        fail('Required file not found: ' . $path);
+    }
+}
+
+$checksumLine = trim((string) file_get_contents($checksumPath));
+if (!preg_match('/^([a-f0-9]{64})  (.+)$/', $checksumLine, $matches)) {
+    fail('Invalid fixture checksum file');
+}
+if ($matches[2] !== basename($fixture)) {
+    fail('Fixture checksum references an unexpected file');
+}
+$actualChecksum = hash_file('sha256', $fixture);
+if (!is_string($actualChecksum) || !hash_equals($matches[1], $actualChecksum)) {
+    fail('Fixture checksum mismatch');
+}
+
+$expected = json_decode((string) file_get_contents($expectedPath), true);
+if (!is_array($expected)) {
+    fail('Expected inventory is not valid JSON');
+}
+foreach (['fixtureVersion', 'application', 'applicationVersion'] as $field) {
+    if (!isset($expected[$field]) || !is_string($expected[$field]) || $expected[$field] === '') {
+        fail('Expected inventory is missing ' . $field);
+    }
+}
+if ($expected['application'] !== 'ojs' || $expected['applicationVersion'] !== '3.4.0.10') {
+    fail('Fixture application contract is not OJS 3.4.0.10');
+}
+
+$entries = command(['/bin/tar', '-tzf', $fixture]);
+$normalizedEntries = [];
+foreach ($entries as $entry) {
+    $normalized = preg_replace('#^\./#', '', $entry);
+    if (!is_string($normalized) || $normalized === '' || $normalized[0] === '/') {
+        fail('Fixture contains an invalid path');
+    }
+    $segments = explode('/', rtrim($normalized, '/'));
+    if (in_array('..', $segments, true)) {
+        fail('Fixture contains an invalid path');
+    }
+    $normalizedEntries[] = $normalized;
+}
+
+foreach (
+    ['source.sql', 'clean-target.sql', 'source-files/', 'source-files/journals/', 'source-public/',
+        'source-public/journals/'] as $requiredEntry
+) {
+    if (!in_array($requiredEntry, $normalizedEntries, true)) {
+        fail('Fixture is missing ' . $requiredEntry);
+    }
+}
+
+if (!in_array('--verify-only', $arguments, true)) {
+    $appRoot = realpath(option($arguments, '--app-root'));
+    $filesDir = realpath(option($arguments, '--files-dir'));
+    $publicDir = realpath(option($arguments, '--public-dir'));
+    $database = option($arguments, '--database');
+    if ($appRoot === false || !is_file($appRoot . '/config.inc.php')) {
+        fail('Application root is invalid');
+    }
+    if ($filesDir === false || $publicDir === false || is_link($filesDir) || is_link($publicDir)) {
+        fail('Restoration directories must exist and may not be symbolic links');
+    }
+    $config = parse_ini_file($appRoot . '/config.inc.php', true, INI_SCANNER_TYPED);
+    if (!is_array($config) || !isset($config['database']['name'])) {
+        fail('Application database configuration is invalid');
+    }
+    if ($database === '' || $database !== (string) $config['database']['name']) {
+        fail('Explicit database does not match the application configuration');
+    }
+    if (!in_array('--apply', $arguments, true)) {
+        fwrite(STDOUT, "mode=plan\n");
+        fwrite(STDOUT, 'database=' . $database . PHP_EOL);
+        fwrite(STDOUT, 'files_dir=' . $filesDir . PHP_EOL);
+        fwrite(STDOUT, 'public_dir=' . $publicDir . PHP_EOL);
+        exit(0);
+    }
+    foreach (['host', 'username', 'password'] as $field) {
+        if (!isset($config['database'][$field]) || !is_string($config['database'][$field])) {
+            fail('Application database configuration is missing ' . $field);
+        }
+    }
+    foreach (['journalPath', 'importUsername'] as $field) {
+        if (!isset($expected[$field]) || !is_string($expected[$field]) || $expected[$field] === '') {
+            fail('Expected inventory is missing ' . $field);
+        }
+    }
+    if (!isset($expected['inventory']) || !is_array($expected['inventory'])) {
+        fail('Expected inventory is missing inventory');
+    }
+    $mysqlCommand = realpath(option($arguments, '--mysql-command'));
+    if ($mysqlCommand === false || !is_file($mysqlCommand) || !is_executable($mysqlCommand)) {
+        fail('MySQL command is not executable');
+    }
+    $inventoryCommand = realpath(option($arguments, '--inventory-command'));
+    if ($inventoryCommand === false || !is_file($inventoryCommand) || !is_executable($inventoryCommand)) {
+        fail('Inventory command is not executable');
+    }
+    if (!is_file($appRoot . '/tools/importExport.php')) {
+        fail('OJS import/export CLI was not found');
+    }
+    foreach (command(['/bin/tar', '-tvzf', $fixture]) as $verboseEntry) {
+        if ($verboseEntry !== '' && !in_array($verboseEntry[0], ['-', 'd'], true)) {
+            fail('Fixture contains a link or unsupported entry: ' . $verboseEntry);
+        }
+    }
+    $temporaryDirectory = tempnam(sys_get_temp_dir(), 'full-journal-round-trip-');
+    if ($temporaryDirectory === false || !unlink($temporaryDirectory) || !mkdir($temporaryDirectory, 0700)) {
+        fail('Unable to create round trip staging directory');
+    }
+    register_shutdown_function('removeTemporaryDirectory', $temporaryDirectory);
+    execute(['/bin/tar', '-xzf', $fixture, '-C', $temporaryDirectory, '--no-same-owner', '--no-same-permissions']);
+    $mysqlArguments = [
+        $mysqlCommand,
+        '--host=' . $config['database']['host'],
+        '--user=' . $config['database']['username'],
+        '--database=' . $database,
+    ];
+    execute(
+        $mysqlArguments,
+        (string) file_get_contents($temporaryDirectory . '/source.sql'),
+        $config['database']['password']
+    );
+    copyContents($temporaryDirectory . '/source-files/journals', $filesDir . '/journals');
+    copyContents($temporaryDirectory . '/source-public/journals', $publicDir . '/journals');
+    assertInventory(
+        capture([$inventoryCommand, $appRoot, $expected['journalPath']]),
+        $expected['inventory'],
+        'source'
+    );
+    $package = $temporaryDirectory . '/journal.tar.gz';
+    execute([
+        PHP_BINARY,
+        '-d',
+        'memory_limit=-1',
+        $appRoot . '/tools/importExport.php',
+        'FullJournalImportExportPlugin',
+        'export',
+        $package,
+        $expected['journalPath'],
+    ]);
+    execute(
+        $mysqlArguments,
+        (string) file_get_contents($temporaryDirectory . '/clean-target.sql'),
+        $config['database']['password']
+    );
+    removeContents($filesDir . '/journals');
+    removeContents($publicDir . '/journals');
+    $importArguments = [
+        PHP_BINARY,
+        '-d',
+        'memory_limit=-1',
+        $appRoot . '/tools/importExport.php',
+        'FullJournalImportExportPlugin',
+        'import',
+        $package,
+        $expected['importUsername'],
+    ];
+    execute($importArguments);
+    assertInventory(
+        capture([$inventoryCommand, $appRoot, $expected['journalPath']]),
+        $expected['inventory'],
+        'target'
+    );
+    executeExpectingFailure($importArguments);
+    assertInventory(
+        capture([$inventoryCommand, $appRoot, $expected['journalPath']]),
+        $expected['inventory'],
+        'conflicting import'
+    );
+    removeTemporaryDirectory($temporaryDirectory);
+    fwrite(STDOUT, "round_trip=completed\n");
+    exit(0);
+}
+
+fwrite(STDOUT, 'fixture=valid version=' . $expected['fixtureVersion'] . PHP_EOL);

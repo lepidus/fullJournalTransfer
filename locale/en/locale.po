@@ -1,0 +1,77 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: fullJournalTransfer\n"
+"PO-Revision-Date: 2026-08-10 12:43-0400\n"
+"Last-Translator: LePidus Tecnologia\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+msgid "plugins.importexport.fullJournal.displayName"
+msgstr "Journal Export Plugin"
+
+msgid "plugins.importexport.fullJournal.description"
+msgstr "Allows you to import and export journals."
+
+msgid "plugins.importexport.fullJournal.cliUsage"
+msgstr ""
+"Usage: {$scriptName} {$pluginName} [command] ...\n"
+"Commands:\n"
+"import [targzFileName] [user_name]\n"
+"export [targzFileName] [journal_path]"
+
+msgid "plugins.importexport.fullJournalTransfer.attention"
+msgstr "Attention"
+
+msgid "plugins.importexport.fullJournalTransfer.guiAttentionMessage"
+msgstr "This plugin should be used only by command line. The use via the graphical interface is not supported.<br>"
+"For more information, check <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/lepidus/fullJournalTransfer#instructions-for-use\">instructions for use</a>."
+
+msgid "plugins.importexport.fullJournal.exportingJournal"
+msgstr "Exporting journal {$journalName}..."
+
+msgid "plugins.importexport.fullJournal.exportingUsers"
+msgstr "Exporting users..."
+
+msgid "plugins.importexport.fullJournal.exportingSections"
+msgstr "Exporting sections..."
+
+msgid "plugins.importexport.fullJournal.exportingIssues"
+msgstr "Exporting issues..."
+
+msgid "plugins.importexport.fullJournal.exportingArticles"
+msgstr "Exporting articles..."
+
+msgid "plugins.importexport.fullJournal.exportingMetrics"
+msgstr "Exporting metrics..."
+
+msgid "plugins.importexport.fullJournal.exportCompleted"
+msgstr "Export completed successfully"
+
+msgid "plugins.importexport.fullJournal.importingJournal"
+msgstr "Importing journal..."
+
+msgid "plugins.importexport.fullJournal.importingUsers"
+msgstr "Importing users..."
+
+msgid "plugins.importexport.fullJournal.importingSections"
+msgstr "Importing sections..."
+
+msgid "plugins.importexport.fullJournal.importingIssues"
+msgstr "Importing issues..."
+
+msgid "plugins.importexport.fullJournal.importingArticles"
+msgstr "Importing articles..."
+
+msgid "plugins.importexport.fullJournal.importingMetrics"
+msgstr "Importing metrics..."
+
+msgid "plugins.importexport.fullJournal.importCompleted"
+msgstr "Import completed successfully"
+
+msgid "plugins.importexport.fullJournal.error.userNotFound"
+msgstr "User with email {$email} is not present on the site."
+
+msgid "plugins.importexport.fullJournal.error.metric"
+msgstr "Failed to import metric. {$reason}"

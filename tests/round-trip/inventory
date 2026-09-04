@@ -1,0 +1,160 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+function stop(string $message): void
+{
+    fwrite(STDERR, $message . PHP_EOL);
+    exit(1);
+}
+
+function countRows(PDO $database, string $sql, int $journalId): int
+{
+    $statement = $database->prepare($sql);
+    $statement->execute(['journalId' => $journalId]);
+
+    return (int) $statement->fetchColumn();
+}
+
+function hashes(string $directory): array
+{
+    if (!is_dir($directory) || is_link($directory)) {
+        return [];
+    }
+    $hashes = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $item) {
+        if ($item->isLink()) {
+            stop('Inventory directory contains a symbolic link');
+        }
+        if ($item->isFile()) {
+            $hash = hash_file('sha256', $item->getPathname());
+            if (!is_string($hash)) {
+                stop('Unable to hash inventory file');
+            }
+            $hashes[] = $hash;
+        }
+    }
+    sort($hashes);
+
+    return $hashes;
+}
+
+if ($argc !== 3) {
+    stop('Usage: inventory <ojs-root> <journal-path>');
+}
+
+$appRoot = realpath($argv[1]);
+if ($appRoot === false || !is_file($appRoot . '/config.inc.php')) {
+    stop('Application root is invalid');
+}
+$config = parse_ini_file($appRoot . '/config.inc.php', true, INI_SCANNER_TYPED);
+if (!is_array($config) || !isset($config['database'], $config['files'])) {
+    stop('Application configuration is invalid');
+}
+$driver = (string) ($config['database']['driver'] ?? '');
+if (!in_array($driver, ['mysql', 'mysqli'], true)) {
+    stop('Inventory supports the MySQL fixture only');
+}
+$dsn = sprintf(
+    'mysql:host=%s;dbname=%s;charset=utf8',
+    (string) ($config['database']['host'] ?? ''),
+    (string) ($config['database']['name'] ?? '')
+);
+$database = new PDO(
+    $dsn,
+    (string) ($config['database']['username'] ?? ''),
+    (string) ($config['database']['password'] ?? ''),
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+);
+$journalStatement = $database->prepare(
+    'SELECT journal_id, primary_locale FROM journals WHERE path = :path'
+);
+$journalStatement->execute(['path' => $argv[2]]);
+$journal = $journalStatement->fetch(PDO::FETCH_ASSOC);
+if (!is_array($journal)) {
+    stop('Journal was not found for inventory');
+}
+$journalId = (int) $journal['journal_id'];
+$queries = [
+    'users' => 'SELECT COUNT(DISTINCT uug.user_id) FROM user_user_groups uug '
+        . 'JOIN user_groups ug ON ug.user_group_id = uug.user_group_id WHERE ug.context_id = :journalId',
+    'userGroups' => 'SELECT COUNT(*) FROM user_groups WHERE context_id = :journalId',
+    'sections' => 'SELECT COUNT(*) FROM sections WHERE journal_id = :journalId',
+    'genres' => 'SELECT COUNT(*) FROM genres WHERE context_id = :journalId',
+    'reviewForms' => 'SELECT COUNT(*) FROM review_forms WHERE assoc_id = :journalId',
+    'issues' => 'SELECT COUNT(*) FROM issues WHERE journal_id = :journalId',
+    'publishedIssues' => 'SELECT COUNT(*) FROM issues WHERE journal_id = :journalId AND published = 1',
+    'issueGalleys' => 'SELECT COUNT(*) FROM issue_galleys ig '
+        . 'JOIN issues i ON i.issue_id = ig.issue_id WHERE i.journal_id = :journalId',
+    'submissions' => 'SELECT COUNT(*) FROM submissions WHERE context_id = :journalId',
+    'publications' => 'SELECT COUNT(*) FROM publications p '
+        . 'JOIN submissions s ON s.submission_id = p.submission_id WHERE s.context_id = :journalId',
+    'publicationGalleys' => 'SELECT COUNT(*) FROM publication_galleys pg '
+        . 'JOIN publications p ON p.publication_id = pg.publication_id '
+        . 'JOIN submissions s ON s.submission_id = p.submission_id WHERE s.context_id = :journalId',
+    'submissionFiles' => 'SELECT COUNT(*) FROM submission_files sf '
+        . 'JOIN submissions s ON s.submission_id = sf.submission_id WHERE s.context_id = :journalId',
+    'stageAssignments' => 'SELECT COUNT(*) FROM stage_assignments sa '
+        . 'JOIN submissions s ON s.submission_id = sa.submission_id WHERE s.context_id = :journalId',
+    'reviewRounds' => 'SELECT COUNT(*) FROM review_rounds rr '
+        . 'JOIN submissions s ON s.submission_id = rr.submission_id WHERE s.context_id = :journalId',
+    'reviewAssignments' => 'SELECT COUNT(*) FROM review_assignments ra '
+        . 'JOIN submissions s ON s.submission_id = ra.submission_id WHERE s.context_id = :journalId',
+    'reviewResponses' => 'SELECT COUNT(*) FROM review_form_responses rfr '
+        . 'JOIN review_assignments ra ON ra.review_id = rfr.review_id '
+        . 'JOIN submissions s ON s.submission_id = ra.submission_id WHERE s.context_id = :journalId',
+    'submissionsWithMultipleReviewRounds' => 'SELECT COUNT(*) FROM '
+        . '(SELECT rr.submission_id FROM review_rounds rr JOIN submissions s '
+        . 'ON s.submission_id = rr.submission_id WHERE s.context_id = :journalId '
+        . 'GROUP BY rr.submission_id HAVING COUNT(*) > 1) multiple_rounds',
+    'decisions' => 'SELECT COUNT(*) FROM edit_decisions ed '
+        . 'JOIN submissions s ON s.submission_id = ed.submission_id WHERE s.context_id = :journalId',
+    'discussions' => 'SELECT COUNT(*) FROM queries q '
+        . 'JOIN submissions s ON s.submission_id = q.assoc_id WHERE s.context_id = :journalId',
+    'notes' => 'SELECT COUNT(*) FROM notes n JOIN queries q ON q.query_id = n.assoc_id '
+        . 'JOIN submissions s ON s.submission_id = q.assoc_id WHERE s.context_id = :journalId',
+    'discussionAttachments' => 'SELECT COUNT(*) FROM submission_files sf '
+        . 'JOIN notes n ON n.note_id = sf.assoc_id JOIN queries q ON q.query_id = n.assoc_id '
+        . 'JOIN submissions s ON s.submission_id = q.assoc_id '
+        . 'WHERE s.context_id = :journalId AND sf.assoc_type = 520',
+    'institutions' => 'SELECT COUNT(*) FROM institutions WHERE context_id = :journalId',
+    'metricsContext' => 'SELECT COUNT(*) FROM metrics_context WHERE context_id = :journalId',
+    'metricsIssue' => 'SELECT COUNT(*) FROM metrics_issue WHERE context_id = :journalId',
+    'metricsSubmission' => 'SELECT COUNT(*) FROM metrics_submission WHERE context_id = :journalId',
+    'metricsCounterDaily' => 'SELECT COUNT(*) FROM metrics_counter_submission_daily '
+        . 'WHERE context_id = :journalId',
+    'metricsCounterMonthly' => 'SELECT COUNT(*) FROM metrics_counter_submission_monthly '
+        . 'WHERE context_id = :journalId',
+    'metricsInstitutionDaily' => 'SELECT COUNT(*) FROM metrics_counter_submission_institution_daily '
+        . 'WHERE context_id = :journalId',
+    'metricsInstitutionMonthly' => 'SELECT COUNT(*) FROM metrics_counter_submission_institution_monthly '
+        . 'WHERE context_id = :journalId',
+    'metricsGeoDaily' => 'SELECT COUNT(*) FROM metrics_submission_geo_daily WHERE context_id = :journalId',
+    'metricsGeoMonthly' => 'SELECT COUNT(*) FROM metrics_submission_geo_monthly WHERE context_id = :journalId',
+];
+$counts = [];
+foreach ($queries as $name => $sql) {
+    $counts[$name] = countRows($database, $sql, $journalId);
+}
+$filesDir = (string) ($config['files']['files_dir'] ?? '');
+$publicDir = (string) ($config['files']['public_files_dir'] ?? ($appRoot . '/public'));
+if ($filesDir !== '' && $filesDir[0] !== DIRECTORY_SEPARATOR) {
+    $filesDir = $appRoot . DIRECTORY_SEPARATOR . $filesDir;
+}
+if ($publicDir !== '' && $publicDir[0] !== DIRECTORY_SEPARATOR) {
+    $publicDir = $appRoot . DIRECTORY_SEPARATOR . $publicDir;
+}
+$inventory = [
+    'journal' => [
+        'path' => $argv[2],
+        'primaryLocale' => (string) $journal['primary_locale'],
+    ],
+    'counts' => $counts,
+    'files' => hashes($filesDir . '/journals/' . $journalId),
+    'publicFiles' => hashes($publicDir . '/journals/' . $journalId),
+];
+fwrite(STDOUT, json_encode($inventory, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
