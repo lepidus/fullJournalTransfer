@@ -5,6 +5,8 @@
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  */
 
+use Symfony\Component\Process\Process;
+
 import('lib.pkp.classes.plugins.ImportExportPlugin');
 import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 
@@ -192,11 +194,15 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
             return false;
         }
 
-        exec(
-            Config::getVar('cli', 'tar') . ' -xzf ' .
-            escapeshellarg($archivePath) .
-            ' -C ' . escapeshellarg($extractDir)
-        );
+        $process = new Process([
+            Config::getVar('cli', 'tar'),
+            '-xzf',
+            $archivePath,
+            '-C',
+            $extractDir,
+        ]);
+        $process->setTimeout(null);
+        $process->mustRun();
 
         $xmlFile = null;
         foreach (scandir($extractDir) as $item) {
@@ -288,21 +294,27 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
         if (FileArchive::tarFunctional() && $tarCommand) {
             $xmlDir = dirname($xmlPath);
 
-            $command = "$tarCommand -czf " .
-                escapeshellarg($archivePath) . " " .
-                "-C " . escapeshellarg($xmlDir) . " " .
-                escapeshellarg(basename($xmlPath));
+            $command = [
+                $tarCommand,
+                '-czf',
+                $archivePath,
+                '-C',
+                $xmlDir,
+                basename($xmlPath),
+            ];
 
             if (is_dir($journalFilesDir)) {
                 $journalParentDir = dirname($journalFilesDir, 2);
                 $journalDir = basename(dirname($journalFilesDir)) . DIRECTORY_SEPARATOR . basename($journalFilesDir);
 
-                $command .= " -C " .
-                    escapeshellarg($journalParentDir) . " " .
-                    escapeshellarg($journalDir);
+                $command[] = '-C';
+                $command[] = $journalParentDir;
+                $command[] = $journalDir;
             }
 
-            exec($command);
+            $process = new Process($command);
+            $process->setTimeout(null);
+            $process->mustRun();
         } else {
             throw new Exception('No archive tool is available!');
         }

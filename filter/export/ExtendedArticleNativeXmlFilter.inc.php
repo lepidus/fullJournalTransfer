@@ -125,11 +125,16 @@ class ExtendedArticleNativeXmlFilter extends ArticleNativeXmlFilter
                 continue;
             }
 
+            $participantsNode = $this->createQueryParticipantsNode($doc, $deployment, $participantIds);
+            if (!$participantsNode->hasChildNodes()) {
+                continue;
+            }
+
             $queryNode = $doc->createElementNS($deployment->getNamespace(), 'query');
             $queryNode->setAttribute('seq', $query->getData('sequence'));
             $queryNode->setAttribute('closed', (int) $query->getData('closed'));
 
-            $queryNode->appendChild($this->createQueryParticipantsNode($doc, $deployment, $participantIds));
+            $queryNode->appendChild($participantsNode);
             $queryNode->appendChild($this->createQueryRepliesNode($doc, $deployment, $submission, $query));
 
             $queriesNode->appendChild($queryNode);
