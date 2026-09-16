@@ -91,7 +91,6 @@ class FullJournalImportExportPluginTest extends TestCase
         try {
             $result = $deployment->importPackage(
                 '/unused/archive.tar.gz',
-                '3.4.0.10',
                 'native-xml=>journal',
                 new ValidatedStagingArchiveManager($directory)
             );
@@ -123,7 +122,6 @@ class FullJournalImportExportPluginTest extends TestCase
         try {
             $result = $deployment->importPackage(
                 '/unused/archive.tar.gz',
-                '3.4.0.10',
                 'native-xml=>journal',
                 new ValidatedStagingArchiveManager($directory),
                 static function (string $message) use (&$progress): void {
@@ -251,7 +249,6 @@ class ValidatedStagingArchiveManager extends ArchiveManager
 
     public function withExtractedPackage(
         string $archivePath,
-        string $applicationVersion,
         callable $importer,
         ?callable $progress = null
     ) {

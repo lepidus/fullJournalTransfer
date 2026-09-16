@@ -17,12 +17,10 @@ use Symfony\Component\Process\Process;
 class FullJournalPackageExporter
 {
     private string $filesDirectory;
-    private string $applicationVersion;
 
-    public function __construct(string $filesDirectory, string $applicationVersion)
+    public function __construct(string $filesDirectory)
     {
         $this->filesDirectory = $filesDirectory;
-        $this->applicationVersion = $applicationVersion;
     }
 
     public function export(
@@ -40,7 +38,6 @@ class FullJournalPackageExporter
         $archivePath = $outputDirectory . DIRECTORY_SEPARATOR . basename($archivePath);
         $stagingPath = $this->createStagingDirectory();
         $journalPath = $stagingPath . DIRECTORY_SEPARATOR . 'journal.xml';
-        $manifestPath = $stagingPath . DIRECTORY_SEPARATOR . 'manifest.xml';
         $completed = false;
 
         try {
@@ -61,16 +58,12 @@ class FullJournalPackageExporter
             if ($progress) {
                 $progress(__('plugins.importexport.fullJournal.progress.creatingJournalArchive'));
             }
-            if (file_put_contents($manifestPath, $this->createManifest($stagingPath, $packageFiles)) === false) {
-                throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageManifestWriteFailed'));
-            }
             $arguments = [
                 '/bin/tar',
                 '-czf',
                 $archivePath,
                 '-C',
                 $stagingPath,
-                'manifest.xml',
             ];
             array_push($arguments, ...$packageFiles);
             $process = new Process($arguments);
@@ -116,51 +109,6 @@ class FullJournalPackageExporter
             return;
         }
         (new JournalUserReferenceValidator())->validate($root);
-    }
-
-    private function createManifest(string $stagingPath, array $packageFiles): string
-    {
-        $document = new DOMDocument('1.0', 'UTF-8');
-        $document->formatOutput = true;
-        $root = $document->createElement('full_journal_package');
-        $root->setAttribute('application', PackageManifest::APPLICATION);
-        $root->setAttribute('application_version', $this->applicationVersion);
-        $root->setAttribute('format_version', PackageManifest::FORMAT_VERSION);
-        $root->setAttribute('created_at', date(DATE_ATOM));
-        $document->appendChild($root);
-        $capabilities = $document->createElement('capabilities');
-        foreach (['journal', 'users', 'workflow', 'metrics'] as $name) {
-            $capability = $document->createElement('capability');
-            $capability->setAttribute('name', $name);
-            $capabilities->appendChild($capability);
-        }
-        $root->appendChild($capabilities);
-        $files = $document->createElement('files');
-        sort($packageFiles);
-        foreach ($packageFiles as $path) {
-            $absolutePath = $stagingPath . DIRECTORY_SEPARATOR . $path;
-            $size = filesize($absolutePath);
-            $checksum = hash_file('sha256', $absolutePath);
-            if (!is_int($size) || !is_string($checksum)) {
-                throw new RuntimeException(__(
-                    'plugins.importexport.fullJournal.error.packageFileMetadataCalculationFailed',
-                    [
-                        'path' => $path,
-                    ]
-                ));
-            }
-            $file = $document->createElement('file');
-            $file->setAttribute('path', $path);
-            $file->setAttribute('size', (string) $size);
-            $file->setAttribute('checksum', $checksum);
-            $files->appendChild($file);
-        }
-        $root->appendChild($files);
-        $xml = $document->saveXML();
-        if (!is_string($xml)) {
-            throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageManifestSerializationFailed'));
-        }
-        return $xml;
     }
 
     private function stageReferencedFiles(DOMDocument $document, string $stagingPath): array

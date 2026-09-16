@@ -96,7 +96,6 @@ class PluginMessagesTest extends TestCase
         try {
             (new ArchiveManager())->withExtractedPackage(
                 __DIR__,
-                '3.4.0.10',
                 static function (): void {
                     self::fail('An invalid package must not reach the importer');
                 },

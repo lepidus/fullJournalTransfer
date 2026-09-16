@@ -466,39 +466,6 @@ msgstr "Não é permitido informar a configuração da revista “{$property}”
 msgid "plugins.importexport.fullJournal.error.localizedContextSettingArrayRequired"
 msgstr "A configuração da revista por idioma “{$property}” deve ser uma lista de valores."
 
-msgid "plugins.importexport.fullJournal.error.manifestInvalidApplication"
-msgstr "A aplicação informada no manifesto deve ser “ojs”."
-
-msgid "plugins.importexport.fullJournal.error.manifestVersionLineMismatch"
-msgstr "A linha de versão da aplicação informada no manifesto deve corresponder à linha de versão de destino."
-
-msgid "plugins.importexport.fullJournal.error.manifestAttributeRequiredElementLine"
-msgstr "O atributo “{$name}” do manifesto é obrigatório no elemento “{$localName}”, na linha {$line}."
-
-msgid "plugins.importexport.fullJournal.error.manifestSingleJournalFileRequired"
-msgstr "O manifesto deve declarar exatamente um arquivo journal.xml."
-
-msgid "plugins.importexport.fullJournal.error.manifestDeclaresDuplicatePath"
-msgstr "O manifesto declara o caminho duplicado “{$path}”."
-
-msgid "plugins.importexport.fullJournal.error.manifestFormatVersionNotSupported"
-msgstr "A versão do formato do manifesto não é suportada."
-
-msgid "plugins.importexport.fullJournal.error.manifestMetadataInvalid"
-msgstr "Os metadados de “{$path}” no manifesto são inválidos."
-
-msgid "plugins.importexport.fullJournal.error.manifestRelativePathRequired"
-msgstr "O caminho “{$path}” no manifesto deve ser relativo."
-
-msgid "plugins.importexport.fullJournal.error.manifestInvalidRoot"
-msgstr "O elemento raiz do manifesto deve ser “full_journal_package”."
-
-msgid "plugins.importexport.fullJournal.error.completeApplicationVersionRequired"
-msgstr "O manifesto e o destino devem informar a versão completa da aplicação."
-
-msgid "plugins.importexport.fullJournal.error.manifestMalformedXml"
-msgstr "O manifesto deve ser um documento XML bem formado."
-
 msgid "plugins.importexport.fullJournal.error.mappedAuthorNotFound"
 msgstr "O autor associado não existe: {$sourceId}."
 
@@ -616,15 +583,6 @@ msgstr "O pacote deve ser um arquivo regular."
 msgid "plugins.importexport.fullJournal.error.packageArchiveSizeInvalid"
 msgstr "O tamanho do arquivo do pacote é inválido."
 
-msgid "plugins.importexport.fullJournal.error.packageChecksumOrSizeInvalid"
-msgstr "A soma de verificação ou o tamanho de “{$path}” no pacote é inválido."
-
-msgid "plugins.importexport.fullJournal.error.packageManifestMissing"
-msgstr "O pacote deve conter o arquivo manifest.xml."
-
-msgid "plugins.importexport.fullJournal.error.packageRequiredFilesMismatch"
-msgstr "O pacote deve conter exatamente um arquivo manifest.xml e um arquivo journal.xml."
-
 msgid "plugins.importexport.fullJournal.error.packageContainsDuplicateEntry"
 msgstr "O pacote contém uma entrada duplicada."
 
@@ -633,9 +591,6 @@ msgstr "O pacote contém entradas demais."
 
 msgid "plugins.importexport.fullJournal.error.referencedFileDirectoryCreationFailed"
 msgstr "Não foi possível criar o diretório no pacote para o arquivo referenciado da revista “{$path}”."
-
-msgid "plugins.importexport.fullJournal.error.packageEntriesManifestMismatch"
-msgstr "As entradas do pacote devem corresponder ao manifesto."
 
 msgid "plugins.importexport.fullJournal.error.packageEntryLinkNotAllowed"
 msgstr "A entrada “{$path}” do pacote não pode ser um link."
@@ -651,18 +606,6 @@ msgstr "Não foi possível extrair o pacote."
 
 msgid "plugins.importexport.fullJournal.error.packageExtractedSizeExceedsLimit"
 msgstr "O tamanho do pacote descompactado excede o limite."
-
-msgid "plugins.importexport.fullJournal.error.packageFileMetadataCalculationFailed"
-msgstr "Não foi possível calcular os metadados do arquivo “{$path}” no pacote."
-
-msgid "plugins.importexport.fullJournal.error.packageManifestReadFailed"
-msgstr "Não foi possível ler o manifesto do pacote."
-
-msgid "plugins.importexport.fullJournal.error.packageManifestSerializationFailed"
-msgstr "Não foi possível serializar o manifesto do pacote."
-
-msgid "plugins.importexport.fullJournal.error.packageManifestWriteFailed"
-msgstr "Não foi possível gravar o manifesto do pacote."
 
 msgid "plugins.importexport.fullJournal.error.packageRelativePathRequired"
 msgstr "O caminho “{$path}” no pacote deve ser relativo."
@@ -879,3 +822,6 @@ msgstr "arquivo"
 
 msgid "plugins.importexport.fullJournal.entity.directory"
 msgstr "diretório"
+
+msgid "plugins.importexport.fullJournal.error.packageJournalXmlMissing"
+msgstr "O pacote deve conter journal.xml."

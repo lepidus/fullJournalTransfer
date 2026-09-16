@@ -59,7 +59,7 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $this->assertFileExists($archive);
         $process = new Process(['/bin/tar', '-tzf', $archive]);
         $process->mustRun();
-        $this->assertSame("manifest.xml\njournal.xml\n", $process->getOutput());
+        $this->assertSame("journal.xml\n", $process->getOutput());
     }
 
     public function testItDisplaysPluginUsageWithoutAnException(): void
@@ -301,7 +301,6 @@ class SuccessfulImportDeployment extends FullJournalImportExportDeployment
 {
     public function importPackage(
         string $archivePath,
-        string $applicationVersion,
         string $rootFilter,
         ?\APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager $archiveManager = null,
         ?callable $progress = null
@@ -327,7 +326,6 @@ class FailedImportDeployment extends FullJournalImportExportDeployment
 {
     public function importPackage(
         string $archivePath,
-        string $applicationVersion,
         string $rootFilter,
         ?\APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager $archiveManager = null,
         ?callable $progress = null
