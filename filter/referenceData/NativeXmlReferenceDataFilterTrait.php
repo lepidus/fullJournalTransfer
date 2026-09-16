@@ -13,19 +13,26 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $nodes = $this->children($parent, $name);
         if ($required && $nodes === []) {
-            throw new InvalidArgumentException('Missing localized reference data: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingLocalizedReferenceData',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         $locales = [];
         foreach ($nodes as $node) {
             $locale = $this->localeAttribute($node);
             if (isset($locales[$locale])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Duplicated localized %s locale "%s" for %s source_ref "%s" at line %d',
-                    $name,
-                    $locale,
-                    $parent->localName,
-                    $parent->getAttribute('source_ref'),
-                    $node->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.duplicatedLocalizedLocaleSourceRefLine',
+                    [
+                        'name' => $name,
+                        'locale' => $locale,
+                        'localName' => $parent->localName,
+                        'sourceRef' => $parent->getAttribute('source_ref'),
+                        'line' => $node->getLineNo(),
+                    ]
                 ));
             }
             $locales[$locale] = true;
@@ -48,7 +55,12 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $matches = $this->children($parent, $name);
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one reference data container: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedReferenceDataContainer',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }
@@ -57,11 +69,13 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $reference = $this->requiredAttribute($node, 'source_ref');
         if (isset($map[$reference])) {
-            throw new InvalidArgumentException(sprintf(
-                'Duplicated %s source_ref "%s" at line %d',
-                $node->localName,
-                $reference,
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.duplicatedSourceRefLine',
+                [
+                    'localName' => $node->localName,
+                    'reference' => $reference,
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $reference;
@@ -71,12 +85,14 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = trim($node->getAttribute($name));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing reference data attribute "%s" in %s source_ref "%s" at line %d',
-                $name,
-                $node->localName,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingReferenceDataAttributeSourceRefLine',
+                [
+                    'name' => $name,
+                    'localName' => $node->localName,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -86,13 +102,15 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = $this->requiredAttribute($node, $name);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid %s value "%s" in %s source_ref "%s" at line %d; expected "true" or "false"',
-                $name,
-                $value,
-                $node->localName,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidValueSourceRefLineExpectedTrueOrFalse',
+                [
+                    'name' => $name,
+                    'value' => $value,
+                    'localName' => $node->localName,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value === 'true';
@@ -102,13 +120,15 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = $this->requiredAttribute($node, $name);
         if (filter_var($value, FILTER_VALIDATE_INT) === false) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid integer %s "%s" in %s source_ref "%s" at line %d',
-                $name,
-                $value,
-                $node->localName,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidIntegerSourceRefLine',
+                [
+                    'name' => $name,
+                    'value' => $value,
+                    'localName' => $node->localName,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return (int) $value;
@@ -118,13 +138,15 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $value = $this->requiredAttribute($node, $name);
         if (!is_numeric($value)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid numeric %s "%s" in %s source_ref "%s" at line %d',
-                $name,
-                $value,
-                $node->localName,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidNumericSourceRefLine',
+                [
+                    'name' => $name,
+                    'value' => $value,
+                    'localName' => $node->localName,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return (float) $value;
@@ -134,13 +156,15 @@ trait NativeXmlReferenceDataFilterTrait
     {
         $locale = $this->requiredAttribute($node, 'locale');
         if (preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid locale "%s" in localized %s for %s source_ref "%s" at line %d',
-                $locale,
-                $node->localName,
-                $node->parentNode instanceof DOMElement ? $node->parentNode->localName : 'reference data',
-                $node->parentNode instanceof DOMElement ? $node->parentNode->getAttribute('source_ref') : '',
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidLocaleLocalizedSourceRefLine',
+                [
+                    'locale' => $locale,
+                    'localName' => $node->localName,
+                    'parentElement' => $node->parentNode instanceof DOMElement ? $node->parentNode->localName : __('plugins.importexport.fullJournal.entity.referenceData'),
+                    'parentSourceRef' => $node->parentNode instanceof DOMElement ? $node->parentNode->getAttribute('source_ref') : '',
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $locale;

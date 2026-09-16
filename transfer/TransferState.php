@@ -38,10 +38,12 @@ class TransferState
     {
         $destinationId = $this->referenceMaps[$entity][$sourceReference] ?? null;
         if (!is_int($destinationId)) {
-            throw new InvalidArgumentException(sprintf(
-                'Missing mapped %s reference: "%s"',
-                $entity,
-                $sourceReference
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingMappedReference',
+                [
+                    'entity' => $entity,
+                    'sourceReference' => $sourceReference,
+                ]
             ));
         }
         return $destinationId;

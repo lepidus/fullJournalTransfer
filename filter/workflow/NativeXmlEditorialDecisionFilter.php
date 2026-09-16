@@ -30,11 +30,13 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
         $editorId = $deployment->requireReference('user', $this->required($node, 'editor_ref'));
         $decisionType = $this->positiveInteger($node, 'decision');
         if (!Repo::decision()->getDecisionType($decisionType)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid editorial decision type "%d" for source_ref "%s" at line %d',
-                $decisionType,
-                $sourceReference,
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidEditorialDecisionTypeSourceRefLine',
+                [
+                    'decisionType' => $decisionType,
+                    'sourceReference' => $sourceReference,
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         $reviewRoundId = null;
@@ -43,12 +45,12 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
             $reviewRoundId = $deployment->requireReference('review_round', $reviewRoundReference);
             $round = DB::table('review_rounds')->where('review_round_id', $reviewRoundId)->first();
             if (!$round || (int) $round->submission_id !== $submissionId) {
-                throw new InvalidArgumentException('Editorial decision review round belongs to another submission');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.editorialDecisionReviewRoundBelongsAnotherSubmission'));
             }
         }
         $round = $this->optionalPositiveInteger($node, 'round');
         if (($reviewRoundId === null) !== ($round === null)) {
-            throw new InvalidArgumentException('Editorial decision round references must be provided together');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.editorialDecisionRoundReferencesIncomplete'));
         }
         $decision = (new HistoricalDecisionPersistenceAdapter())->insert([
             'submissionId' => $submissionId,
@@ -67,11 +69,13 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing editorial decision attribute "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingEditorialDecisionAttributeSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -82,12 +86,14 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
         $value = $this->required($node, $attribute);
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid editorial decision %s "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $value,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'value' => $value,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -97,12 +103,14 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid editorial decision %s "%s" for source_ref "%s" at line %d; expected a positive integer',
-                $attribute,
-                $node->getAttribute($attribute),
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLineExpectedPositiveInteger',
+                [
+                    'attribute' => $attribute,
+                    'value' => $node->getAttribute($attribute),
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -116,12 +124,14 @@ class NativeXmlEditorialDecisionFilter extends NativeImportFilter
         }
         $value = filter_var($rawValue, FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid editorial decision %s "%s" for source_ref "%s" at line %d; expected a positive integer',
-                $attribute,
-                $rawValue,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLineExpectedPositiveInteger',
+                [
+                    'attribute' => $attribute,
+                    'value' => $rawValue,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;

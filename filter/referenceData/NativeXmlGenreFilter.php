@@ -35,7 +35,7 @@ class NativeXmlGenreFilter extends NativeImportFilter
             Genre::GENRE_CATEGORY_ARTWORK,
             Genre::GENRE_CATEGORY_SUPPLEMENTARY,
         ], true)) {
-            throw new InvalidArgumentException('Invalid genre category');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidGenreCategory'));
         }
         $genre = $genreDao->newDataObject();
         $genre->setContextId($context->getId());

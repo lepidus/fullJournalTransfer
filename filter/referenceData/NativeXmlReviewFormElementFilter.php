@@ -29,7 +29,7 @@ class NativeXmlReviewFormElementFilter extends NativeImportFilter
         $deployment = $this->getDeployment();
         $reviewFormId = $deployment->getCurrentReviewFormId();
         if (!$reviewFormId) {
-            throw new InvalidArgumentException('A review form element requires an imported review form');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.reviewFormElementRequiresImportedReviewForm'));
         }
         $sourceReference = $this->sourceReference(
             $node,
@@ -48,7 +48,7 @@ class NativeXmlReviewFormElementFilter extends NativeImportFilter
             ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS,
             ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX,
         ], true)) {
-            throw new InvalidArgumentException('Invalid review form element type');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidReviewFormElementType'));
         }
         $element->setElementType($elementType);
         $element->setRequired($this->booleanAttribute($node, 'required'));

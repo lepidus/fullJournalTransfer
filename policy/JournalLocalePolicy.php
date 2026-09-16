@@ -16,9 +16,11 @@ class JournalLocalePolicy
         array $availableLocales
     ): array {
         if (!in_array($primaryLocale, $availableLocales, true)) {
-            throw new InvalidArgumentException(sprintf(
-                'The journal primary locale (%s) is not available in the destination OJS.',
-                $primaryLocale
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.journalPrimaryLocaleUnavailable',
+                [
+                    'primaryLocale' => $primaryLocale,
+                ]
             ));
         }
 
@@ -27,13 +29,13 @@ class JournalLocalePolicy
         $supportedSubmissionLocales = $this->intersect($supportedSubmissionLocales, $availableLocales);
 
         if (!in_array($primaryLocale, $supportedLocales, true)) {
-            throw new InvalidArgumentException('The primary locale must be included in the supported locales');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.primaryLocaleNotSupported'));
         }
         if ($supportedFormLocales === []) {
-            throw new InvalidArgumentException('No journal form locale is available in the destination OJS.');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.noJournalFormLocaleAvailableDestinationOjs'));
         }
         if ($supportedSubmissionLocales === []) {
-            throw new InvalidArgumentException('No journal submission locale is available in the destination OJS.');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.noJournalSubmissionLocaleAvailableDestinationOjs'));
         }
 
         return compact('supportedLocales', 'supportedFormLocales', 'supportedSubmissionLocales');

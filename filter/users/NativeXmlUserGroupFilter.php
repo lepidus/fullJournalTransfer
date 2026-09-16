@@ -31,24 +31,28 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
         $context = $this->getDeployment()->getContext();
         $sourceReference = trim($node->getAttribute('source_ref'));
         if ($sourceReference === '') {
-            throw new InvalidArgumentException(sprintf(
-                'An imported user group must have a source_ref at line %d',
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.userGroupSourceReferenceRequired',
+                [
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         $roleId = (int) $this->requiredText($node, 'role_id');
         if (!in_array($roleId, self::ALLOWED_ROLES, true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Unacceptable role_id "%d" for user group source_ref "%s" at line %d',
-                $roleId,
-                $sourceReference,
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.unacceptableRoleIdUserGroupSourceRefLine',
+                [
+                    'roleId' => $roleId,
+                    'sourceReference' => $sourceReference,
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         $names = $this->localizedValues($node, 'name');
         $abbreviations = $this->localizedValues($node, 'abbrev');
         if ($names === [] || $abbreviations === []) {
-            throw new InvalidArgumentException('An imported user group must have localized names and abbreviations');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.userGroupLocalizedNamesRequired'));
         }
 
         $userGroup = $this->findMatchingGroup($context->getId(), $roleId, $names);
@@ -71,7 +75,7 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
             $userGroup = Repo::userGroup()->get($userGroupId, $context->getId());
         }
         if (!$userGroup) {
-            throw new InvalidArgumentException('The imported user group could not be persisted');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.userGroupSaveFailed'));
         }
 
         UserGroupStage::withContextId($context->getId())
@@ -122,12 +126,14 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
             if ($child instanceof DOMElement && $child->localName === $elementName) {
                 $locale = trim($child->getAttribute('locale'));
                 if ($locale === '' || isset($values[$locale])) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid localized %s locale "%s" for user group source_ref "%s" at line %d',
-                        $elementName,
-                        $locale,
-                        $node->getAttribute('source_ref'),
-                        $child->getLineNo()
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.invalidLocalizedLocaleUserGroupSourceRefLine',
+                        [
+                            'elementName' => $elementName,
+                            'locale' => $locale,
+                            'sourceRef' => $node->getAttribute('source_ref'),
+                            'line' => $child->getLineNo(),
+                        ]
                     ));
                 }
                 $values[$locale] = $child->textContent;
@@ -143,11 +149,13 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
                 return trim($child->textContent);
             }
         }
-        throw new InvalidArgumentException(sprintf(
-            'Missing user group element "%s" for source_ref "%s" at line %d',
-            $elementName,
-            $node->getAttribute('source_ref'),
-            $node->getLineNo()
+        throw new InvalidArgumentException(__(
+            'plugins.importexport.fullJournal.error.missingUserGroupElementSourceRefLine',
+            [
+                'elementName' => $elementName,
+                'sourceRef' => $node->getAttribute('source_ref'),
+                'line' => $node->getLineNo(),
+            ]
         ));
     }
 
@@ -155,12 +163,14 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
     {
         $value = $this->requiredText($node, $elementName);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid user group %s "%s" for source_ref "%s" at line %d; expected "true" or "false"',
-                $elementName,
-                $value,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidUserGroupSourceRefLineExpectedTrueOrFalse',
+                [
+                    'elementName' => $elementName,
+                    'value' => $value,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value === 'true';
@@ -173,11 +183,13 @@ class NativeXmlUserGroupFilter extends BaseNativeXmlUserGroupFilter
         foreach ($value === '' ? [] : explode(':', $value) as $stage) {
             $stageId = (int) $stage;
             if ($stageId < WORKFLOW_STAGE_ID_SUBMISSION || $stageId > WORKFLOW_STAGE_ID_PRODUCTION) {
-                throw new InvalidArgumentException(sprintf(
-                    'Invalid workflow stage "%s" for user group source_ref "%s" at line %d',
-                    $stage,
-                    $node->getAttribute('source_ref'),
-                    $node->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidWorkflowStageUserGroupSourceRefLine',
+                    [
+                        'stage' => $stage,
+                        'sourceRef' => $node->getAttribute('source_ref'),
+                        'line' => $node->getLineNo(),
+                    ]
                 ));
             }
             $stageIds[] = $stageId;

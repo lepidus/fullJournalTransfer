@@ -51,6 +51,6 @@ class NativeXmlIssueFilter extends \APP\plugins\importexport\native\filter\Nativ
                 return trim($child->textContent);
             }
         }
-        throw new InvalidArgumentException('Missing issue source reference');
+        throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.missingIssueSourceReference'));
     }
 }

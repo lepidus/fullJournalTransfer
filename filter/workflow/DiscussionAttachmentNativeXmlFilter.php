@@ -13,7 +13,7 @@ class DiscussionAttachmentNativeXmlFilter extends NativeExportFilter
     public function &process(&$attachments)
     {
         if (!is_array($attachments)) {
-            throw new InvalidArgumentException('Expected discussion attachments for export');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedDiscussionAttachmentsExport'));
         }
         $document = new DOMDocument('1.0', 'UTF-8');
         $root = $document->createElementNS('http://pkp.sfu.ca', 'discussion_attachments');

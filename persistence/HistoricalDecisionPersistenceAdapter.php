@@ -16,7 +16,7 @@ class HistoricalDecisionPersistenceAdapter
         $id = Repo::decision()->dao->insert($decision);
         $persisted = Repo::decision()->get($id, (int) $data['submissionId']);
         if (!$persisted) {
-            throw new RuntimeException('Historical decision was not persisted');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.historicalDecisionNotSaved'));
         }
         return $persisted;
     }

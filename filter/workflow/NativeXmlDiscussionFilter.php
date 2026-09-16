@@ -64,11 +64,13 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing discussion attribute "%s" for reference "%s" at line %d',
-                $attribute,
-                $this->reference($node),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingDiscussionAttributeReferenceLine',
+                [
+                    'attribute' => $attribute,
+                    'sourceReference' => $this->reference($node),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -78,12 +80,14 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid discussion %s "%s" for reference "%s" at line %d; expected a positive integer',
-                $attribute,
-                $node->getAttribute($attribute),
-                $this->reference($node),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedPositiveInteger',
+                [
+                    'attribute' => $attribute,
+                    'value' => $node->getAttribute($attribute),
+                    'sourceReference' => $this->reference($node),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -93,12 +97,14 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($attribute);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid discussion %s "%s" for reference "%s" at line %d; expected "true" or "false"',
-                $attribute,
-                $value,
-                $this->reference($node),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedTrueOrFalse',
+                [
+                    'attribute' => $attribute,
+                    'value' => $value,
+                    'sourceReference' => $this->reference($node),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value === 'true' ? 1 : 0;
@@ -108,12 +114,14 @@ class NativeXmlDiscussionFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_FLOAT);
         if ($value === false || $value < 0) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid discussion %s "%s" for reference "%s" at line %d; expected a non-negative number',
-                $attribute,
-                $node->getAttribute($attribute),
-                $this->reference($node),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedNonNegativeNumber',
+                [
+                    'attribute' => $attribute,
+                    'value' => $node->getAttribute($attribute),
+                    'sourceReference' => $this->reference($node),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return (float) $value;

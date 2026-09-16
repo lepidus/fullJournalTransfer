@@ -39,7 +39,12 @@ class NativeXmlReferenceDataFilter extends NativeImportFilter
             foreach ($groups as $elementName => $filterGroup) {
                 $nodes = $root->getElementsByTagNameNS($deployment->getNamespace(), $elementName);
                 if ($nodes->length !== 1) {
-                    throw new \InvalidArgumentException('Expected exactly one ' . $elementName . ' element');
+                    throw new \InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.expectedSingleElement',
+                        [
+                            'name' => $elementName,
+                        ]
+                    ));
                 }
                 $document = new DOMDocument('1.0', 'UTF-8');
                 $document->appendChild($document->importNode($nodes->item(0), true));

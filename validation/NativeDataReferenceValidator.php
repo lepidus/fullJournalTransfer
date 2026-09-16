@@ -24,7 +24,7 @@ class NativeDataReferenceValidator
     public function validate(DOMElement $root): void
     {
         if ($root->localName !== 'native_data') {
-            throw new InvalidArgumentException('Invalid native data root');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidNativeDataRoot'));
         }
         $issueReferences = [];
         $submissionReferences = [];
@@ -44,10 +44,12 @@ class NativeDataReferenceValidator
         foreach ($this->children($this->requiredChild($root, 'issue_orders'), 'issue_order') as $order) {
             $sourceReference = trim($order->getAttribute('issue_ref'));
             if (!isset($issueReferences[$sourceReference])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Unknown issue order reference "%s" at line %d',
-                    $sourceReference,
-                    $order->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.unknownIssueOrderReferenceLine',
+                    [
+                        'sourceReference' => $sourceReference,
+                        'line' => $order->getLineNo(),
+                    ]
                 ));
             }
         }
@@ -70,16 +72,18 @@ class NativeDataReferenceValidator
         foreach ($this->children($this->requiredChild($historicalDatesNode, 'issues'), 'issue') as $issueNode) {
             $sourceReference = trim($issueNode->getAttribute('issue_ref'));
             if (!isset($issueReferences[$sourceReference])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Unknown historical issue date reference "%s" at line %d',
-                    $sourceReference,
-                    $issueNode->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.unknownHistoricalIssueDateReferenceLine',
+                    [
+                        'sourceReference' => $sourceReference,
+                        'line' => $issueNode->getLineNo(),
+                    ]
                 ));
             }
-            $this->addUnique($metadataIssueReferences, $sourceReference, 'historical issue date');
+            $this->addUnique($metadataIssueReferences, $sourceReference, __('plugins.importexport.fullJournal.entity.historicalIssueDate'));
             $this->validateOptionalDateTime($issueNode, 'date_published');
         }
-        $this->requireCompleteReferences($issueReferences, $metadataIssueReferences, 'issue date');
+        $this->requireCompleteReferences($issueReferences, $metadataIssueReferences, __('plugins.importexport.fullJournal.entity.issueDate'));
 
         $metadataSubmissionReferences = [];
         foreach ($this->children(
@@ -88,16 +92,18 @@ class NativeDataReferenceValidator
         ) as $submissionNode) {
             $sourceReference = trim($submissionNode->getAttribute('submission_ref'));
             if (!isset($submissionReferences[$sourceReference])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Unknown historical submission date reference "%s" at line %d',
-                    $sourceReference,
-                    $submissionNode->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.unknownHistoricalSubmissionDateReferenceLine',
+                    [
+                        'sourceReference' => $sourceReference,
+                        'line' => $submissionNode->getLineNo(),
+                    ]
                 ));
             }
             $this->addUnique(
                 $metadataSubmissionReferences,
                 $sourceReference,
-                'historical submission date'
+                __('plugins.importexport.fullJournal.entity.historicalSubmissionDate')
             );
             foreach (['date_submitted', 'date_last_activity', 'last_modified'] as $attribute) {
                 $this->validateOptionalDateTime($submissionNode, $attribute);
@@ -106,7 +112,7 @@ class NativeDataReferenceValidator
         $this->requireCompleteReferences(
             $submissionReferences,
             $metadataSubmissionReferences,
-            'submission date'
+            __('plugins.importexport.fullJournal.entity.submissionDate')
         );
     }
 
@@ -119,13 +125,15 @@ class NativeDataReferenceValidator
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
             $referenceAttribute = $node->hasAttribute('issue_ref') ? 'issue_ref' : 'submission_ref';
-            throw new InvalidArgumentException(sprintf(
-                'Invalid historical %s "%s" for %s "%s" at line %d',
-                $attribute,
-                $value,
-                $referenceAttribute,
-                $node->getAttribute($referenceAttribute),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidHistoricalLine',
+                [
+                    'attribute' => $attribute,
+                    'value' => $value,
+                    'referenceAttribute' => $referenceAttribute,
+                    'sourceReference' => $node->getAttribute($referenceAttribute),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
     }
@@ -134,7 +142,13 @@ class NativeDataReferenceValidator
     {
         foreach ($expected as $sourceReference => $unused) {
             if (!isset($actual[$sourceReference])) {
-                throw new InvalidArgumentException('Missing historical ' . $entity . ' reference: ' . $sourceReference);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.missingHistoricalReference',
+                    [
+                        'entity' => $entity,
+                        'sourceReference' => $sourceReference,
+                    ]
+                ));
             }
         }
     }
@@ -147,19 +161,23 @@ class NativeDataReferenceValidator
         foreach ($this->children($articles, 'article') as $article) {
             $sourceReference = $this->internalId($article, 'submission');
             if (!$article->hasAttribute('submission_progress')) {
-                throw new InvalidArgumentException(sprintf(
-                    'Missing submission_progress for submission source_ref "%s" at line %d',
-                    $sourceReference,
-                    $article->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.missingSubmissionProgressSubmissionSourceRefLine',
+                    [
+                        'sourceReference' => $sourceReference,
+                        'line' => $article->getLineNo(),
+                    ]
                 ));
             }
             $submissionProgress = $article->getAttribute('submission_progress');
             if (!in_array($submissionProgress, self::SUBMISSION_PROGRESS_VALUES, true)) {
-                throw new InvalidArgumentException(sprintf(
-                    'Invalid submission_progress "%s" for submission source_ref "%s" at line %d',
-                    $submissionProgress,
-                    $sourceReference,
-                    $article->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidSubmissionProgressSubmissionSourceRefLine',
+                    [
+                        'submissionProgress' => $submissionProgress,
+                        'sourceReference' => $sourceReference,
+                        'line' => $article->getLineNo(),
+                    ]
                 ));
             }
             $this->addUnique(
@@ -186,11 +204,13 @@ class NativeDataReferenceValidator
             }
             $current = trim($article->getAttribute('current_publication_id'));
             if ($current === '' || !isset($publicationReferences[$current])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Unknown current_publication_id "%s" for submission source_ref "%s" at line %d',
-                    $current,
-                    $sourceReference,
-                    $article->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.unknownCurrentPublicationIdSubmissionSourceRefLine',
+                    [
+                        'current' => $current,
+                        'sourceReference' => $sourceReference,
+                        'line' => $article->getLineNo(),
+                    ]
                 ));
             }
         }
@@ -202,63 +222,73 @@ class NativeDataReferenceValidator
         foreach ($this->children($metadataNode, 'author') as $authorNode) {
             $sourceReference = trim($authorNode->getAttribute('author_ref'));
             if (!isset($authorReferences[$sourceReference])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Unknown author metadata reference "%s" at line %d',
-                    $sourceReference,
-                    $authorNode->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.unknownAuthorMetadataReferenceLine',
+                    [
+                        'sourceReference' => $sourceReference,
+                        'line' => $authorNode->getLineNo(),
+                    ]
                 ));
             }
-            $this->addUnique($metadataReferences, $sourceReference, 'author metadata');
+            $this->addUnique($metadataReferences, $sourceReference, __('plugins.importexport.fullJournal.entity.authorMetadata'));
             $seen = [];
             foreach ($authorNode->childNodes as $valueNode) {
                 if ($valueNode->nodeType === XML_TEXT_NODE && trim($valueNode->textContent) === '') {
                     continue;
                 }
                 if (!$valueNode instanceof DOMElement) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid author metadata node for author_ref "%s": found "%s" at line %d',
-                        $sourceReference,
-                        $valueNode->nodeName,
-                        $valueNode->getLineNo()
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.invalidAuthorMetadataNodeAuthorRefFoundLine',
+                        [
+                            'sourceReference' => $sourceReference,
+                            'nodeName' => $valueNode->nodeName,
+                            'line' => $valueNode->getLineNo(),
+                        ]
                     ));
                 }
                 if (!in_array($valueNode->localName, ['preferred_public_name', 'competing_interests'], true)) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid author metadata element for author_ref "%s": found "%s" at line %d',
-                        $sourceReference,
-                        $valueNode->localName,
-                        $valueNode->getLineNo()
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.invalidAuthorMetadataElementAuthorRefFoundLine',
+                        [
+                            'sourceReference' => $sourceReference,
+                            'localName' => $valueNode->localName,
+                            'line' => $valueNode->getLineNo(),
+                        ]
                     ));
                 }
                 $locale = trim($valueNode->getAttribute('locale'));
                 $key = $valueNode->localName . ':' . $locale;
                 if (preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid author metadata locale for author_ref "%s": '
-                            . 'element "%s" has locale "%s" at line %d',
-                        $sourceReference,
-                        $valueNode->localName,
-                        $locale,
-                        $valueNode->getLineNo()
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.invalidAuthorMetadataLocaleAuthorRefElementLocaleLine',
+                        [
+                            'sourceReference' => $sourceReference,
+                            'localName' => $valueNode->localName,
+                            'locale' => $locale,
+                            'line' => $valueNode->getLineNo(),
+                        ]
                     ));
                 }
                 if (isset($seen[$key])) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Duplicated author metadata locale for author_ref "%s": '
-                            . 'element "%s" has locale "%s" at line %d',
-                        $sourceReference,
-                        $valueNode->localName,
-                        $locale,
-                        $valueNode->getLineNo()
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.duplicatedAuthorMetadataLocaleAuthorRefElementLocaleLine',
+                        [
+                            'sourceReference' => $sourceReference,
+                            'localName' => $valueNode->localName,
+                            'locale' => $locale,
+                            'line' => $valueNode->getLineNo(),
+                        ]
                     ));
                 }
                 $seen[$key] = true;
             }
             if ($seen === []) {
-                throw new InvalidArgumentException(sprintf(
-                    'Author metadata entry for author_ref "%s" must not be empty at line %d',
-                    $sourceReference,
-                    $authorNode->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.authorMetadataEmpty',
+                    [
+                        'sourceReference' => $sourceReference,
+                        'line' => $authorNode->getLineNo(),
+                    ]
                 ));
             }
         }
@@ -276,10 +306,12 @@ class NativeDataReferenceValidator
                 || in_array('.', $segments, true)
                 || str_contains($source, "\0")
             ) {
-                throw new InvalidArgumentException(sprintf(
-                    'Unsafe native file reference "%s" at line %d',
-                    $source,
-                    $href->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.unsafeNativeFileReferenceLine',
+                    [
+                        'source' => $source,
+                        'line' => $href->getLineNo(),
+                    ]
                 ));
             }
         }
@@ -297,8 +329,13 @@ class NativeDataReferenceValidator
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
         if (!$valid) {
-            $message = $errors ? trim($errors[0]->message) : 'unknown schema error';
-            throw new InvalidArgumentException('Invalid OJS Native XML: ' . $message);
+            $message = $errors ? trim($errors[0]->message) : __('plugins.importexport.fullJournal.error.unknownSchemaError');
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidOjsNativeXml',
+                [
+                    'message' => $message,
+                ]
+            ));
         }
     }
 
@@ -309,13 +346,24 @@ class NativeDataReferenceValidator
                 return trim($id->textContent);
             }
         }
-        throw new InvalidArgumentException('Missing ' . $entity . ' source reference');
+        throw new InvalidArgumentException(__(
+            'plugins.importexport.fullJournal.error.missingSourceReference',
+            [
+                'entity' => $entity,
+            ]
+        ));
     }
 
     private function addUnique(array &$references, string $reference, string $entity): void
     {
         if (isset($references[$reference])) {
-            throw new InvalidArgumentException('Duplicated ' . $entity . ' source reference: ' . $reference);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.duplicatedSourceReference',
+                [
+                    'entity' => $entity,
+                    'reference' => $reference,
+                ]
+            ));
         }
         $references[$reference] = true;
     }
@@ -324,7 +372,12 @@ class NativeDataReferenceValidator
     {
         $matches = $this->children($parent, $name);
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one native data element: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedNativeDataElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }

@@ -14,6 +14,9 @@ msgstr "Journal Export Plugin"
 msgid "plugins.importexport.fullJournal.description"
 msgstr "Allows you to import and export journals."
 
+msgid "plugins.importexport.fullJournal.error.invalidUserEmail"
+msgstr "The user “{$username}” could not be imported because their email address is empty or invalid."
+
 msgid "plugins.importexport.fullJournal.cliUsage"
 msgstr ""
 "Usage: {$scriptName} {$pluginName} [command] ...\n"
@@ -75,3 +78,804 @@ msgstr "User with email {$email} is not present on the site."
 
 msgid "plugins.importexport.fullJournal.error.metric"
 msgstr "Failed to import metric. {$reason}"
+
+msgid "plugins.importexport.fullJournal.error.applicationFilesDirectoryInvalid"
+msgstr "The application files directory is invalid"
+
+msgid "plugins.importexport.fullJournal.error.articleGalleySourceReferenceMissing"
+msgstr "Article galley source reference is missing"
+
+msgid "plugins.importexport.fullJournal.error.authorMetadataEmpty"
+msgstr "Author metadata entry for author_ref \"{$sourceReference}\" must not be empty at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.conflictingExportedMimeTypesFileRevisionLine"
+msgstr "Conflicting exported MIME types for file revision at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.settingLocaleRequired"
+msgstr "{$property} must contain at least one locale"
+
+msgid "plugins.importexport.fullJournal.error.journalContactNameRequired"
+msgstr "The context must have a contact name"
+
+msgid "plugins.importexport.fullJournal.error.journalLocalizedNameRequired"
+msgstr "The context must have a localized name"
+
+msgid "plugins.importexport.fullJournal.error.contextPathInvalid"
+msgstr "The context path is invalid"
+
+msgid "plugins.importexport.fullJournal.error.contextSequenceInvalid"
+msgstr "The context sequence is invalid"
+
+msgid "plugins.importexport.fullJournal.error.contextSettingNotAllowed"
+msgstr "Context setting is not allowed: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.contextSettingLocaleRequired"
+msgstr "Context setting must be localized: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.journalPathAlreadyExists"
+msgstr "A context with this path already exists"
+
+msgid "plugins.importexport.fullJournal.error.journalContactEmailInvalid"
+msgstr "The context must have a valid contact email"
+
+msgid "plugins.importexport.fullJournal.error.resourceAbsolutePathRequired"
+msgstr "A created {$resource} journal entry must use an absolute path"
+
+msgid "plugins.importexport.fullJournal.error.currentWorkingDirectoryUnavailable"
+msgstr "The current working directory is unavailable"
+
+msgid "plugins.importexport.fullJournal.error.destinationSiteLoadFailed"
+msgstr "The destination OJS site could not be loaded"
+
+msgid "plugins.importexport.fullJournal.error.discussionAttachmentNoteMismatch"
+msgstr "Discussion attachment source_ref \"{$sourceReference}\" with submission_file_ref \"{$submissionFileRef}\" does not belong to note_ref \"{$noteRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.doiPrefixRequiredDoisEnabled"
+msgstr "The DOI prefix is required when DOIs are enabled"
+
+msgid "plugins.importexport.fullJournal.error.doiSuffixPatternRequired"
+msgstr "The DOI suffix pattern is required: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedAuthorMetadataLocaleAuthorRefElementLocaleLine"
+msgstr "Duplicated author metadata locale for author_ref \"{$sourceReference}\": element \"{$localName}\" has locale \"{$locale}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedContextSettingLocale"
+msgstr "Duplicated context setting \"{$property}\" for locale \"{$locale}\"{$lineSuffix}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedFormOrderLocales"
+msgstr "Duplicated form_order \"{$formOrder}\" for locales \"{$otherLocale}\" and \"{$locale}\"{$lineSuffix}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedLocale"
+msgstr "Duplicated locale: {$locale}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedLocalizedLocaleSourceRefLine"
+msgstr "Duplicated localized {$name} locale \"{$locale}\" for {$localName} source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedSourceRefLine"
+msgstr "Duplicated {$localName} source_ref \"{$reference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedSourceReference"
+msgstr "Duplicated {$entity} source reference: {$reference}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedSubmissionOrderLocales"
+msgstr "Duplicated submission_order \"{$submissionOrder}\" for locales \"{$otherLocale}\" and \"{$locale}\"{$lineSuffix}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedThemeOption"
+msgstr "Duplicated theme option: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.duplicatedUserSourceReference"
+msgstr "Duplicated user source reference: {$sourceReference}"
+
+msgid "plugins.importexport.fullJournal.error.editorialDecisionReviewRoundBelongsAnotherSubmission"
+msgstr "Editorial decision review round belongs to another submission"
+
+msgid "plugins.importexport.fullJournal.error.editorialDecisionRoundReferencesIncomplete"
+msgstr "Editorial decision round references must be provided together"
+
+msgid "plugins.importexport.fullJournal.error.existingUserIdentityIncomplete"
+msgstr "The existing user identity is incomplete"
+
+msgid "plugins.importexport.fullJournal.error.expectedContextSettingsElement"
+msgstr "Expected exactly one context_settings element"
+
+msgid "plugins.importexport.fullJournal.error.expectedDiscussionAttachmentsExport"
+msgstr "Expected discussion attachments for export"
+
+msgid "plugins.importexport.fullJournal.error.expectedDiscussionNoteElement"
+msgstr "Expected exactly one discussion note element: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.expectedSingleElement"
+msgstr "Expected exactly one {$name} element"
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalExport"
+msgstr "Expected a journal for export"
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalMetricsExport"
+msgstr "Expected a journal for metrics export"
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalNativeDataExport"
+msgstr "Expected a journal for native data export"
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalReferenceDataExport"
+msgstr "Expected a journal for reference data export"
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalWorkflowExport"
+msgstr "Expected a journal for workflow export"
+
+msgid "plugins.importexport.fullJournal.error.expectedMetricsElement"
+msgstr "Expected exactly one metrics element: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.expectedAtMostOneElement"
+msgstr "Expected at most one {$name} element"
+
+msgid "plugins.importexport.fullJournal.error.expectedNativeDataElement"
+msgstr "Expected exactly one native data element: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.expectedSingleNativeDataRoot"
+msgstr "Expected exactly one native data element"
+
+msgid "plugins.importexport.fullJournal.error.expectedReferenceDataContainer"
+msgstr "Expected exactly one reference data container: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.expectedWorkflowElement"
+msgstr "Expected exactly one workflow element: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.expectedWorkflowSubmissionFilePayload"
+msgstr "Expected exactly one workflow submission file payload"
+
+msgid "plugins.importexport.fullJournal.error.exportArchivePathInvalid"
+msgstr "The export archive path is invalid"
+
+msgid "plugins.importexport.fullJournal.error.exportDirectoryNotWritable"
+msgstr "The export directory is not writable"
+
+msgid "plugins.importexport.fullJournal.error.exportStagingDirectoryCreationFailed"
+msgstr "The export staging directory could not be created"
+
+msgid "plugins.importexport.fullJournal.error.extractedPackageEntryUnsafe"
+msgstr "The extracted package entry {$path} is unsafe"
+
+msgid "plugins.importexport.fullJournal.error.failedCompensateImportedDirectory"
+msgstr "Failed to compensate an imported directory"
+
+msgid "plugins.importexport.fullJournal.error.failedCompensateImportedFile"
+msgstr "Failed to compensate an imported file"
+
+msgid "plugins.importexport.fullJournal.error.historicalDecisionNotSaved"
+msgstr "Historical decision was not persisted"
+
+msgid "plugins.importexport.fullJournal.error.importUserNotFound"
+msgstr "The import user does not exist"
+
+msgid "plugins.importexport.fullJournal.error.journalSaveFailed"
+msgstr "The imported context could not be persisted"
+
+msgid "plugins.importexport.fullJournal.error.publicFilesDirectoryCreationFailed"
+msgstr "The imported context public files directory could not be created"
+
+msgid "plugins.importexport.fullJournal.error.publicFilesDirectoryResolutionFailed"
+msgstr "The imported context public files directory could not be resolved"
+
+msgid "plugins.importexport.fullJournal.error.importedFilePathResolutionFailed"
+msgstr "Imported file path could not be resolved"
+
+msgid "plugins.importexport.fullJournal.error.importedFileNotSaved"
+msgstr "Imported file was not persisted"
+
+msgid "plugins.importexport.fullJournal.error.fileRevisionSaveFailed"
+msgstr "Imported file revision could not be persisted"
+
+msgid "plugins.importexport.fullJournal.error.issueGalleyPathResolutionFailed"
+msgstr "Imported issue galley file path could not be resolved"
+
+msgid "plugins.importexport.fullJournal.error.publicationVersionNotFound"
+msgstr "Imported publication version was not found"
+
+msgid "plugins.importexport.fullJournal.error.importedThemeOptionsInvalid"
+msgstr "The imported theme options are invalid"
+
+msgid "plugins.importexport.fullJournal.error.userGroupLocalizedNamesRequired"
+msgstr "An imported user group must have localized names and abbreviations"
+
+msgid "plugins.importexport.fullJournal.error.userGroupSaveFailed"
+msgstr "The imported user group could not be persisted"
+
+msgid "plugins.importexport.fullJournal.error.importedUserGroupReferenceOutsideDestinationContext"
+msgstr "Imported user group reference is outside the destination context"
+
+msgid "plugins.importexport.fullJournal.error.userGroupSourceReferenceRequired"
+msgstr "An imported user group must have a source_ref at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidAuthorMetadataElementAuthorRefFoundLine"
+msgstr "Invalid author metadata element for author_ref \"{$sourceReference}\": found \"{$localName}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidAuthorMetadataLocaleAuthorRefElementLocaleLine"
+msgstr "Invalid author metadata locale for author_ref \"{$sourceReference}\": element \"{$localName}\" has locale \"{$locale}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidAuthorMetadataNodeAuthorRefFoundLine"
+msgstr "Invalid author metadata node for author_ref \"{$sourceReference}\": found \"{$nodeName}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionNoteSourceRefLine"
+msgstr "Invalid discussion note {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedNonNegativeNumber"
+msgstr "Invalid discussion {$attribute} \"{$value}\" for reference \"{$sourceReference}\" at line {$line}; expected a non-negative number"
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedPositiveInteger"
+msgstr "Invalid discussion {$attribute} \"{$value}\" for reference \"{$sourceReference}\" at line {$line}; expected a positive integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedTrueOrFalse"
+msgstr "Invalid discussion {$attribute} \"{$value}\" for reference \"{$sourceReference}\" at line {$line}; expected \"true\" or \"false\""
+
+msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLine"
+msgstr "Invalid editorial decision {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLineExpectedPositiveInteger"
+msgstr "Invalid editorial decision {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}; expected a positive integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionTypeSourceRefLine"
+msgstr "Invalid editorial decision type \"{$decisionType}\" for source_ref \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidExportedMimeTypeFileRevisionLine"
+msgstr "Invalid exported MIME type for file revision at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidFullJournalCommandArguments"
+msgstr "Invalid full journal command arguments"
+
+msgid "plugins.importexport.fullJournal.error.invalidGenreCategory"
+msgstr "Invalid genre category"
+
+msgid "plugins.importexport.fullJournal.error.invalidHistoricalLine"
+msgstr "Invalid historical {$attribute} \"{$value}\" for {$referenceAttribute} \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidIntegerSourceRefLine"
+msgstr "Invalid integer {$name} \"{$value}\" in {$localName} source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidJournalRoot"
+msgstr "Invalid journal root"
+
+msgid "plugins.importexport.fullJournal.error.invalidJsonContextSetting"
+msgstr "Invalid JSON context setting: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.invalidLocale"
+msgstr "Invalid locale in {$property}"
+
+msgid "plugins.importexport.fullJournal.error.invalidLocaleLocalizedSourceRefLine"
+msgstr "Invalid locale \"{$locale}\" in localized {$localName} for {$parentElement} source_ref \"{$parentSourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidLocalizedLocaleUserGroupSourceRefLine"
+msgstr "Invalid localized {$elementName} locale \"{$locale}\" for user group source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidMetricLine"
+msgstr "Invalid metric {$attribute} \"{$value}\" in {$metricContext} at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidMetricMonth"
+msgstr "Invalid metric month"
+
+msgid "plugins.importexport.fullJournal.error.invalidNativeDataRoot"
+msgstr "Invalid native data root"
+
+msgid "plugins.importexport.fullJournal.error.invalidNumericSourceRefLine"
+msgstr "Invalid numeric {$name} \"{$value}\" in {$localName} source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidOjsNativeXml"
+msgstr "Invalid OJS Native XML: {$message}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReferenceDataRoot"
+msgstr "Invalid reference data root"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewAssignmentSourceRefLine"
+msgstr "Invalid review assignment {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewAssignmentSourceRefLineExpectedInteger"
+msgstr "Invalid review assignment {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}; expected an integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewCommentReviewRefLine"
+msgstr "Invalid review comment {$attribute} \"{$value}\" for review_ref \"{$reviewRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewCommentReviewRefLineExpectedInteger"
+msgstr "Invalid review comment {$attribute} \"{$value}\" for review_ref \"{$reviewRef}\" at line {$line}; expected an integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewCommentReviewRefLineExpectedTrueOrFalse"
+msgstr "Invalid review comment {$attribute} \"{$value}\" for review_ref \"{$reviewRef}\" at line {$line}; expected \"true\" or \"false\""
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewFormElementType"
+msgstr "Invalid review form element type"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewResponseNullReviewRefElementRefLine"
+msgstr "Invalid review response is_null \"{$isNull}\" for review_ref \"{$reviewRef}\" and element_ref \"{$elementRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewResponseTypeReviewRefElementRefLine"
+msgstr "Invalid review response type \"{$type}\" for review_ref \"{$reviewRef}\" and element_ref \"{$elementRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundFileReviewRoundRefLine"
+msgstr "Invalid review round file {$attribute} \"{$value}\" for review_round_ref \"{$reviewRoundRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundSourceRefLineExpectedNonNegativeInteger"
+msgstr "Invalid review round {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}; expected a non-negative integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundSourceRefLineExpectedPositiveInteger"
+msgstr "Invalid review round {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}; expected a positive integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundStageIdSourceRefLine"
+msgstr "Invalid review round stage_id \"{$stageId}\" for source_ref \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidStageAssignmentSourceRefLine"
+msgstr "Invalid stage assignment {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidStageAssignmentSourceRefLineExpectedTrueOrFalse"
+msgstr "Invalid stage assignment {$attribute} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}; expected \"true\" or \"false\""
+
+msgid "plugins.importexport.fullJournal.error.invalidSubmissionProgressSubmissionSourceRefLine"
+msgstr "Invalid submission_progress \"{$submissionProgress}\" for submission source_ref \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidTypeContextSetting"
+msgstr "Invalid type for context setting: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.invalidUserGroupSourceRefLineExpectedTrueOrFalse"
+msgstr "Invalid user group {$elementName} \"{$value}\" for source_ref \"{$sourceRef}\" at line {$line}; expected \"true\" or \"false\""
+
+msgid "plugins.importexport.fullJournal.error.invalidValueContextSetting"
+msgstr "Invalid value for context setting: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.invalidValueLocaleExpectedPositiveInteger"
+msgstr "Invalid {$name} value \"{$value}\" for locale \"{$code}\"{$lineSuffix}; expected a positive integer"
+
+msgid "plugins.importexport.fullJournal.error.invalidValueLocaleExpectedTrueOrFalse"
+msgstr "Invalid {$name} value \"{$value}\" for locale \"{$code}\"{$lineSuffix}; expected \"true\" or \"false\""
+
+msgid "plugins.importexport.fullJournal.error.invalidValueSourceRefLineExpectedTrueOrFalse"
+msgstr "Invalid {$name} value \"{$value}\" in {$localName} source_ref \"{$sourceRef}\" at line {$line}; expected \"true\" or \"false\""
+
+msgid "plugins.importexport.fullJournal.error.invalidWorkflowStageUserGroupSourceRefLine"
+msgstr "Invalid workflow stage \"{$stage}\" for user group source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.invalidWorkflowSubmissionFileStageFileSourceIdSubmissionRefLine"
+msgstr "Invalid workflow submission file stage \"{$stageName}\" for file source id \"{$sourceSubmissionFileId}\" and submission_ref \"{$submissionReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.issueGalleySourceReferenceMissing"
+msgstr "Issue galley source reference is missing"
+
+msgid "plugins.importexport.fullJournal.error.journalArchiveCreationFailed"
+msgstr "The journal archive could not be created: {$error}"
+
+msgid "plugins.importexport.fullJournal.error.journalImportFailed"
+msgstr "The journal package could not be imported."
+
+msgid "plugins.importexport.fullJournal.error.journalNotFound"
+msgstr "The journal path does not exist"
+
+msgid "plugins.importexport.fullJournal.error.journalPrimaryLocaleUnavailable"
+msgstr "The journal primary locale ({$primaryLocale}) is not available in the destination OJS."
+
+msgid "plugins.importexport.fullJournal.error.journalXmlReadFailed"
+msgstr "The journal XML could not be read"
+
+msgid "plugins.importexport.fullJournal.error.journalXmlWriteFailed"
+msgstr "The journal XML could not be written"
+
+msgid "plugins.importexport.fullJournal.error.localeDisabledFormsButDeclaresFormOrder"
+msgstr "Locale \"{$locale}\" is disabled for forms but declares form_order \"{$formOrder}\"{$lineSuffix}"
+
+msgid "plugins.importexport.fullJournal.error.localeDisabledSubmissionsButDeclaresSubmissionOrder"
+msgstr "Locale \"{$locale}\" is disabled for submissions but declares submission_order \"{$submissionOrder}\"{$lineSuffix}"
+
+msgid "plugins.importexport.fullJournal.error.localizedContextSettingNotAllowed"
+msgstr "Localized context setting is not allowed: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.localizedContextSettingArrayRequired"
+msgstr "Localized context setting must be an array: {$property}"
+
+msgid "plugins.importexport.fullJournal.error.manifestInvalidApplication"
+msgstr "The manifest application must be ojs"
+
+msgid "plugins.importexport.fullJournal.error.manifestVersionLineMismatch"
+msgstr "The manifest application version line must match the target version line"
+
+msgid "plugins.importexport.fullJournal.error.manifestAttributeRequiredElementLine"
+msgstr "The manifest attribute \"{$name}\" is required in element \"{$localName}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.manifestSingleJournalFileRequired"
+msgstr "The manifest must declare exactly one journal.xml file"
+
+msgid "plugins.importexport.fullJournal.error.manifestDeclaresDuplicatePath"
+msgstr "The manifest declares duplicate path {$path}"
+
+msgid "plugins.importexport.fullJournal.error.manifestFormatVersionNotSupported"
+msgstr "The manifest format version is not supported"
+
+msgid "plugins.importexport.fullJournal.error.manifestMetadataInvalid"
+msgstr "The manifest metadata for {$path} is invalid"
+
+msgid "plugins.importexport.fullJournal.error.manifestRelativePathRequired"
+msgstr "The manifest path {$path} must be relative"
+
+msgid "plugins.importexport.fullJournal.error.manifestInvalidRoot"
+msgstr "The manifest root element must be full_journal_package"
+
+msgid "plugins.importexport.fullJournal.error.completeApplicationVersionRequired"
+msgstr "The manifest and target must declare a complete application version"
+
+msgid "plugins.importexport.fullJournal.error.manifestMalformedXml"
+msgstr "The manifest must be a well-formed XML document"
+
+msgid "plugins.importexport.fullJournal.error.mappedAuthorNotFound"
+msgstr "Mapped author does not exist: {$sourceId}"
+
+msgid "plugins.importexport.fullJournal.error.mappedIssueNotFoundInContext"
+msgstr "Mapped issue does not exist in the imported context"
+
+msgid "plugins.importexport.fullJournal.error.mappedSubmissionNotFoundInContext"
+msgstr "Mapped submission does not exist in the imported context"
+
+msgid "plugins.importexport.fullJournal.error.missingDiscussionAttachmentAttributeSourceRefLine"
+msgstr "Missing discussion attachment attribute \"{$attribute}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingDiscussionAttributeReferenceLine"
+msgstr "Missing discussion attribute \"{$attribute}\" for reference \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingDiscussionNoteAttributeSourceRefLine"
+msgstr "Missing discussion note attribute \"{$attribute}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingEditorialDecisionAttributeSourceRefLine"
+msgstr "Missing editorial decision attribute \"{$attribute}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingHistoricalReference"
+msgstr "Missing historical {$entity} reference: {$sourceReference}"
+
+msgid "plugins.importexport.fullJournal.error.missingIssueSourceReference"
+msgstr "Missing issue source reference"
+
+msgid "plugins.importexport.fullJournal.error.missingLocalizedReferenceData"
+msgstr "Missing localized reference data: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.missingMappedReference"
+msgstr "Missing mapped {$entity} reference: \"{$sourceReference}\""
+
+msgid "plugins.importexport.fullJournal.error.missingMetricAttributeLine"
+msgstr "Missing metric attribute \"{$attribute}\" in {$metricContext} at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingNativeSourceReference"
+msgstr "Missing native source reference"
+
+msgid "plugins.importexport.fullJournal.error.missingReferenceDataAttributeSourceRefLine"
+msgstr "Missing reference data attribute \"{$name}\" in {$localName} source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewAssignmentAttributeSourceRefLine"
+msgstr "Missing review assignment attribute \"{$attribute}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewCommentAttributeReviewRefLine"
+msgstr "Missing review comment attribute \"{$attribute}\" for review_ref \"{$reviewRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewFileAttributeReviewRefLine"
+msgstr "Missing review file attribute \"{$attribute}\" for review_ref \"{$reviewRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewResponseAttributeNullReviewRefElementRefLine"
+msgstr "Missing review response attribute \"is_null\" for review_ref \"{$reviewRef}\" and element_ref \"{$elementRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewResponseAttributeReviewRefLine"
+msgstr "Missing review response attribute \"{$attribute}\" for review_ref \"{$reviewRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewRoundAttributeSourceRefLine"
+msgstr "Missing review round attribute \"{$attribute}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingReviewRoundFileAttributeReviewRoundRefLine"
+msgstr "Missing review round file attribute \"{$attribute}\" for review_round_ref \"{$reviewRoundRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingSourceRefReferenceDataElementLine"
+msgstr "Missing source_ref in reference data element \"{$elementName}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingSourceReference"
+msgstr "Missing {$entity} source reference"
+
+msgid "plugins.importexport.fullJournal.error.missingStageAssignmentAttributeSourceRefLine"
+msgstr "Missing stage assignment attribute \"{$attribute}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingSubmissionProgressSubmissionSourceRefLine"
+msgstr "Missing submission_progress for submission source_ref \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingUserGroupElementSourceRefLine"
+msgstr "Missing user group element \"{$elementName}\" for source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingUserSourceReference"
+msgstr "Missing user source reference"
+
+msgid "plugins.importexport.fullJournal.error.missingWorkflowSubmissionFileAttributeSubmissionRefLine"
+msgstr "Missing workflow submission file attribute \"{$attribute}\" for submission_ref \"{$submissionRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.missingWorkflowSubmissionFileSourceIdSubmissionRefLine"
+msgstr "Missing workflow submission file source id for submission_ref \"{$submissionReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.nativeDataFilterCannotRestoreHistoricalDates"
+msgstr "The native data filter cannot restore historical dates"
+
+msgid "plugins.importexport.fullJournal.error.noJournalFormLocaleAvailableDestinationOjs"
+msgstr "No journal form locale is available in the destination OJS."
+
+msgid "plugins.importexport.fullJournal.error.noJournalSubmissionLocaleAvailableDestinationOjs"
+msgstr "No journal submission locale is available in the destination OJS."
+
+msgid "plugins.importexport.fullJournal.error.nullReviewResponseContainsText"
+msgstr "Null review response must not contain text"
+
+msgid "plugins.importexport.fullJournal.error.onlyReviewRevisionsMayReferenceReviewRound"
+msgstr "Only review revisions may reference a review round"
+
+msgid "plugins.importexport.fullJournal.error.packageArchiveEmpty"
+msgstr "The package archive is empty"
+
+msgid "plugins.importexport.fullJournal.error.packageArchiveInvalid"
+msgstr "The package archive is invalid"
+
+msgid "plugins.importexport.fullJournal.error.packageListingFailed"
+msgstr "The package archive could not be listed: {$details}"
+
+msgid "plugins.importexport.fullJournal.error.packageRegularFileRequired"
+msgstr "The package archive must be a regular file"
+
+msgid "plugins.importexport.fullJournal.error.packageArchiveSizeInvalid"
+msgstr "The package archive size is invalid"
+
+msgid "plugins.importexport.fullJournal.error.packageChecksumOrSizeInvalid"
+msgstr "The package checksum or size for {$path} is invalid"
+
+msgid "plugins.importexport.fullJournal.error.packageManifestMissing"
+msgstr "The package must contain manifest.xml"
+
+msgid "plugins.importexport.fullJournal.error.packageRequiredFilesMismatch"
+msgstr "The package must contain exactly one manifest.xml and one journal.xml"
+
+msgid "plugins.importexport.fullJournal.error.packageContainsDuplicateEntry"
+msgstr "The package contains a duplicate entry"
+
+msgid "plugins.importexport.fullJournal.error.packageContainsTooManyEntries"
+msgstr "The package contains too many entries"
+
+msgid "plugins.importexport.fullJournal.error.referencedFileDirectoryCreationFailed"
+msgstr "Package directory for referenced journal file \"{$path}\" could not be created"
+
+msgid "plugins.importexport.fullJournal.error.packageEntriesManifestMismatch"
+msgstr "The package entries must match the manifest"
+
+msgid "plugins.importexport.fullJournal.error.packageEntryLinkNotAllowed"
+msgstr "The package entry {$path} must not be a link"
+
+msgid "plugins.importexport.fullJournal.error.packageLinkOrSpecialFileNotAllowed"
+msgstr "The package entry {$path} must not be a link or special file"
+
+msgid "plugins.importexport.fullJournal.error.packageEntryListInconsistent"
+msgstr "The package entry list is inconsistent"
+
+msgid "plugins.importexport.fullJournal.error.packageExtractionFailed"
+msgstr "The package could not be extracted"
+
+msgid "plugins.importexport.fullJournal.error.packageExtractedSizeExceedsLimit"
+msgstr "The package extracted size exceeds the limit"
+
+msgid "plugins.importexport.fullJournal.error.packageFileMetadataCalculationFailed"
+msgstr "The package file metadata for \"{$path}\" could not be calculated"
+
+msgid "plugins.importexport.fullJournal.error.packageManifestReadFailed"
+msgstr "The package manifest could not be read"
+
+msgid "plugins.importexport.fullJournal.error.packageManifestSerializationFailed"
+msgstr "The package manifest could not be serialized"
+
+msgid "plugins.importexport.fullJournal.error.packageManifestWriteFailed"
+msgstr "The package manifest could not be written"
+
+msgid "plugins.importexport.fullJournal.error.packageRelativePathRequired"
+msgstr "The package path {$path} must be relative"
+
+msgid "plugins.importexport.fullJournal.error.packageAbsolutePathReportedByTar"
+msgstr "The package path must be relative; tar reported: {$details}"
+
+msgid "plugins.importexport.fullJournal.error.packageStagingDirectoryCreationFailed"
+msgstr "The package staging directory could not be created"
+
+msgid "plugins.importexport.fullJournal.error.packageStagingDirectoryUnavailable"
+msgstr "The package staging directory is unavailable"
+
+msgid "plugins.importexport.fullJournal.error.primaryLocaleNotSupported"
+msgstr "The primary locale must be included in the supported locales"
+
+msgid "plugins.importexport.fullJournal.error.publicationNoRawTitleLocale"
+msgstr "Publication {$publicationId} has no raw title for locale {$locale}"
+
+msgid "plugins.importexport.fullJournal.error.publicationExportFailed"
+msgstr "Publication {$publicationId} from submission {$submissionId} could not be exported"
+
+msgid "plugins.importexport.fullJournal.error.publicationSubmissionNoLocalizedTitle"
+msgstr "Publication {$publicationId} from submission {$submissionId} has no localized title"
+
+msgid "plugins.importexport.fullJournal.error.referencedJournalFilePathInvalid"
+msgstr "Referenced journal file path \"{$path}\" is invalid"
+
+msgid "plugins.importexport.fullJournal.error.referencedFileStagingFailed"
+msgstr "Referenced journal file \"{$path}\" could not be staged"
+
+msgid "plugins.importexport.fullJournal.error.referencedJournalFileUnavailable"
+msgstr "Referenced journal file \"{$path}\" is unavailable"
+
+msgid "plugins.importexport.fullJournal.error.reviewAssignmentRoundMismatch"
+msgstr "Review assignment source_ref \"{$sourceReference}\" submission_ref \"{$submissionRef}\" does not belong to review_round_ref \"{$reviewRoundRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.reviewFormElementRequiresImportedReviewForm"
+msgstr "A review form element requires an imported review form"
+
+msgid "plugins.importexport.fullJournal.error.reviewResponseFormMismatch"
+msgstr "Review response does not belong to the assigned review form"
+
+msgid "plugins.importexport.fullJournal.error.reviewRevisionNoReviewRoundAssociation"
+msgstr "A review revision has no review round association"
+
+msgid "plugins.importexport.fullJournal.error.reviewRevisionReferencesInvalidReviewRound"
+msgstr "A review revision references an invalid review round"
+
+msgid "plugins.importexport.fullJournal.error.reviewRoundSubmissionMismatch"
+msgstr "Review round_ref \"{$reviewRoundRef}\" does not belong to submission_ref \"{$submissionRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.reviewRoundFileSubmissionMismatch"
+msgstr "Review round submission_file_ref \"{$submissionFileRef}\" does not belong to submission_ref \"{$submissionRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.reviewFileAssignmentMismatch"
+msgstr "Review submission_file_ref \"{$submissionFileRef}\" does not belong to review_ref \"{$reviewRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.themeIdentityMismatch"
+msgstr "The selected theme identity does not match the installed plugin"
+
+msgid "plugins.importexport.fullJournal.error.selectedThemeNotInstalled"
+msgstr "The selected theme is not installed: {$pluginPath}"
+
+msgid "plugins.importexport.fullJournal.error.selectedThemePathInvalid"
+msgstr "The selected theme path is invalid"
+
+msgid "plugins.importexport.fullJournal.error.sourceSubmissionFileNotImported"
+msgstr "Source submission file has not been imported"
+
+msgid "plugins.importexport.fullJournal.error.submissionChecklistLocalizedHtmlRequired"
+msgstr "Submission checklist content must be localized HTML"
+
+msgid "plugins.importexport.fullJournal.error.submissionChecklistLocaleRequired"
+msgstr "Submission checklist must be localized"
+
+msgid "plugins.importexport.fullJournal.error.submissionFileDependencyCycleDetectedAmongSourceIds"
+msgstr "Submission file dependency cycle detected among source IDs: {$sourceIds}"
+
+msgid "plugins.importexport.fullJournal.error.submissionFileReferencesMissingSourceSubmissionFile"
+msgstr "Submission file {$id} references missing source submission file {$sourceId}"
+
+msgid "plugins.importexport.fullJournal.error.subscriptionPublishingModeNotSupported"
+msgstr "Subscription publishing mode is not supported because subscriptions are not transferred."
+
+msgid "plugins.importexport.fullJournal.error.temporaryDirectoryCreationFailed"
+msgstr "Temporary file directory could not be created"
+
+msgid "plugins.importexport.fullJournal.error.themeOptionContainsInvalidJson"
+msgstr "Theme option contains invalid JSON: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.themeOptionNotSupported"
+msgstr "Theme option is not supported: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.themeOptionNullValue"
+msgstr "Theme option value must not be null: {$name}"
+
+msgid "plugins.importexport.fullJournal.error.unacceptableRoleIdUserGroupSourceRefLine"
+msgstr "Unacceptable role_id \"{$roleId}\" for user group source_ref \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownAuthorMetadataReferenceLine"
+msgstr "Unknown author metadata reference \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownCurrentPublicationIdSubmissionSourceRefLine"
+msgstr "Unknown current_publication_id \"{$current}\" for submission source_ref \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownHistoricalIssueDateReferenceLine"
+msgstr "Unknown historical issue date reference \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownHistoricalSubmissionDateReferenceLine"
+msgstr "Unknown historical submission date reference \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownImportedUserGroupReference"
+msgstr "Unknown imported user group reference"
+
+msgid "plugins.importexport.fullJournal.error.unknownIssueOrderReferenceLine"
+msgstr "Unknown issue order reference \"{$sourceReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownReviewFormRefSectionSourceRefLine"
+msgstr "Unknown review_form_ref \"{$reference}\" in section source_ref \"{$sourceRef}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownReviewFormReferenceSection"
+msgstr "Unknown review form reference in section"
+
+msgid "plugins.importexport.fullJournal.error.unknownWorkflowUserReference"
+msgstr "Unknown workflow user reference: {$sourceReference}"
+
+msgid "plugins.importexport.fullJournal.error.unsafeNativeFileReferenceLine"
+msgstr "Unsafe native file reference \"{$source}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.workflowReferencesMissingUser"
+msgstr "Workflow references a missing user: {$userId}"
+
+msgid "plugins.importexport.fullJournal.error.workflowFileExportFailed"
+msgstr "A workflow submission file could not be exported"
+
+msgid "plugins.importexport.fullJournal.error.workflowSubmissionFileReferencesUnavailableSubmissionRefLine"
+msgstr "Workflow submission file references unavailable submission_ref \"{$submissionReference}\" at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.workflowSubmissionFileReviewRoundBelongsAnotherSubmission"
+msgstr "Workflow submission file review round belongs to another submission"
+
+msgid "plugins.importexport.fullJournal.error.workflowFileReviewRoundNotImported"
+msgstr "Workflow submission file review round was not imported"
+
+msgid "plugins.importexport.fullJournal.error.workflowFileImportFailed"
+msgstr "Workflow submission file source id \"{$sourceSubmissionFileId}\" for submission_ref \"{$submissionReference}\" could not be imported"
+
+msgid "plugins.importexport.fullJournal.progress.copyingJournalFiles"
+msgstr "Copying journal files..."
+
+msgid "plugins.importexport.fullJournal.progress.creatingJournalArchive"
+msgstr "Creating journal archive..."
+
+msgid "plugins.importexport.fullJournal.progress.exportingJournalData"
+msgstr "Exporting journal data..."
+
+msgid "plugins.importexport.fullJournal.progress.extractingJournalPackage"
+msgstr "Extracting journal package..."
+
+msgid "plugins.importexport.fullJournal.progress.importingJournalData"
+msgstr "Importing journal data..."
+
+msgid "plugins.importexport.fullJournal.progress.journalExportCompleted"
+msgstr "Journal export completed"
+
+msgid "plugins.importexport.fullJournal.progress.journalImportCompleted"
+msgstr "Journal import completed"
+
+msgid "plugins.importexport.fullJournal.progress.validatingJournalPackage"
+msgstr "Validating journal package..."
+
+msgid "plugins.importexport.fullJournal.warning.unavailableLocales"
+msgstr "Warning: To migrate all localized metadata, the locales used by the source journal must be installed and enabled in the destination OJS site before import. Metadata in the following unavailable locales will not be imported: {$unavailableLocales}."
+
+msgid "plugins.importexport.fullJournal.error.cli"
+msgstr "Error: {$message}"
+
+msgid "plugins.importexport.fullJournal.error.xmlLine"
+msgstr " at line {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownSchemaError"
+msgstr "unknown schema error"
+
+msgid "plugins.importexport.fullJournal.warning.institutionMissingRor"
+msgstr "Institution metric has no stable ROR key"
+
+msgid "plugins.importexport.fullJournal.warning.institutionRorNotFound"
+msgstr "Institution metric ROR was not found in the destination"
+
+msgid "plugins.importexport.fullJournal.warning.institutionRorAmbiguous"
+msgstr "Institution metric ROR is ambiguous in the destination"
+
+msgid "plugins.importexport.fullJournal.entity.referenceData"
+msgstr "reference data"
+
+msgid "plugins.importexport.fullJournal.entity.historicalIssueDate"
+msgstr "historical issue date"
+
+msgid "plugins.importexport.fullJournal.entity.issueDate"
+msgstr "issue date"
+
+msgid "plugins.importexport.fullJournal.entity.historicalSubmissionDate"
+msgstr "historical submission date"
+
+msgid "plugins.importexport.fullJournal.entity.submissionDate"
+msgstr "submission date"
+
+msgid "plugins.importexport.fullJournal.entity.authorMetadata"
+msgstr "author metadata"
+
+msgid "plugins.importexport.fullJournal.entity.file"
+msgstr "file"
+
+msgid "plugins.importexport.fullJournal.entity.directory"
+msgstr "directory"

@@ -51,14 +51,14 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             function (string $stagingPath) use ($rootFilter, $progress): bool {
                 $journalXml = file_get_contents($stagingPath . DIRECTORY_SEPARATOR . 'journal.xml');
                 if ($journalXml === false) {
-                    throw new \RuntimeException('The journal XML could not be read');
+                    throw new \RuntimeException(__('plugins.importexport.fullJournal.error.journalXmlReadFailed'));
                 }
 
                 $this->setImportPath($stagingPath);
                 try {
                     $this->warnAboutUnavailableLocales($journalXml, $progress);
                     if ($progress) {
-                        $progress('Importing journal data...');
+                        $progress(__('plugins.importexport.fullJournal.progress.importingJournalData'));
                     }
                     $this->import($rootFilter, $journalXml);
                     return !$this->isProcessFailed();
@@ -103,9 +103,12 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             return;
         }
         $progress(
-            'Warning: To migrate all localized metadata, the locales used by the source journal must be installed '
-                . 'and enabled in the destination OJS site before import. Metadata in the following unavailable '
-                . 'locales will not be imported: ' . implode(', ', $unavailableLocales) . '.'
+            __(
+                'plugins.importexport.fullJournal.warning.unavailableLocales',
+                [
+                    'unavailableLocales' => implode(', ', $unavailableLocales),
+                ]
+            )
         );
     }
 
@@ -180,7 +183,12 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         }
         $missingUserIds = array_diff($workflowUserIds, array_keys($usersById));
         if ($missingUserIds !== []) {
-            throw new InvalidArgumentException('Workflow references a missing user: ' . reset($missingUserIds));
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.workflowReferencesMissingUser',
+                [
+                    'userId' => reset($missingUserIds),
+                ]
+            ));
         }
         ksort($usersById, SORT_NUMERIC);
         $users = array_values($usersById);
@@ -301,7 +309,7 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
         }
         $filter = PKPImportExportFilter::getFilter('full-journal-xml=>native-data', $this);
         if (!$filter instanceof NativeXmlNativeDataFilter) {
-            throw new InvalidArgumentException('The native data filter cannot restore historical dates');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.nativeDataFilterCannotRestoreHistoricalDates'));
         }
         $filter->restoreHistoricalDates($this->historicalDatesNode);
     }
@@ -433,7 +441,12 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
             }
         }
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one ' . $name . ' element');
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedSingleElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }

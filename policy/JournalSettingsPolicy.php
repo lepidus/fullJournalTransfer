@@ -142,7 +142,12 @@ class JournalSettingsPolicy
     {
         $definitions = $this->definitions();
         if (!isset($definitions[$property])) {
-            throw new InvalidArgumentException('Context setting is not allowed: ' . $property);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.contextSettingNotAllowed',
+                [
+                    'property' => $property,
+                ]
+            ));
         }
         return $definitions[$property];
     }
@@ -167,23 +172,43 @@ class JournalSettingsPolicy
     {
         $definition = $this->definition($property);
         if ($type !== $definition['type']) {
-            throw new InvalidArgumentException('Invalid type for context setting: ' . $property);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidTypeContextSetting',
+                [
+                    'property' => $property,
+                ]
+            ));
         }
         if ($type === 'boolean') {
             if (!in_array($payload, ['true', 'false'], true)) {
-                throw new InvalidArgumentException('Invalid value for context setting: ' . $property);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidValueContextSetting',
+                    [
+                        'property' => $property,
+                    ]
+                ));
             }
             $value = $payload === 'true';
         } elseif ($type === 'integer') {
             if (filter_var($payload, FILTER_VALIDATE_INT) === false) {
-                throw new InvalidArgumentException('Invalid value for context setting: ' . $property);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidValueContextSetting',
+                    [
+                        'property' => $property,
+                    ]
+                ));
             }
             $value = (int) $payload;
         } elseif ($type === 'string-list') {
             try {
                 $value = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $exception) {
-                throw new InvalidArgumentException('Invalid JSON context setting: ' . $property, 0, $exception);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidJsonContextSetting',
+                    [
+                        'property' => $property,
+                    ]
+                ), 0, $exception);
             }
         } else {
             $value = $payload;
@@ -195,7 +220,7 @@ class JournalSettingsPolicy
     public function validateJournal(Journal $journal): void
     {
         if ($journal->getData('enableDois') === true && empty($journal->getData('doiPrefix'))) {
-            throw new InvalidArgumentException('The DOI prefix is required when DOIs are enabled');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.doiPrefixRequiredDoisEnabled'));
         }
         if ($journal->getData('doiSuffixType') !== 'customPattern') {
             return;
@@ -209,10 +234,20 @@ class JournalSettingsPolicy
             $property = $patterns[$doiType];
             $pattern = $journal->getData($property);
             if (!is_string($pattern) || $pattern === '') {
-                throw new InvalidArgumentException('The DOI suffix pattern is required: ' . $property);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.doiSuffixPatternRequired',
+                    [
+                        'property' => $property,
+                    ]
+                ));
             }
             if (preg_match('/%(?![jxviYapgf])/', $pattern) === 1) {
-                throw new InvalidArgumentException('Invalid value for context setting: ' . $property);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidValueContextSetting',
+                    [
+                        'property' => $property,
+                    ]
+                ));
             }
         }
     }
@@ -221,7 +256,7 @@ class JournalSettingsPolicy
     {
         if ($property === 'publishingMode' && $value === Journal::PUBLISHING_MODE_SUBSCRIPTION) {
             throw new InvalidArgumentException(
-                'Subscription publishing mode is not supported because subscriptions are not transferred.'
+                __('plugins.importexport.fullJournal.error.subscriptionPublishingModeNotSupported')
             );
         }
         $valid = ($type === 'string' && is_string($value))
@@ -238,7 +273,12 @@ class JournalSettingsPolicy
             }
         }
         if (!$valid || !$this->passesPropertyValidation($property, $value)) {
-            throw new InvalidArgumentException('Invalid value for context setting: ' . $property);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidValueContextSetting',
+                [
+                    'property' => $property,
+                ]
+            ));
         }
     }
 

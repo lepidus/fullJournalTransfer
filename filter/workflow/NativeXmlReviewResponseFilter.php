@@ -33,38 +33,44 @@ class NativeXmlReviewResponseFilter extends NativeImportFilter
         if ($reviewFormId === null || (int) DB::table('review_form_elements')
             ->where('review_form_element_id', $elementId)->value('review_form_id') !== (int) $reviewFormId
         ) {
-            throw new InvalidArgumentException('Review response does not belong to the assigned review form');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.reviewResponseFormMismatch'));
         }
         $type = $this->required($node, 'type');
         if (!in_array($type, ['string', 'int', 'object'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid review response type "%s" for review_ref "%s" and element_ref "%s" at line %d',
-                $type,
-                $node->getAttribute('review_ref'),
-                $node->getAttribute('element_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidReviewResponseTypeReviewRefElementRefLine',
+                [
+                    'type' => $type,
+                    'reviewRef' => $node->getAttribute('review_ref'),
+                    'elementRef' => $node->getAttribute('element_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         if (!$node->hasAttribute('is_null') || $node->getAttribute('is_null') === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing review response attribute "is_null" for review_ref "%s" and element_ref "%s" at line %d',
-                $node->getAttribute('review_ref'),
-                $node->getAttribute('element_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingReviewResponseAttributeNullReviewRefElementRefLine',
+                [
+                    'reviewRef' => $node->getAttribute('review_ref'),
+                    'elementRef' => $node->getAttribute('element_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         $isNull = $node->getAttribute('is_null');
         if (!in_array($isNull, ['true', 'false'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid review response is_null "%s" for review_ref "%s" and element_ref "%s" at line %d',
-                $isNull,
-                $node->getAttribute('review_ref'),
-                $node->getAttribute('element_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidReviewResponseNullReviewRefElementRefLine',
+                [
+                    'isNull' => $isNull,
+                    'reviewRef' => $node->getAttribute('review_ref'),
+                    'elementRef' => $node->getAttribute('element_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         if ($isNull === 'true' && $node->textContent !== '') {
-            throw new InvalidArgumentException('Null review response must not contain text');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.nullReviewResponseContainsText'));
         }
         DB::table('review_form_responses')->insert([
             'review_form_element_id' => $elementId,
@@ -79,11 +85,13 @@ class NativeXmlReviewResponseFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing review response attribute "%s" for review_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('review_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingReviewResponseAttributeReviewRefLine',
+                [
+                    'attribute' => $attribute,
+                    'reviewRef' => $node->getAttribute('review_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;

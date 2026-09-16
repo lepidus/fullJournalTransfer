@@ -24,6 +24,6 @@ class NativeXmlArticleGalleyFilter extends \APP\plugins\importexport\native\filt
                 return trim($child->textContent);
             }
         }
-        throw new InvalidArgumentException('Article galley source reference is missing');
+        throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.articleGalleySourceReferenceMissing'));
     }
 }

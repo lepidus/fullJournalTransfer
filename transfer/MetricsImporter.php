@@ -261,7 +261,7 @@ class MetricsImporter
         $sourceReference = $this->required($node, 'source_institution_ref');
         $ror = $this->normalizeRor(trim($node->getAttribute('institution_ror')));
         if ($ror === null) {
-            $this->rejectInstitutionMetric($granularity, $sourceReference, 'Institution metric has no stable ROR key');
+            $this->rejectInstitutionMetric($granularity, $sourceReference, __('plugins.importexport.fullJournal.warning.institutionMissingRor'));
             return null;
         }
         $matches = [];
@@ -277,7 +277,7 @@ class MetricsImporter
             $this->rejectInstitutionMetric(
                 $granularity,
                 $sourceReference,
-                'Institution metric ROR was not found in the destination'
+                __('plugins.importexport.fullJournal.warning.institutionRorNotFound')
             );
             return null;
         }
@@ -285,7 +285,7 @@ class MetricsImporter
             $this->rejectInstitutionMetric(
                 $granularity,
                 $sourceReference,
-                'Institution metric ROR is ambiguous in the destination'
+                __('plugins.importexport.fullJournal.warning.institutionRorAmbiguous')
             );
             return null;
         }
@@ -348,7 +348,12 @@ class MetricsImporter
             }
         }
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one metrics element: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedMetricsElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }
@@ -406,22 +411,26 @@ class MetricsImporter
 
     private function missingMetricValue(DOMElement $node, string $attribute): string
     {
-        return sprintf(
-            'Missing metric attribute "%s" in %s at line %d',
-            $attribute,
-            $this->metricContext($node),
-            $node->getLineNo()
+        return __(
+            'plugins.importexport.fullJournal.error.missingMetricAttributeLine',
+            [
+                'attribute' => $attribute,
+                'metricContext' => $this->metricContext($node),
+                'line' => $node->getLineNo(),
+            ]
         );
     }
 
     private function invalidMetricValue(DOMElement $node, string $attribute, string $value): string
     {
-        return sprintf(
-            'Invalid metric %s "%s" in %s at line %d',
-            $attribute,
-            $value,
-            $this->metricContext($node),
-            $node->getLineNo()
+        return __(
+            'plugins.importexport.fullJournal.error.invalidMetricLine',
+            [
+                'attribute' => $attribute,
+                'value' => $value,
+                'metricContext' => $this->metricContext($node),
+                'line' => $node->getLineNo(),
+            ]
         );
     }
 
@@ -439,7 +448,7 @@ class MetricsImporter
     {
         $start = \DateTimeImmutable::createFromFormat('!Ym', (string) $month);
         if (!$start) {
-            throw new InvalidArgumentException('Invalid metric month');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidMetricMonth'));
         }
         return [$start->format('Y-m-d'), $start->modify('last day of this month')->format('Y-m-d')];
     }

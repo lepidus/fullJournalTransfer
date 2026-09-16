@@ -34,7 +34,7 @@ class NativeXmlArticleFilter extends \APP\plugins\importexport\native\filter\Nat
             ->getMany() as $publication) {
             $sourcePublication = $publicationReferences[(string) $publication->getData('version')] ?? null;
             if ($sourcePublication === null) {
-                throw new InvalidArgumentException('Imported publication version was not found');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.publicationVersionNotFound'));
             }
             $this->getDeployment()->mapReference(
                 'publication',
@@ -73,6 +73,6 @@ class NativeXmlArticleFilter extends \APP\plugins\importexport\native\filter\Nat
                 return trim($child->textContent);
             }
         }
-        throw new InvalidArgumentException('Missing native source reference');
+        throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.missingNativeSourceReference'));
     }
 }

@@ -12,7 +12,7 @@ class PackageReferenceValidator
     public function validateReferenceData(DOMElement $node): void
     {
         if ($node->localName !== 'reference_data') {
-            throw new InvalidArgumentException('Invalid reference data root');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidReferenceDataRoot'));
         }
         $reviewFormReferences = $this->collectReferences(
             $this->requiredContainer($node, 'review_forms'),
@@ -22,11 +22,13 @@ class PackageReferenceValidator
             foreach ($this->children($sections, 'section') as $section) {
                 $reference = trim($section->getAttribute('review_form_ref'));
                 if ($reference !== '' && !isset($reviewFormReferences[$reference])) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Unknown review_form_ref "%s" in section source_ref "%s" at line %d',
-                        $reference,
-                        trim($section->getAttribute('source_ref')),
-                        $section->getLineNo()
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.unknownReviewFormRefSectionSourceRefLine',
+                        [
+                            'reference' => $reference,
+                            'sourceRef' => trim($section->getAttribute('source_ref')),
+                            'line' => $section->getLineNo(),
+                        ]
                     ));
                 }
             }
@@ -41,18 +43,22 @@ class PackageReferenceValidator
         foreach ($this->children($container, $elementName) as $element) {
             $reference = trim($element->getAttribute('source_ref'));
             if ($reference === '') {
-                throw new InvalidArgumentException(sprintf(
-                    'Missing source_ref in reference data element "%s" at line %d',
-                    $elementName,
-                    $element->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.missingSourceRefReferenceDataElementLine',
+                    [
+                        'elementName' => $elementName,
+                        'line' => $element->getLineNo(),
+                    ]
                 ));
             }
             if (isset($references[$reference])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Duplicated %s source_ref "%s" at line %d',
-                    $elementName,
-                    $reference,
-                    $element->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.duplicatedSourceRefLine',
+                    [
+                        'localName' => $elementName,
+                        'reference' => $reference,
+                        'line' => $element->getLineNo(),
+                    ]
                 ));
             }
             $references[$reference] = true;
@@ -64,7 +70,12 @@ class PackageReferenceValidator
     {
         $matches = $this->children($parent, $name);
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one reference data container: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedReferenceDataContainer',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }

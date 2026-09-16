@@ -18,7 +18,12 @@ class ThemeSettingsTransfer
         if ($theme) {
             return $theme;
         }
-        throw new InvalidArgumentException('The selected theme is not installed: ' . $pluginPath);
+        throw new InvalidArgumentException(__(
+            'plugins.importexport.fullJournal.error.selectedThemeNotInstalled',
+            [
+                'pluginPath' => $pluginPath,
+            ]
+        ));
     }
 
     public function findInstalledThemeOrDefault(string $pluginPath): ThemePlugin
@@ -30,7 +35,7 @@ class ThemeSettingsTransfer
     private function findTheme(string $pluginPath): ?ThemePlugin
     {
         if (preg_match('/^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$/', $pluginPath) !== 1) {
-            throw new InvalidArgumentException('The selected theme path is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.selectedThemePathInvalid'));
         }
         foreach (PluginRegistry::loadCategory('themes', false) as $theme) {
             if ($theme instanceof ThemePlugin && $theme->getDirName() === $pluginPath) {
