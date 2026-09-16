@@ -8,6 +8,7 @@ use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMElement;
 use DOMXPath;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ use PKP\tests\DatabaseTestCase;
 
 class ThemeTransferIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $contexts = [];
 
     protected function getAffectedTables()

@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\package;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\package\FullJournalPackageExporter;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMDocument;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,8 @@ use Symfony\Component\Process\Process;
 
 class FullJournalPackageExporterTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItCreatesThePackageConsumedByThePublicCli(): void
     {
         $stagingDirectories = $this->stagingDirectories();

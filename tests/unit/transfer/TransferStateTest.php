@@ -9,12 +9,15 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\transfer;
 
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use APP\plugins\importexport\fullJournalTransfer\transfer\TransferState;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class TransferStateTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItMaintainsReferenceMaps(): void
     {
         $state = new TransferState();

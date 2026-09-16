@@ -7,12 +7,15 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests\integration\journal
 use APP\core\Application;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMXPath;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class JournalFilterTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItPreservesLocalesEnabledExclusivelyForFormsOrSubmissions(): void
     {
         $source = new Journal();

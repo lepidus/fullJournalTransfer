@@ -13,6 +13,7 @@ use APP\issue\IssueFile;
 use APP\jobs\doi\DepositIssue;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
@@ -29,6 +30,8 @@ use RuntimeException;
 
 class NativeDataFilterIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $contexts = [];
     private array $fileIds = [];
     private array $issueIds = [];

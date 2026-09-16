@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\validation;
 
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use APP\plugins\importexport\fullJournalTransfer\validation\NativeDataReferenceValidator;
 use DOMDocument;
 use InvalidArgumentException;
@@ -11,6 +12,8 @@ use PHPUnit\Framework\TestCase;
 
 class NativeDataReferenceValidatorTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItAcceptsNativeIssuesAndArticles(): void
     {
         (new NativeDataReferenceValidator())->validate($this->nativeData('', $this->issue(), ''));

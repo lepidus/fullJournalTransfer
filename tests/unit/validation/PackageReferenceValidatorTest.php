@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\validation;
 
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use APP\plugins\importexport\fullJournalTransfer\validation\PackageReferenceValidator;
 use DOMDocument;
 use InvalidArgumentException;
@@ -11,6 +12,8 @@ use PHPUnit\Framework\TestCase;
 
 class PackageReferenceValidatorTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItReportsTheDuplicatedEntityReference(): void
     {
         $this->expectException(InvalidArgumentException::class);

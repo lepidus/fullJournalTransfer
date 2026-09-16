@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\transfer;
 
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use APP\plugins\importexport\fullJournalTransfer\transfer\SubmissionFileTransferPlanner;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -11,6 +12,8 @@ use PKP\submissionFile\SubmissionFile;
 
 class SubmissionFileTransferPlannerTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItDefersReviewRevisionsAndTheirDependentFiles(): void
     {
         $native = $this->submissionFile(1, SubmissionFile::SUBMISSION_FILE_SUBMISSION);

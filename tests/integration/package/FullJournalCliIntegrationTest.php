@@ -9,6 +9,7 @@ use APP\facades\Repo;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMDocument;
 use PKP\core\PKPApplication;
 use PKP\tests\DatabaseTestCase;
@@ -16,6 +17,8 @@ use Symfony\Component\Process\Process;
 
 class FullJournalCliIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $contexts = [];
     private array $archives = [];
 

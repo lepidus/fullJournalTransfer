@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\policy;
 
 use APP\plugins\importexport\fullJournalTransfer\policy\UserIdentityPolicy;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use Gettext\Loader\PoLoader;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Translation\Translator;
@@ -12,6 +13,8 @@ use PHPUnit\Framework\TestCase;
 
 class UserIdentityPolicyTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     /**
      * @dataProvider invalidEmails
      */

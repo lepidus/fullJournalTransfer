@@ -6,11 +6,14 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\policy;
 
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class JournalSettingsPolicyTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItsDefinitionsMatchThePositiveTransferContract(): void
     {
         $expected = [

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\package;
 
 use APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class ArchiveManagerTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     private const RELEASE = '3.4.0.10';
 
     private array $temporaryPaths = [];

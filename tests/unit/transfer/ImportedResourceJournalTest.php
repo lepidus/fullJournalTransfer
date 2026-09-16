@@ -9,12 +9,15 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\transfer;
 
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use APP\plugins\importexport\fullJournalTransfer\transfer\ImportedResourceJournal;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class ImportedResourceJournalTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItCompensatesFilesBeforeDirectories(): void
     {
         $directory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'full-journal-resource-' . bin2hex(random_bytes(8));
