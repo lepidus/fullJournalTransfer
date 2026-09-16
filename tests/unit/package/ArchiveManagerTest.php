@@ -36,7 +36,6 @@ class ArchiveManagerTest extends TestCase
 
         $result = (new ArchiveManager())->withExtractedPackage(
             $archive,
-
             function (string $path) use (&$stagingPath): string {
                 $stagingPath = $path;
                 $this->assertFileDoesNotExist($path . '/manifest.xml');
@@ -56,7 +55,6 @@ class ArchiveManagerTest extends TestCase
         $archive = $this->createValidArchive(str_repeat('0', 64));
         $result = (new ArchiveManager())->withExtractedPackage(
             $archive,
-
             static fn (string $path): string => file_get_contents($path . '/journal.xml')
         );
         $this->assertSame('<journal/>', $result);
@@ -102,7 +100,6 @@ class ArchiveManagerTest extends TestCase
         try {
             (new ArchiveManager())->withExtractedPackage(
                 $archive,
-
                 function (string $path) use (&$stagingPath): void {
                     $stagingPath = $path;
                     throw new RuntimeException('Import failed');
@@ -198,7 +195,6 @@ class ArchiveManagerTest extends TestCase
         try {
             (new ArchiveManager())->withExtractedPackage(
                 $archive,
-
                 function () use (&$called): void {
                     $called = true;
                 }
