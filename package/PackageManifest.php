@@ -45,12 +45,12 @@ class PackageManifest
         libxml_use_internal_errors($previous);
 
         if (!$loaded || !$document->documentElement instanceof DOMElement) {
-            throw new InvalidArgumentException('The manifest must be a well-formed XML document');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.manifestMalformedXml'));
         }
 
         $root = $document->documentElement;
         if ($root->tagName !== 'full_journal_package') {
-            throw new InvalidArgumentException('The manifest root element must be full_journal_package');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.manifestInvalidRoot'));
         }
 
         self::requireAttribute($root, 'created_at');
@@ -59,21 +59,21 @@ class PackageManifest
         $formatVersion = self::requireAttribute($root, 'format_version');
 
         if ($application !== self::APPLICATION) {
-            throw new InvalidArgumentException('The manifest application must be ojs');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.manifestInvalidApplication'));
         }
         $sourceVersionLine = self::getVersionLine($applicationVersion);
         $targetVersionLine = self::getVersionLine($expectedApplicationVersion);
         if ($sourceVersionLine !== $targetVersionLine) {
-            throw new InvalidArgumentException('The manifest application version line must match the target version line');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.manifestVersionLineMismatch'));
         }
         if ($formatVersion !== self::FORMAT_VERSION) {
-            throw new InvalidArgumentException('The manifest format version is not supported');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.manifestFormatVersionNotSupported'));
         }
 
         $xpath = new DOMXPath($document);
         $journalFiles = $xpath->query('/full_journal_package/files/file[@path="journal.xml"]');
         if ($journalFiles === false || $journalFiles->length !== 1) {
-            throw new InvalidArgumentException('The manifest must declare exactly one journal.xml file');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.manifestSingleJournalFileRequired'));
         }
 
         $capabilities = [];
@@ -90,15 +90,30 @@ class PackageManifest
             }
             $path = self::requireAttribute($file, 'path');
             if (isset($files[$path])) {
-                throw new InvalidArgumentException(sprintf('The manifest declares duplicate path %s', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.manifestDeclaresDuplicatePath',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
             $size = self::requireAttribute($file, 'size');
             $checksum = self::requireAttribute($file, 'checksum');
             if (!ctype_digit($size) || !preg_match('/\A[a-f0-9]{64}\z/', $checksum)) {
-                throw new InvalidArgumentException(sprintf('The manifest metadata for %s is invalid', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.manifestMetadataInvalid',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
             if ($path[0] === '/' || str_contains('/' . $path . '/', '/../')) {
-                throw new InvalidArgumentException(sprintf('The manifest path %s must be relative', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.manifestRelativePathRequired',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
             $files[$path] = ['size' => (int) $size, 'checksum' => $checksum];
         }
@@ -110,7 +125,7 @@ class PackageManifest
     {
         $counts = array_count_values($entries);
         if (($counts['manifest.xml'] ?? 0) !== 1 || ($counts['journal.xml'] ?? 0) !== 1) {
-            throw new InvalidArgumentException('The package must contain exactly one manifest.xml and one journal.xml');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageRequiredFilesMismatch'));
         }
     }
 
@@ -143,11 +158,13 @@ class PackageManifest
     {
         $value = $element->getAttribute($name);
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'The manifest attribute "%s" is required in element "%s" at line %d',
-                $name,
-                $element->localName,
-                $element->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.manifestAttributeRequiredElementLine',
+                [
+                    'name' => $name,
+                    'localName' => $element->localName,
+                    'line' => $element->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -156,7 +173,7 @@ class PackageManifest
     private static function getVersionLine(string $version): string
     {
         if (!preg_match('/\A(\d+\.\d+\.\d+)\.\d+\z/', $version, $matches)) {
-            throw new InvalidArgumentException('The manifest and target must declare a complete application version');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.completeApplicationVersionRequired'));
         }
 
         return $matches[1];

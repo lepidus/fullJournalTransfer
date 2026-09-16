@@ -25,10 +25,12 @@ class SubmissionFileTransferPlanner
             foreach ($pending as $id => $submissionFile) {
                 $sourceId = (int) $submissionFile->getData('sourceSubmissionFileId');
                 if ($sourceId && !isset($allIds[$sourceId])) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Submission file %d references missing source submission file %d',
-                        $id,
-                        $sourceId
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.submissionFileReferencesMissingSourceSubmissionFile',
+                        [
+                            'id' => $id,
+                            'sourceId' => $sourceId,
+                        ]
                     ));
                 }
                 if ($sourceId && isset($pending[$sourceId])) {
@@ -46,9 +48,11 @@ class SubmissionFileTransferPlanner
                 $progress = true;
             }
             if (!$progress) {
-                throw new InvalidArgumentException(sprintf(
-                    'Submission file dependency cycle detected among source IDs: %s',
-                    implode(', ', array_keys($pending))
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.submissionFileDependencyCycleDetectedAmongSourceIds',
+                    [
+                        'sourceIds' => implode(', ', array_keys($pending)),
+                    ]
                 ));
             }
         }

@@ -47,11 +47,13 @@ class NativeXmlStageAssignmentFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing stage assignment attribute "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingStageAssignmentAttributeSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -62,12 +64,14 @@ class NativeXmlStageAssignmentFilter extends NativeImportFilter
         $value = trim($node->getAttribute($attribute));
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid stage assignment %s "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $value,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidStageAssignmentSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'value' => $value,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -77,12 +81,14 @@ class NativeXmlStageAssignmentFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($attribute);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid stage assignment %s "%s" for source_ref "%s" at line %d; expected "true" or "false"',
-                $attribute,
-                $value,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidStageAssignmentSourceRefLineExpectedTrueOrFalse',
+                [
+                    'attribute' => $attribute,
+                    'value' => $value,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value === 'true' ? 1 : 0;

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\policy;
 
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalLocalePolicy;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class JournalLocalePolicyTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testItIntersectsTheThreeListsIndependentlyAndPreservesOrder(): void
     {
         $locales = (new JournalLocalePolicy())->resolve(

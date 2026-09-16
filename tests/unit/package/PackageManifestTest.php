@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\package;
 
 use APP\plugins\importexport\fullJournalTransfer\package\PackageManifest;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class PackageManifestTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     private const RELEASE = '3.4.0.10';
 
     public function testItAcceptsACompatibleVersionedManifest(): void

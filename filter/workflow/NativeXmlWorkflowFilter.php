@@ -94,7 +94,12 @@ class NativeXmlWorkflowFilter extends NativeImportFilter
             }
         }
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one workflow element: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedWorkflowElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }

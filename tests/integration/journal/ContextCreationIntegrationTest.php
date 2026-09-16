@@ -8,12 +8,15 @@ use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMElement;
 use InvalidArgumentException;
 use PKP\tests\DatabaseTestCase;
 
 class ContextCreationIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private ?Journal $createdContext = null;
 
     protected function getAffectedTables()

@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests\integration\users;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMDocument;
 use DOMXPath;
 use PKP\plugins\importexport\PKPImportExportFilter;
@@ -16,6 +17,8 @@ use PKP\userGroup\UserGroup;
 
 class UserImportIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private ?User $createdUser = null;
     private ?UserGroup $createdGroup = null;
 

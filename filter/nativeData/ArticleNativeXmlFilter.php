@@ -37,10 +37,12 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
                 $submissionNode->appendChild($document->importNode($publicationDocument->documentElement, true));
                 continue;
             }
-            throw new RuntimeException(sprintf(
-                'Publication %d from submission %d could not be exported',
-                $publication->getId(),
-                $submission->getId()
+            throw new RuntimeException(__(
+                'plugins.importexport.fullJournal.error.publicationExportFailed',
+                [
+                    'publicationId' => $publication->getId(),
+                    'submissionId' => $submission->getId(),
+                ]
             ));
         }
     }
@@ -55,10 +57,12 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
                 }
             }
         }
-        throw new InvalidArgumentException(sprintf(
-            'Publication %d from submission %d has no localized title',
-            $publication->getId(),
-            $submission->getId()
+        throw new InvalidArgumentException(__(
+            'plugins.importexport.fullJournal.error.publicationSubmissionNoLocalizedTitle',
+            [
+                'publicationId' => $publication->getId(),
+                'submissionId' => $submission->getId(),
+            ]
         ));
     }
 
@@ -73,10 +77,12 @@ class ArticleNativeXmlFilter extends \APP\plugins\importexport\native\filter\Art
             }
             $locale = $node->getAttribute('locale');
             if (!is_array($titles) || !isset($titles[$locale]) || !is_string($titles[$locale])) {
-                throw new RuntimeException(sprintf(
-                    'Publication %d has no raw title for locale %s',
-                    $publication->getId(),
-                    $locale
+                throw new RuntimeException(__(
+                    'plugins.importexport.fullJournal.error.publicationNoRawTitleLocale',
+                    [
+                        'publicationId' => $publication->getId(),
+                        'locale' => $locale,
+                    ]
                 ));
             }
             while ($node->firstChild) {

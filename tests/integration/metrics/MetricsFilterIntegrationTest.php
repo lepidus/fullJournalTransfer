@@ -11,6 +11,7 @@ use APP\file\IssueFileManager;
 use APP\issue\IssueFile;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use Illuminate\Support\Facades\DB;
 use PKP\db\DAORegistry;
 use PKP\install\Installer;
@@ -19,6 +20,8 @@ use PKP\tests\DatabaseTestCase;
 
 class MetricsFilterIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $contexts = [];
     private array $fileIds = [];
     private array $issueIds = [];

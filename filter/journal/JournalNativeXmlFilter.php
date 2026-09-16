@@ -18,7 +18,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
     public function &process(&$journal)
     {
         if (!$journal instanceof Journal) {
-            throw new InvalidArgumentException('Expected a journal for export');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedJournalExport'));
         }
         $document = new DOMDocument('1.0', 'UTF-8');
         $document->formatOutput = true;
@@ -40,14 +40,14 @@ class JournalNativeXmlFilter extends NativeExportFilter
         );
         $primaryLocale = $journal->getPrimaryLocale();
         if (!is_string($primaryLocale) || !in_array($primaryLocale, $supportedLocales, true)) {
-            throw new InvalidArgumentException('The primary locale must be included in the supported locales');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.primaryLocaleNotSupported'));
         }
 
         $root = $document->createElementNS(self::NAMESPACE, 'journal');
         $root->setAttribute('primary_locale', $primaryLocale);
         $path = $journal->getPath();
         if (!is_string($path) || preg_match('/^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$/', $path) !== 1) {
-            throw new InvalidArgumentException('The context path is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.contextPathInvalid'));
         }
         $root->setAttribute('url_path', $path);
         $root->setAttribute('sequence', (string) $journal->getSequence());
@@ -122,7 +122,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
     ): void {
         $checklist = $journal->getData('submissionChecklist') ?? [];
         if (!is_array($checklist)) {
-            throw new InvalidArgumentException('Submission checklist must be localized');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.submissionChecklistLocaleRequired'));
         }
         if ($checklist !== []) {
             $checklistNode = $document->createElementNS(self::NAMESPACE, 'submission_checklist');
@@ -131,7 +131,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
                     continue;
                 }
                 if (!is_string($items)) {
-                    throw new InvalidArgumentException('Submission checklist content must be localized HTML');
+                    throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.submissionChecklistLocalizedHtmlRequired'));
                 }
                 $contentNode = $document->createElementNS(self::NAMESPACE, 'content');
                 $contentNode->setAttribute('locale', $locale);
@@ -159,7 +159,12 @@ class JournalNativeXmlFilter extends NativeExportFilter
                     continue;
                 }
                 if (!is_array($values)) {
-                    throw new InvalidArgumentException('Localized context setting must be an array: ' . $property);
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.localizedContextSettingArrayRequired',
+                        [
+                            'property' => $property,
+                        ]
+                    ));
                 }
                 foreach ($values as $locale => $value) {
                     if ($value === null || !in_array($locale, $acceptedLocales, true)) {
@@ -187,7 +192,7 @@ class JournalNativeXmlFilter extends NativeExportFilter
             return;
         }
         if (!is_string($pluginPath)) {
-            throw new InvalidArgumentException('The selected theme path is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.selectedThemePathInvalid'));
         }
         $theme = (new ThemeSettingsTransfer())->findInstalledTheme($pluginPath);
         $theme->init();
@@ -214,11 +219,21 @@ class JournalNativeXmlFilter extends NativeExportFilter
     private function requireLocales($locales, string $property): array
     {
         if (!is_array($locales) || $locales === []) {
-            throw new InvalidArgumentException($property . ' must contain at least one locale');
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.settingLocaleRequired',
+                [
+                    'property' => $property,
+                ]
+            ));
         }
         foreach ($locales as $locale) {
             if (!is_string($locale) || preg_match('/^[a-z]{2}(?:_[A-Z]{2})?$/', $locale) !== 1) {
-                throw new InvalidArgumentException('Invalid locale in ' . $property);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidLocale',
+                    [
+                        'property' => $property,
+                    ]
+                ));
             }
         }
         return array_values(array_unique($locales));
@@ -246,14 +261,14 @@ class JournalNativeXmlFilter extends NativeExportFilter
     {
         $names = $journal->getData('name', null);
         if (!is_array($names) || array_filter($names, 'is_string') === []) {
-            throw new InvalidArgumentException('The context must have a localized name');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalLocalizedNameRequired'));
         }
         if (!is_string($journal->getData('contactName')) || trim($journal->getData('contactName')) === '') {
-            throw new InvalidArgumentException('The context must have a contact name');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalContactNameRequired'));
         }
         $contactEmail = $journal->getData('contactEmail');
         if (!is_string($contactEmail) || filter_var($contactEmail, FILTER_VALIDATE_EMAIL) === false) {
-            throw new InvalidArgumentException('The context must have a valid contact email');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalContactEmailInvalid'));
         }
     }
 }

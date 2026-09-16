@@ -24,7 +24,7 @@ class NativeXmlIssueGalleyFilter extends \APP\plugins\importexport\native\filter
                     . DIRECTORY_SEPARATOR . $file->getServerFileName();
                 $absolutePath = realpath($path);
                 if ($absolutePath === false) {
-                    throw new InvalidArgumentException('Imported issue galley file path could not be resolved');
+                    throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.issueGalleyPathResolutionFailed'));
                 }
                 $this->getDeployment()->recordCreatedFile($absolutePath);
             }
@@ -39,6 +39,6 @@ class NativeXmlIssueGalleyFilter extends \APP\plugins\importexport\native\filter
                 return trim($child->textContent);
             }
         }
-        throw new InvalidArgumentException('Issue galley source reference is missing');
+        throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.issueGalleySourceReferenceMissing'));
     }
 }

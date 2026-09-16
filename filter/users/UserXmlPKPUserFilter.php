@@ -119,11 +119,11 @@ class UserXmlPKPUserFilter extends BaseUserXmlPKPUserFilter
             $sourceReference = trim($reference->getAttribute('source_ref'));
             $userGroupIdMap = $this->getDeployment()->getReferenceMap('user_group');
             if ($sourceReference === '' || !isset($userGroupIdMap[$sourceReference])) {
-                throw new InvalidArgumentException('Unknown imported user group reference');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.unknownImportedUserGroupReference'));
             }
             $userGroupId = (int) $userGroupIdMap[$sourceReference];
             if (!Repo::userGroup()->contextHasGroup($contextId, $userGroupId)) {
-                throw new InvalidArgumentException('Imported user group reference is outside the destination context');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importedUserGroupReferenceOutsideDestinationContext'));
             }
             $userGroupIds[] = $userGroupId;
             $node->removeChild($reference);

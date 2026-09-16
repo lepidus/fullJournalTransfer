@@ -15,7 +15,7 @@ class JournalUserReferenceValidator
     public function validate(DOMElement $root): void
     {
         if ($root->localName !== 'journal') {
-            throw new InvalidArgumentException('Invalid journal root');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidJournalRoot'));
         }
         $document = $root->ownerDocument;
         $xpath = new DOMXPath($document);
@@ -24,10 +24,15 @@ class JournalUserReferenceValidator
         foreach ($xpath->query('/pkp:journal/pkp:users/pkp:users/pkp:user') ?: [] as $user) {
             $sourceReference = trim($user->getAttribute('source_ref'));
             if ($sourceReference === '') {
-                throw new InvalidArgumentException('Missing user source reference');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.missingUserSourceReference'));
             }
             if (isset($users[$sourceReference])) {
-                throw new InvalidArgumentException('Duplicated user source reference: ' . $sourceReference);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.duplicatedUserSourceReference',
+                    [
+                        'sourceReference' => $sourceReference,
+                    ]
+                ));
             }
             $users[$sourceReference] = true;
         }
@@ -38,7 +43,12 @@ class JournalUserReferenceValidator
                 }
                 $sourceReference = trim($node->getAttribute($attribute));
                 if ($sourceReference === '' || !isset($users[$sourceReference])) {
-                    throw new InvalidArgumentException('Unknown workflow user reference: ' . $sourceReference);
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.unknownWorkflowUserReference',
+                        [
+                            'sourceReference' => $sourceReference,
+                        ]
+                    ));
                 }
             }
         }

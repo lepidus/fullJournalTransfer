@@ -18,7 +18,7 @@ class ReferenceDataNativeXmlFilter extends NativeExportFilter
     public function &process(&$context)
     {
         if (!$context instanceof Journal) {
-            throw new \InvalidArgumentException('Expected a journal for reference data export');
+            throw new \InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedJournalReferenceDataExport'));
         }
         $document = new DOMDocument('1.0', 'UTF-8');
         $document->formatOutput = true;

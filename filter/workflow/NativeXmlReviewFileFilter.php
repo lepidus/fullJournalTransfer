@@ -43,11 +43,13 @@ class NativeXmlReviewFileFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing review file attribute "%s" for review_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('review_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingReviewFileAttributeReviewRefLine',
+                [
+                    'attribute' => $attribute,
+                    'reviewRef' => $node->getAttribute('review_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -58,11 +60,13 @@ class NativeXmlReviewFileFilter extends NativeImportFilter
         if ((int) DB::table('submission_files')->where('submission_file_id', $submissionFileId)
             ->value('submission_id') !== $submissionId
         ) {
-            throw new InvalidArgumentException(sprintf(
-                'Review submission_file_ref "%s" does not belong to review_ref "%s" at line %d',
-                $node->getAttribute('submission_file_ref'),
-                $node->getAttribute('review_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.reviewFileAssignmentMismatch',
+                [
+                    'submissionFileRef' => $node->getAttribute('submission_file_ref'),
+                    'reviewRef' => $node->getAttribute('review_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
     }

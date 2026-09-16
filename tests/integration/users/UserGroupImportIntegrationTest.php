@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests\integration\users;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMDocument;
 use PKP\plugins\importexport\PKPImportExportFilter;
 use PKP\security\Role;
@@ -15,6 +16,8 @@ use PKP\userGroup\UserGroup;
 
 class UserGroupImportIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $createdGroups = [];
 
     protected function getAffectedTables()

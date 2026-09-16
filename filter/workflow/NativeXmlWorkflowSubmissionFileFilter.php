@@ -32,31 +32,36 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
         $submissionId = $deployment->requireReference('submission', $submissionReference);
         $submission = Repo::submission()->get($submissionId);
         if (!$submission) {
-            throw new InvalidArgumentException(sprintf(
-                'Workflow submission file references unavailable submission_ref "%s" at line %d',
-                $submissionReference,
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.workflowSubmissionFileReferencesUnavailableSubmissionRefLine',
+                [
+                    'submissionReference' => $submissionReference,
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         $payload = $this->payload($node);
         $sourceSubmissionFileId = trim($payload->getAttribute('id'));
         if ($sourceSubmissionFileId === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing workflow submission file source id for submission_ref "%s" at line %d',
-                $submissionReference,
-                $payload->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingWorkflowSubmissionFileSourceIdSubmissionRefLine',
+                [
+                    'submissionReference' => $submissionReference,
+                    'line' => $payload->getLineNo(),
+                ]
             ));
         }
         $stageName = $payload->getAttribute('stage');
         $stageMapping = $deployment->getStageNameStageIdMapping();
         if (!isset($stageMapping[$stageName])) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid workflow submission file stage "%s" for file source id "%s" and submission_ref "%s" '
-                    . 'at line %d',
-                $stageName,
-                $sourceSubmissionFileId,
-                $submissionReference,
-                $payload->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidWorkflowSubmissionFileStageFileSourceIdSubmissionRefLine',
+                [
+                    'stageName' => $stageName,
+                    'sourceSubmissionFileId' => $sourceSubmissionFileId,
+                    'submissionReference' => $submissionReference,
+                    'line' => $payload->getLineNo(),
+                ]
             ));
         }
         $fileStage = $stageMapping[$stageName];
@@ -72,11 +77,11 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
             if ((int) DB::table('review_rounds')->where('review_round_id', $reviewRoundId)
                 ->value('submission_id') !== $submissionId
             ) {
-                throw new InvalidArgumentException('Workflow submission file review round belongs to another submission');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.workflowSubmissionFileReviewRoundBelongsAnotherSubmission'));
             }
             $payload->setAttribute('stage', 'submission');
         } elseif ($node->hasAttribute('review_round_ref')) {
-            throw new InvalidArgumentException('Only review revisions may reference a review round');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.onlyReviewRevisionsMayReferenceReviewRound'));
         }
 
         $previousSubmission = $deployment->getSubmission();
@@ -87,10 +92,12 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
             $deployment->setSubmission($previousSubmission);
         }
         if (!$submissionFile instanceof SubmissionFile) {
-            throw new InvalidArgumentException(sprintf(
-                'Workflow submission file source id "%s" for submission_ref "%s" could not be imported',
-                $sourceSubmissionFileId,
-                $submissionReference
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.workflowFileImportFailed',
+                [
+                    'sourceSubmissionFileId' => $sourceSubmissionFileId,
+                    'submissionReference' => $submissionReference,
+                ]
             ));
         }
         $deployment->mapReference(
@@ -105,7 +112,7 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
             Repo::submissionFile()->dao->update($submissionFile);
             $reviewRound = DB::table('review_rounds')->where('review_round_id', $reviewRoundId)->first();
             if (!$reviewRound) {
-                throw new InvalidArgumentException('Workflow submission file review round was not imported');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.workflowFileReviewRoundNotImported'));
             }
             DB::table('review_round_files')->updateOrInsert(
                 [
@@ -129,7 +136,7 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
             }
         }
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one workflow submission file payload');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedWorkflowSubmissionFilePayload'));
         }
         $document = new DOMDocument('1.0', 'UTF-8');
         $payload = $document->importNode($matches[0], true);
@@ -141,11 +148,13 @@ class NativeXmlWorkflowSubmissionFileFilter extends NativeXmlSubmissionFileFilte
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing workflow submission file attribute "%s" for submission_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('submission_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingWorkflowSubmissionFileAttributeSubmissionRefLine',
+                [
+                    'attribute' => $attribute,
+                    'submissionRef' => $node->getAttribute('submission_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;

@@ -10,6 +10,7 @@ use APP\facades\Repo;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -23,6 +24,8 @@ use PKP\tests\DatabaseTestCase;
 
 class ImportRollbackIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $contexts = [];
     private array $fileIds = [];
 

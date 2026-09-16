@@ -26,11 +26,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $path = $node->getAttribute('url_path');
         if (preg_match('/^[a-zA-Z0-9]+(?:[-_][a-zA-Z0-9]+)*$/', $path) !== 1) {
-            throw new InvalidArgumentException('The context path is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.contextPathInvalid'));
         }
         $sequence = $node->getAttribute('sequence');
         if (!is_numeric($sequence)) {
-            throw new InvalidArgumentException('The context sequence is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.contextSequenceInvalid'));
         }
         $journal->setPath($path);
         $journal->setSequence((float) $sequence);
@@ -44,7 +44,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
         foreach ($node->getElementsByTagNameNS(self::NAMESPACE, 'locale') as $localeNode) {
             $locale = $localeNode->getAttribute('code');
             if (isset($seenLocales[$locale])) {
-                throw new InvalidArgumentException('Duplicated locale: ' . $locale);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.duplicatedLocale',
+                    [
+                        'locale' => $locale,
+                    ]
+                ));
             }
             $seenLocales[$locale] = true;
             if ($this->readBooleanAttribute($localeNode, 'enabled_for_ui')) {
@@ -53,41 +58,49 @@ class NativeXmlJournalFilter extends NativeImportFilter
             if ($this->readBooleanAttribute($localeNode, 'enabled_for_forms')) {
                 $formOrder = $this->readOrderAttribute($localeNode, 'form_order');
                 if (isset($supportedFormLocales[$formOrder])) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Duplicated form_order "%d" for locales "%s" and "%s"%s',
-                        $formOrder,
-                        $supportedFormLocales[$formOrder],
-                        $locale,
-                        $this->line($localeNode)
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.duplicatedFormOrderLocales',
+                        [
+                            'formOrder' => $formOrder,
+                            'otherLocale' => $supportedFormLocales[$formOrder],
+                            'locale' => $locale,
+                            'lineSuffix' => $this->line($localeNode),
+                        ]
                     ));
                 }
                 $supportedFormLocales[$formOrder] = $locale;
             } elseif ($localeNode->hasAttribute('form_order')) {
-                throw new InvalidArgumentException(sprintf(
-                    'Locale "%s" is disabled for forms but declares form_order "%s"%s',
-                    $locale,
-                    $localeNode->getAttribute('form_order'),
-                    $this->line($localeNode)
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.localeDisabledFormsButDeclaresFormOrder',
+                    [
+                        'locale' => $locale,
+                        'formOrder' => $localeNode->getAttribute('form_order'),
+                        'lineSuffix' => $this->line($localeNode),
+                    ]
                 ));
             }
             if ($this->readBooleanAttribute($localeNode, 'enabled_for_submissions')) {
                 $submissionOrder = $this->readOrderAttribute($localeNode, 'submission_order');
                 if (isset($supportedSubmissionLocales[$submissionOrder])) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Duplicated submission_order "%d" for locales "%s" and "%s"%s',
-                        $submissionOrder,
-                        $supportedSubmissionLocales[$submissionOrder],
-                        $locale,
-                        $this->line($localeNode)
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.duplicatedSubmissionOrderLocales',
+                        [
+                            'submissionOrder' => $submissionOrder,
+                            'otherLocale' => $supportedSubmissionLocales[$submissionOrder],
+                            'locale' => $locale,
+                            'lineSuffix' => $this->line($localeNode),
+                        ]
                     ));
                 }
                 $supportedSubmissionLocales[$submissionOrder] = $locale;
             } elseif ($localeNode->hasAttribute('submission_order')) {
-                throw new InvalidArgumentException(sprintf(
-                    'Locale "%s" is disabled for submissions but declares submission_order "%s"%s',
-                    $locale,
-                    $localeNode->getAttribute('submission_order'),
-                    $this->line($localeNode)
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.localeDisabledSubmissionsButDeclaresSubmissionOrder',
+                    [
+                        'locale' => $locale,
+                        'submissionOrder' => $localeNode->getAttribute('submission_order'),
+                        'lineSuffix' => $this->line($localeNode),
+                    ]
                 ));
             }
         }
@@ -95,7 +108,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         ksort($supportedSubmissionLocales);
         $site = Application::get()->getRequest()->getSite();
         if (!$site instanceof Site) {
-            throw new InvalidArgumentException('The destination OJS site could not be loaded');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.destinationSiteLoadFailed'));
         }
         $locales = (new JournalLocalePolicy())->resolve(
             $supportedLocales,
@@ -138,12 +151,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $journal = $contextDao->newDataObject();
             $this->hydrate($node, $journal);
             if ($contextDao->getByPath($journal->getPath())) {
-                throw new InvalidArgumentException('A context with this path already exists');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalPathAlreadyExists'));
             }
             $contextId = $contextDao->insertObject($journal);
             $createdJournal = $contextDao->getById($contextId);
             if (!$createdJournal instanceof Journal) {
-                throw new InvalidArgumentException('The imported context could not be persisted');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalSaveFailed'));
             }
             $deployment = $this->getDeployment();
             $deployment->setContext($createdJournal);
@@ -151,12 +164,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $publicFilesPath = $publicFileManager->getContextFilesPath($contextId);
             $publicFilesPathExisted = file_exists($publicFilesPath);
             if (!$publicFileManager->mkdirtree($publicFilesPath) || !is_dir($publicFilesPath)) {
-                throw new RuntimeException('The imported context public files directory could not be created');
+                throw new RuntimeException(__('plugins.importexport.fullJournal.error.publicFilesDirectoryCreationFailed'));
             }
             if (!$publicFilesPathExisted) {
                 $absolutePublicFilesPath = realpath($publicFilesPath);
                 if ($absolutePublicFilesPath === false) {
-                    throw new RuntimeException('The imported context public files directory could not be resolved');
+                    throw new RuntimeException(__('plugins.importexport.fullJournal.error.publicFilesDirectoryResolutionFailed'));
                 }
                 $deployment->recordCreatedDirectory($absolutePublicFilesPath);
             }
@@ -196,7 +209,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $policy = new JournalSettingsPolicy();
         $containers = $node->getElementsByTagNameNS(self::NAMESPACE, 'context_settings');
         if ($containers->length !== 1) {
-            throw new InvalidArgumentException('Expected exactly one context_settings element');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedContextSettingsElement'));
         }
         $seen = [];
         foreach ($containers->item(0)->childNodes as $settingNode) {
@@ -207,11 +220,13 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $locale = trim($settingNode->getAttribute('locale'));
             $key = $property . ':' . $locale;
             if (isset($seen[$key])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Duplicated context setting "%s" for locale "%s"%s',
-                    $property,
-                    $locale,
-                    $this->line($settingNode)
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.duplicatedContextSettingLocale',
+                    [
+                        'property' => $property,
+                        'locale' => $locale,
+                        'lineSuffix' => $this->line($settingNode),
+                    ]
                 ));
             }
             $seen[$key] = true;
@@ -219,13 +234,23 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $type = $settingNode->getAttribute('type');
             if ($locale === '') {
                 if ($definition['localized']) {
-                    throw new InvalidArgumentException('Context setting must be localized: ' . $property);
+                    throw new InvalidArgumentException(__(
+                        'plugins.importexport.fullJournal.error.contextSettingLocaleRequired',
+                        [
+                            'property' => $property,
+                        ]
+                    ));
                 }
                 $journal->setData($property, $policy->decode($property, $type, $settingNode->textContent));
                 continue;
             }
             if (!$definition['localized']) {
-                throw new InvalidArgumentException('Localized context setting is not allowed: ' . $property);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.localizedContextSettingNotAllowed',
+                    [
+                        'property' => $property,
+                    ]
+                ));
             }
             if (!in_array($locale, $acceptedLocales, true)) {
                 continue;
@@ -238,12 +263,14 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($name);
         if (!in_array($value, ['true', 'false'], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid %s value "%s" for locale "%s"%s; expected "true" or "false"',
-                $name,
-                $value,
-                $node->getAttribute('code'),
-                $this->line($node)
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidValueLocaleExpectedTrueOrFalse',
+                [
+                    'name' => $name,
+                    'value' => $value,
+                    'code' => $node->getAttribute('code'),
+                    'lineSuffix' => $this->line($node),
+                ]
             ));
         }
         return $value === 'true';
@@ -253,12 +280,14 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $value = $node->getAttribute($name);
         if (!ctype_digit($value) || (int) $value < 1) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid %s value "%s" for locale "%s"%s; expected a positive integer',
-                $name,
-                $value,
-                $node->getAttribute('code'),
-                $this->line($node)
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidValueLocaleExpectedPositiveInteger',
+                [
+                    'name' => $name,
+                    'value' => $value,
+                    'code' => $node->getAttribute('code'),
+                    'lineSuffix' => $this->line($node),
+                ]
             ));
         }
         return (int) $value;
@@ -266,7 +295,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
 
     private function line(DOMElement $node): string
     {
-        return $node->getLineNo() > 0 ? ' at line ' . $node->getLineNo() : '';
+        return $node->getLineNo() > 0 ? __('plugins.importexport.fullJournal.error.xmlLine', ['line' => $node->getLineNo()]) : '';
     }
 
     private function getImportedTheme(DOMElement $node): ThemePlugin
@@ -274,7 +303,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $pluginPath = $node->getAttribute('plugin_path');
         $theme = (new ThemeSettingsTransfer())->findInstalledThemeOrDefault($pluginPath);
         if ($theme->getDirName() === $pluginPath && $node->getAttribute('plugin_name') !== $theme->getName()) {
-            throw new InvalidArgumentException('The selected theme identity does not match the installed plugin');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.themeIdentityMismatch'));
         }
         return $theme;
     }
@@ -294,18 +323,38 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
             $name = $optionNode->getAttribute('name');
             if (array_key_exists($name, $options)) {
-                throw new InvalidArgumentException('Duplicated theme option: ' . $name);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.duplicatedThemeOption',
+                    [
+                        'name' => $name,
+                    ]
+                ));
             }
             if ($theme->getOptionConfig($name) === false) {
-                throw new InvalidArgumentException('Theme option is not supported: ' . $name);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.themeOptionNotSupported',
+                    [
+                        'name' => $name,
+                    ]
+                ));
             }
             try {
                 $value = json_decode($optionNode->textContent, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $exception) {
-                throw new InvalidArgumentException('Theme option contains invalid JSON: ' . $name, 0, $exception);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.themeOptionContainsInvalidJson',
+                    [
+                        'name' => $name,
+                    ]
+                ), 0, $exception);
             }
             if ($value === null) {
-                throw new InvalidArgumentException('Theme option value must not be null: ' . $name);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.themeOptionNullValue',
+                    [
+                        'name' => $name,
+                    ]
+                ));
             }
             $options[$name] = $value;
         }
@@ -316,7 +365,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
             Application::get()->getRequest()
         );
         if ($errors !== []) {
-            throw new InvalidArgumentException('The imported theme options are invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importedThemeOptionsInvalid'));
         }
         $theme->updateSetting((int) $journal->getId(), 'enabled', true, 'bool');
         foreach ($options as $name => $value) {
@@ -333,7 +382,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
             }
         }
         if (count($matches) > 1) {
-            throw new InvalidArgumentException('Expected at most one ' . $name . ' element');
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedAtMostOneElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0] ?? null;
     }
@@ -342,14 +396,14 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $names = $journal->getData('name', null);
         if (!is_array($names) || array_filter($names, 'is_string') === []) {
-            throw new InvalidArgumentException('The context must have a localized name');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalLocalizedNameRequired'));
         }
         if (!is_string($journal->getData('contactName')) || trim($journal->getData('contactName')) === '') {
-            throw new InvalidArgumentException('The context must have a contact name');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalContactNameRequired'));
         }
         $email = $journal->getData('contactEmail');
         if (!is_string($email) || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            throw new InvalidArgumentException('The context must have a valid contact email');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalContactEmailInvalid'));
         }
     }
 }

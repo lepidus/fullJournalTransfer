@@ -8,12 +8,15 @@ use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportPlugin;
 use APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use APP\plugins\importexport\native\NativeImportExportPlugin;
 use PHPUnit\Framework\TestCase;
 use PKP\site\Site;
 
 class FullJournalImportExportPluginTest extends TestCase
 {
+    use LoadsPluginLocale;
+
     public function testEntrypointLoadsNativeOjs34Plugin(): void
     {
         $plugin = require dirname(__DIR__, 3) . '/index.php';

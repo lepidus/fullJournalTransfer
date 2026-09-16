@@ -8,12 +8,15 @@ use APP\core\Application;
 use APP\facades\Repo;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use InvalidArgumentException;
 use PKP\db\DAORegistry;
 use PKP\tests\DatabaseTestCase;
 
 class ReferenceDataFilterIntegrationTest extends DatabaseTestCase
 {
+    use LoadsPluginLocale;
+
     private array $contexts = [];
 
     protected function getAffectedTables()

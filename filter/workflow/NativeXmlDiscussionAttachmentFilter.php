@@ -43,13 +43,14 @@ class NativeXmlDiscussionAttachmentFilter extends NativeImportFilter
                 SubmissionFile::SUBMISSION_FILE_QUERY,
             ], true)
         ) {
-            throw new InvalidArgumentException(sprintf(
-                'Discussion attachment source_ref "%s" with submission_file_ref "%s" does not belong to '
-                    . 'note_ref "%s" at line %d',
-                $sourceReference,
-                $node->getAttribute('submission_file_ref'),
-                $node->getAttribute('note_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.discussionAttachmentNoteMismatch',
+                [
+                    'sourceReference' => $sourceReference,
+                    'submissionFileRef' => $node->getAttribute('submission_file_ref'),
+                    'noteRef' => $node->getAttribute('note_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         (new HistoricalDiscussionPersistenceAdapter())->attachFile($submissionFileId, $noteId);
@@ -61,11 +62,13 @@ class NativeXmlDiscussionAttachmentFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing discussion attachment attribute "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingDiscussionAttachmentAttributeSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;

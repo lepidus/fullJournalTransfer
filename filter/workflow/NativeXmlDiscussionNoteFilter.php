@@ -54,11 +54,13 @@ class NativeXmlDiscussionNoteFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing discussion note attribute "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingDiscussionNoteAttributeSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -80,12 +82,14 @@ class NativeXmlDiscussionNoteFilter extends NativeImportFilter
     {
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
         if (!$date || $date->format('Y-m-d H:i:s') !== $value) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid discussion note %s "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $value,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidDiscussionNoteSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'value' => $value,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -100,7 +104,12 @@ class NativeXmlDiscussionNoteFilter extends NativeImportFilter
             }
         }
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one discussion note element: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedDiscussionNoteElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0]->textContent;
     }

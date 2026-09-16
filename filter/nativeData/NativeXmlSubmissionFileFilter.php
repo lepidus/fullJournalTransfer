@@ -20,7 +20,7 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
         if ($sourceId !== '') {
             $destinationId = $this->getDeployment()->getSubmissionFileDBId($sourceId);
             if (!$destinationId) {
-                throw new InvalidArgumentException('Source submission file has not been imported');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.sourceSubmissionFileNotImported'));
             }
             $node->setAttribute('source_submission_file_id', (string) $destinationId);
         }
@@ -33,21 +33,21 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
         $temporaryFileManager = new TemporaryFileManager();
         $temporaryPath = $temporaryFileManager->getBasePath();
         if (!is_dir($temporaryPath) && !$temporaryFileManager->mkdirtree($temporaryPath)) {
-            throw new RuntimeException('Temporary file directory could not be created');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.temporaryDirectoryCreationFailed'));
         }
         $fileId = parent::handleRevisionElement($node);
         if (!$fileId) {
-            throw new InvalidArgumentException('Imported file revision could not be persisted');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.fileRevisionSaveFailed'));
         }
         $file = Services::get('file')->get($fileId);
         if (!$file) {
-            throw new InvalidArgumentException('Imported file was not persisted');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importedFileNotSaved'));
         }
         $path = rtrim((string) Config::getVar('files', 'files_dir'), DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR . $file->path;
         $absolutePath = realpath($path);
         if ($absolutePath === false) {
-            throw new InvalidArgumentException('Imported file path could not be resolved');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importedFilePathResolutionFailed'));
         }
         $this->getDeployment()->recordCreatedFile($absolutePath);
         if ($exportedMimeType !== null) {
@@ -66,15 +66,19 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
             $value = $child->getAttribute('mime_type');
             $token = "[a-z0-9!#$%&'*+.^_`|~-]+";
             if (strlen($value) > 255 || preg_match('@\\A' . $token . '/' . $token . '\\z@iD', $value) !== 1) {
-                throw new InvalidArgumentException(sprintf(
-                    'Invalid exported MIME type for file revision at line %d',
-                    $child->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.invalidExportedMimeTypeFileRevisionLine',
+                    [
+                        'line' => $child->getLineNo(),
+                    ]
                 ));
             }
             if ($mimeType !== null && $mimeType !== $value) {
-                throw new InvalidArgumentException(sprintf(
-                    'Conflicting exported MIME types for file revision at line %d',
-                    $node->getLineNo()
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.conflictingExportedMimeTypesFileRevisionLine',
+                    [
+                        'line' => $node->getLineNo(),
+                    ]
                 ));
             }
             $mimeType = $value;

@@ -32,10 +32,10 @@ class FullJournalPackageExporter
     ): void {
         $outputDirectory = realpath(dirname($archivePath));
         if ($outputDirectory === false || !is_writable($outputDirectory)) {
-            throw new InvalidArgumentException('The export directory is not writable');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.exportDirectoryNotWritable'));
         }
         if (file_exists($archivePath) || is_link($archivePath)) {
-            throw new InvalidArgumentException('The export archive path is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.exportArchivePathInvalid'));
         }
         $archivePath = $outputDirectory . DIRECTORY_SEPARATOR . basename($archivePath);
         $stagingPath = $this->createStagingDirectory();
@@ -45,24 +45,24 @@ class FullJournalPackageExporter
 
         try {
             if ($progress) {
-                $progress('Exporting journal data...');
+                $progress(__('plugins.importexport.fullJournal.progress.exportingJournalData'));
             }
             $document = $deployment->exportContextData();
             $this->validateNativeData($document);
             $this->validateUserReferences($document);
             $xml = $document->saveXML();
             if (!is_string($xml) || file_put_contents($journalPath, $xml) === false) {
-                throw new RuntimeException('The journal XML could not be written');
+                throw new RuntimeException(__('plugins.importexport.fullJournal.error.journalXmlWriteFailed'));
             }
             if ($progress) {
-                $progress('Copying journal files...');
+                $progress(__('plugins.importexport.fullJournal.progress.copyingJournalFiles'));
             }
             $packageFiles = array_merge(['journal.xml'], $this->stageReferencedFiles($document, $stagingPath));
             if ($progress) {
-                $progress('Creating journal archive...');
+                $progress(__('plugins.importexport.fullJournal.progress.creatingJournalArchive'));
             }
             if (file_put_contents($manifestPath, $this->createManifest($stagingPath, $packageFiles)) === false) {
-                throw new RuntimeException('The package manifest could not be written');
+                throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageManifestWriteFailed'));
             }
             $arguments = [
                 '/bin/tar',
@@ -77,7 +77,12 @@ class FullJournalPackageExporter
             $process->run();
             if (!$process->isSuccessful()) {
                 $error = trim($process->getErrorOutput());
-                throw new RuntimeException('The journal archive could not be created: ' . $error);
+                throw new RuntimeException(__(
+                    'plugins.importexport.fullJournal.error.journalArchiveCreationFailed',
+                    [
+                        'error' => $error,
+                    ]
+                ));
             }
             $completed = true;
         } finally {
@@ -99,7 +104,7 @@ class FullJournalPackageExporter
         $nativeData = $xpath->query('/pkp:journal/pkp:native_data');
         $nativeDataRoot = $nativeData ? $nativeData->item(0) : null;
         if (!$nativeData || $nativeData->length !== 1 || !$nativeDataRoot instanceof DOMElement) {
-            throw new InvalidArgumentException('Expected exactly one native data element');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedSingleNativeDataRoot'));
         }
         (new NativeDataReferenceValidator())->validate($nativeDataRoot);
     }
@@ -137,9 +142,11 @@ class FullJournalPackageExporter
             $size = filesize($absolutePath);
             $checksum = hash_file('sha256', $absolutePath);
             if (!is_int($size) || !is_string($checksum)) {
-                throw new RuntimeException(sprintf(
-                    'The package file metadata for "%s" could not be calculated',
-                    $path
+                throw new RuntimeException(__(
+                    'plugins.importexport.fullJournal.error.packageFileMetadataCalculationFailed',
+                    [
+                        'path' => $path,
+                    ]
                 ));
             }
             $file = $document->createElement('file');
@@ -151,7 +158,7 @@ class FullJournalPackageExporter
         $root->appendChild($files);
         $xml = $document->saveXML();
         if (!is_string($xml)) {
-            throw new RuntimeException('The package manifest could not be serialized');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageManifestSerializationFailed'));
         }
         return $xml;
     }
@@ -160,7 +167,7 @@ class FullJournalPackageExporter
     {
         $filesDirectory = realpath($this->filesDirectory);
         if ($filesDirectory === false || is_link($filesDirectory)) {
-            throw new RuntimeException('The application files directory is invalid');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.applicationFilesDirectoryInvalid'));
         }
         $paths = [];
         $nodes = (new DOMXPath($document))->query('//*[local-name()="href"]');
@@ -174,18 +181,30 @@ class FullJournalPackageExporter
             if ($source === false || !is_file($source) || is_link($source)
                 || !str_starts_with($source, $filesDirectory . DIRECTORY_SEPARATOR)
             ) {
-                throw new RuntimeException(sprintf('Referenced journal file "%s" is unavailable', $path));
+                throw new RuntimeException(__(
+                    'plugins.importexport.fullJournal.error.referencedJournalFileUnavailable',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
             $destination = $stagingPath . DIRECTORY_SEPARATOR . $path;
             $directory = dirname($destination);
             if (!is_dir($directory) && !mkdir($directory, 0700, true)) {
-                throw new RuntimeException(sprintf(
-                    'Package directory for referenced journal file "%s" could not be created',
-                    $path
+                throw new RuntimeException(__(
+                    'plugins.importexport.fullJournal.error.referencedFileDirectoryCreationFailed',
+                    [
+                        'path' => $path,
+                    ]
                 ));
             }
             if (!copy($source, $destination)) {
-                throw new RuntimeException(sprintf('Referenced journal file "%s" could not be staged', $path));
+                throw new RuntimeException(__(
+                    'plugins.importexport.fullJournal.error.referencedFileStagingFailed',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
             $paths[$path] = true;
         }
@@ -197,11 +216,21 @@ class FullJournalPackageExporter
     private function validatePackagePath(string $path): void
     {
         if ($path === '' || $path[0] === '/' || str_contains($path, '\\') || str_contains($path, "\0")) {
-            throw new InvalidArgumentException(sprintf('Referenced journal file path "%s" is invalid', $path));
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.referencedJournalFilePathInvalid',
+                [
+                    'path' => $path,
+                ]
+            ));
         }
         foreach (explode('/', $path) as $component) {
             if ($component === '' || $component === '.' || $component === '..') {
-                throw new InvalidArgumentException(sprintf('Referenced journal file path "%s" is invalid', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.referencedJournalFilePathInvalid',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
         }
     }
@@ -230,7 +259,7 @@ class FullJournalPackageExporter
         $path = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR . 'full-journal-export-' . bin2hex(random_bytes(16));
         if (!mkdir($path, 0700)) {
-            throw new RuntimeException('The export staging directory could not be created');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.exportStagingDirectoryCreationFailed'));
         }
         return $path;
     }

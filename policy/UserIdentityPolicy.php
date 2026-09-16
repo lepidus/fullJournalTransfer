@@ -12,13 +12,16 @@ class UserIdentityPolicy
     {
         $normalizedEmail = mb_strtolower(trim($email));
         if (filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL) === false) {
-            throw new InvalidArgumentException('A valid email is required to resolve an imported user');
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidUserEmail',
+                ['username' => $username]
+            ));
         }
 
         $existingUser = $findByEmail($normalizedEmail);
         if ($existingUser !== null) {
             if (!isset($existingUser['id'], $existingUser['username'])) {
-                throw new InvalidArgumentException('The existing user identity is incomplete');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.existingUserIdentityIncomplete'));
             }
             return [
                 'user_id' => (int) $existingUser['id'],

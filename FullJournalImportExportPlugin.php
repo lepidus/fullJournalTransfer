@@ -63,14 +63,14 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
         $identifier = array_shift($args);
         if (!in_array($command, ['export', 'import'], true) || !$archivePath || !$identifier || $args !== []) {
             $this->usage($scriptName);
-            throw new InvalidArgumentException('Invalid full journal command arguments');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.invalidFullJournalCommandArguments'));
         }
         $archivePath = $this->absolutePath($archivePath);
 
         if ($command === 'export') {
             $journal = Application::get()->getContextDAO()->getByPath($identifier);
             if (!$journal) {
-                throw new InvalidArgumentException('The journal path does not exist');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.journalNotFound'));
             }
             $deployment = $this->getAppSpecificDeployment($journal, null);
             $exporter = new FullJournalPackageExporter(
@@ -80,13 +80,13 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
             $exporter->export($deployment, $archivePath, function (string $message): void {
                 $this->writeCLIOutput($message);
             });
-            $this->writeCLIOutput('Journal export completed');
+            $this->writeCLIOutput(__('plugins.importexport.fullJournal.progress.journalExportCompleted'));
             return true;
         }
 
         $user = Repo::user()->getByUsername($identifier, true);
         if (!$user) {
-            throw new InvalidArgumentException('The import user does not exist');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importUserNotFound'));
         }
         $deployment = $this->getAppSpecificDeployment(Application::get()->getContextDAO()->newDataObject(), $user);
         $version = Application::get()->getCurrentVersion()->getVersionString();
@@ -94,14 +94,14 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
             $this->writeCLIOutput($message);
         };
         if (!$deployment->importPackage($archivePath, $version, 'full-journal-xml=>journal', null, $progress)) {
-            $message = 'The journal package could not be imported.';
+            $message = __('plugins.importexport.fullJournal.error.journalImportFailed');
             $problems = $this->formatCLIProblems($deployment->getWarningsAndErrors());
             if ($problems !== '') {
                 $message .= "\n\n" . $problems;
             }
             throw new RuntimeException($message);
         }
-        $this->writeCLIOutput('Journal import completed');
+        $this->writeCLIOutput(__('plugins.importexport.fullJournal.progress.journalImportCompleted'));
         return true;
     }
 
@@ -112,7 +112,7 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
 
     protected function exitWithCLIError(string $message): void
     {
-        fwrite(STDERR, 'Error: ' . $message . PHP_EOL);
+        fwrite(STDERR, __('plugins.importexport.fullJournal.error.cli', ['message' => $message]) . PHP_EOL);
         exit(1);
     }
 
@@ -163,7 +163,7 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
         }
         $workingDirectory = getcwd();
         if ($workingDirectory === false) {
-            throw new RuntimeException('The current working directory is unavailable');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.currentWorkingDirectoryUnavailable'));
         }
         return $workingDirectory . DIRECTORY_SEPARATOR . $path;
     }

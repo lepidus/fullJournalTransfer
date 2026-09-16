@@ -41,7 +41,7 @@ class NativeXmlSectionFilter extends NativeImportFilter
         if ($reviewFormReference !== '') {
             $reviewFormMap = $deployment->getReferenceMap('review_form');
             if (!isset($reviewFormMap[$reviewFormReference])) {
-                throw new \InvalidArgumentException('Unknown review form reference in section');
+                throw new \InvalidArgumentException(__('plugins.importexport.fullJournal.error.unknownReviewFormReferenceSection'));
             }
             $section->setReviewFormId($reviewFormMap[$reviewFormReference]);
         }

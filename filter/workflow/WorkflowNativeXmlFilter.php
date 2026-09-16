@@ -27,7 +27,7 @@ class WorkflowNativeXmlFilter extends NativeExportFilter
     public function &process(&$context)
     {
         if (!$context instanceof Journal) {
-            throw new InvalidArgumentException('Expected a journal for workflow export');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.expectedJournalWorkflowExport'));
         }
 
         $document = new DOMDocument('1.0', 'UTF-8');
@@ -71,7 +71,7 @@ class WorkflowNativeXmlFilter extends NativeExportFilter
                 );
                 $fileDocument = $filter->execute($submissionFile, true);
                 if (!$fileDocument || !$fileDocument->documentElement instanceof DOMElement) {
-                    throw new InvalidArgumentException('A workflow submission file could not be exported');
+                    throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.workflowFileExportFailed'));
                 }
                 $node->appendChild($document->importNode($fileDocument->documentElement, true));
                 $root->appendChild($node);
@@ -83,12 +83,12 @@ class WorkflowNativeXmlFilter extends NativeExportFilter
     private function reviewRoundId($submissionFile, int $submissionId): int
     {
         if ((int) $submissionFile->getData('assocType') !== Application::ASSOC_TYPE_REVIEW_ROUND) {
-            throw new InvalidArgumentException('A review revision has no review round association');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.reviewRevisionNoReviewRoundAssociation'));
         }
         $reviewRoundId = (int) $submissionFile->getData('assocId');
         $reviewRound = DB::table('review_rounds')->where('review_round_id', $reviewRoundId)->first();
         if (!$reviewRound || (int) $reviewRound->submission_id !== $submissionId) {
-            throw new InvalidArgumentException('A review revision references an invalid review round');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.reviewRevisionReferencesInvalidReviewRound'));
         }
         return $reviewRoundId;
     }

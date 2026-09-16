@@ -27,11 +27,13 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
         $sourceReference = $this->requiredReference($node, 'source_ref');
         $stageId = $this->positiveInteger($node, 'stage_id');
         if (!in_array($stageId, [WORKFLOW_STAGE_ID_INTERNAL_REVIEW, WORKFLOW_STAGE_ID_EXTERNAL_REVIEW], true)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid review round stage_id "%d" for source_ref "%s" at line %d',
-                $stageId,
-                $sourceReference,
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidReviewRoundStageIdSourceRefLine',
+                [
+                    'stageId' => $stageId,
+                    'sourceReference' => $sourceReference,
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         $id = DB::table('review_rounds')->insertGetId([
@@ -51,11 +53,13 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
     {
         $value = trim($node->getAttribute($attribute));
         if ($value === '') {
-            throw new InvalidArgumentException(sprintf(
-                'Missing review round attribute "%s" for source_ref "%s" at line %d',
-                $attribute,
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.missingReviewRoundAttributeSourceRefLine',
+                [
+                    'attribute' => $attribute,
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -65,12 +69,14 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 1) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid review round %s "%s" for source_ref "%s" at line %d; expected a positive integer',
-                $attribute,
-                $node->getAttribute($attribute),
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidReviewRoundSourceRefLineExpectedPositiveInteger',
+                [
+                    'attribute' => $attribute,
+                    'value' => $node->getAttribute($attribute),
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;
@@ -80,12 +86,14 @@ class NativeXmlReviewRoundFilter extends NativeImportFilter
     {
         $value = filter_var($node->getAttribute($attribute), FILTER_VALIDATE_INT);
         if ($value === false || $value < 0) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid review round %s "%s" for source_ref "%s" at line %d; expected a non-negative integer',
-                $attribute,
-                $node->getAttribute($attribute),
-                $node->getAttribute('source_ref'),
-                $node->getLineNo()
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.invalidReviewRoundSourceRefLineExpectedNonNegativeInteger',
+                [
+                    'attribute' => $attribute,
+                    'value' => $node->getAttribute($attribute),
+                    'sourceRef' => $node->getAttribute('source_ref'),
+                    'line' => $node->getLineNo(),
+                ]
             ));
         }
         return $value;

@@ -26,18 +26,18 @@ class ArchiveManager
         ?callable $progress = null
     ) {
         if ($progress) {
-            $progress('Validating journal package...');
+            $progress(__('plugins.importexport.fullJournal.progress.validatingJournalPackage'));
         }
         $archive = $this->openAndValidateArchive($archivePath);
         [$manifest, $entries] = $this->validateContents($archive, $archivePath, $applicationVersion);
         if ($progress) {
-            $progress('Extracting journal package...');
+            $progress(__('plugins.importexport.fullJournal.progress.extractingJournalPackage'));
         }
         $stagingPath = $this->createStagingDirectory();
 
         try {
             if (!$archive->extractTo($stagingPath, $entries, false)) {
-                throw new RuntimeException('The package could not be extracted');
+                throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageExtractionFailed'));
             }
             $this->validateExtractedFiles($stagingPath, $entries);
 
@@ -50,17 +50,17 @@ class ArchiveManager
     private function openAndValidateArchive(string $archivePath): PharData
     {
         if (!is_file($archivePath) || is_link($archivePath)) {
-            throw new InvalidArgumentException('The package archive must be a regular file');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageRegularFileRequired'));
         }
         $size = filesize($archivePath);
         if ($size === false || $size <= 0 || $size > self::MAX_ARCHIVE_SIZE) {
-            throw new InvalidArgumentException('The package archive size is invalid');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageArchiveSizeInvalid'));
         }
 
         try {
             return new PharData($archivePath);
         } catch (Throwable $exception) {
-            throw new InvalidArgumentException('The package archive is invalid', 0, $exception);
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageArchiveInvalid'), 0, $exception);
         }
     }
 
@@ -68,10 +68,10 @@ class ArchiveManager
     {
         $listedEntries = $this->listArchiveEntries($archivePath);
         if (count($listedEntries) > self::MAX_ENTRIES) {
-            throw new InvalidArgumentException('The package contains too many entries');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageContainsTooManyEntries'));
         }
         if (count($listedEntries) !== count(array_unique($listedEntries))) {
-            throw new InvalidArgumentException('The package contains a duplicate entry');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageContainsDuplicateEntry'));
         }
 
         $entries = [];
@@ -88,12 +88,17 @@ class ArchiveManager
             $path = substr($file->getPathname(), strlen($prefix));
             $this->validateEntryPath($path);
             if ($file->isLink() || !$file->isFile()) {
-                throw new InvalidArgumentException(sprintf('The package entry %s must not be a link', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.packageEntryLinkNotAllowed',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
             $entries[] = $path;
             $totalSize += $file->getSize();
             if ($totalSize > self::MAX_EXTRACTED_SIZE) {
-                throw new InvalidArgumentException('The package extracted size exceeds the limit');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageExtractedSizeExceedsLimit'));
             }
         }
 
@@ -101,15 +106,15 @@ class ArchiveManager
         $listedFiles = array_values(array_filter($listedEntries, fn (string $path): bool => substr($path, -1) !== '/'));
         sort($listedFiles);
         if ($entries !== $listedFiles) {
-            throw new InvalidArgumentException('The package entry list is inconsistent');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageEntryListInconsistent'));
         }
 
         if (!in_array('manifest.xml', $entries, true)) {
-            throw new InvalidArgumentException('The package must contain manifest.xml');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageManifestMissing'));
         }
         $manifestXml = file_get_contents($prefix . 'manifest.xml');
         if ($manifestXml === false) {
-            throw new InvalidArgumentException('The package manifest could not be read');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageManifestReadFailed'));
         }
         $manifest = PackageManifest::fromXml($manifestXml, $applicationVersion);
         $manifest->validatePackageEntries($entries);
@@ -117,14 +122,19 @@ class ArchiveManager
         $expectedEntries = array_merge(['manifest.xml'], array_keys($manifest->getFiles()));
         sort($expectedEntries);
         if ($entries !== $expectedEntries) {
-            throw new InvalidArgumentException('The package entries must match the manifest');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageEntriesManifestMismatch'));
         }
         foreach ($manifest->getFiles() as $path => $metadata) {
             $entryPath = $prefix . $path;
             $actualSize = filesize($entryPath);
             $actualChecksum = hash_file('sha256', $entryPath);
             if ($actualSize !== $metadata['size'] || $actualChecksum !== $metadata['checksum']) {
-                throw new InvalidArgumentException(sprintf('The package checksum or size for %s is invalid', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.packageChecksumOrSizeInvalid',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
         }
 
@@ -139,19 +149,24 @@ class ArchiveManager
         $entries = preg_split('/\r?\n/', rtrim($stdout, "\r\n"));
         $verboseEntries = preg_split('/\r?\n/', rtrim($verboseOutput, "\r\n"));
         if ($entries === false || $entries === ['']) {
-            throw new InvalidArgumentException('The package archive is empty');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageArchiveEmpty'));
         }
         if ($verboseEntries === false || count($entries) !== count($verboseEntries)) {
-            throw new InvalidArgumentException('The package entry list is inconsistent');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageEntryListInconsistent'));
         }
         if (count($entries) !== count(array_unique($entries))) {
-            throw new InvalidArgumentException('The package contains a duplicate entry');
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageContainsDuplicateEntry'));
         }
         foreach ($verboseEntries as $index => $verboseEntry) {
             $type = $verboseEntry[0] ?? '';
             $isDirectory = substr($entries[$index], -1) === '/';
             if (($isDirectory && $type !== 'd') || (!$isDirectory && $type !== '-')) {
-                throw new InvalidArgumentException(sprintf('The package entry %s must not be a link or special file', $entries[$index]));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.packageLinkOrSpecialFileNotAllowed',
+                    [
+                        'path' => $entries[$index],
+                    ]
+                ));
             }
         }
         foreach ($entries as $path) {
@@ -168,10 +183,20 @@ class ArchiveManager
         $stdout = $process->getOutput();
         $stderr = $process->getErrorOutput();
         if (!$process->isSuccessful()) {
-            throw new InvalidArgumentException('The package archive could not be listed: ' . trim($stderr));
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.packageListingFailed',
+                [
+                    'details' => trim($stderr),
+                ]
+            ));
         }
         if (trim($stderr) !== '') {
-            throw new InvalidArgumentException('The package path must be relative; tar reported: ' . trim($stderr));
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.packageAbsolutePathReportedByTar',
+                [
+                    'details' => trim($stderr),
+                ]
+            ));
         }
 
         return $stdout;
@@ -180,11 +205,21 @@ class ArchiveManager
     private function validateEntryPath(string $path): void
     {
         if ($path === '' || $path[0] === '/' || str_contains($path, '\\') || str_contains($path, "\0")) {
-            throw new InvalidArgumentException(sprintf('The package path %s must be relative', $path));
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.packageRelativePathRequired',
+                [
+                    'path' => $path,
+                ]
+            ));
         }
         foreach (explode('/', $path) as $component) {
             if ($component === '' || $component === '.' || $component === '..') {
-                throw new InvalidArgumentException(sprintf('The package path %s must be relative', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.packageRelativePathRequired',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
         }
     }
@@ -194,7 +229,7 @@ class ArchiveManager
         $path = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR . 'full-journal-' . bin2hex(random_bytes(16));
         if (!mkdir($path, 0700)) {
-            throw new RuntimeException('The package staging directory could not be created');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageStagingDirectoryCreationFailed'));
         }
 
         return $path;
@@ -204,7 +239,7 @@ class ArchiveManager
     {
         $stagingRealPath = realpath($stagingPath);
         if ($stagingRealPath === false) {
-            throw new RuntimeException('The package staging directory is unavailable');
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.packageStagingDirectoryUnavailable'));
         }
         foreach ($entries as $path) {
             $file = $stagingPath . DIRECTORY_SEPARATOR . $path;
@@ -215,7 +250,12 @@ class ArchiveManager
                 || !is_file($realPath)
                 || is_link($file)
             ) {
-                throw new InvalidArgumentException(sprintf('The extracted package entry %s is unsafe', $path));
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.extractedPackageEntryUnsafe',
+                    [
+                        'path' => $path,
+                    ]
+                ));
             }
         }
     }

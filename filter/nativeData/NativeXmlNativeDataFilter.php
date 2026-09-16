@@ -96,7 +96,7 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             $issueId = $deployment->requireReference('issue', trim($issueNode->getAttribute('issue_ref')));
             $issue = Repo::issue()->get($issueId);
             if (!$issue || (int) $issue->getJournalId() !== $contextId) {
-                throw new InvalidArgumentException('Mapped issue does not exist in the imported context');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.mappedIssueNotFoundInContext'));
             }
             DB::table('issues')
                 ->where('issue_id', $issueId)
@@ -113,7 +113,7 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             );
             $submission = Repo::submission()->get($submissionId);
             if (!$submission || (int) $submission->getData('contextId') !== $contextId) {
-                throw new InvalidArgumentException('Mapped submission does not exist in the imported context');
+                throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.mappedSubmissionNotFoundInContext'));
             }
             DB::table('submissions')
                 ->where('submission_id', $submissionId)
@@ -139,7 +139,12 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
             $sourceId = trim($authorNode->getAttribute('author_ref'));
             $author = Repo::author()->get($deployment->requireReference('author', $sourceId));
             if (!$author) {
-                throw new InvalidArgumentException('Mapped author does not exist: ' . $sourceId);
+                throw new InvalidArgumentException(__(
+                    'plugins.importexport.fullJournal.error.mappedAuthorNotFound',
+                    [
+                        'sourceId' => $sourceId,
+                    ]
+                ));
             }
             $properties = [];
             foreach ([
@@ -163,7 +168,12 @@ class NativeXmlNativeDataFilter extends NativeImportFilter
     {
         $matches = $this->children($parent, $name);
         if (count($matches) !== 1) {
-            throw new InvalidArgumentException('Expected exactly one native data element: ' . $name);
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.expectedNativeDataElement',
+                [
+                    'name' => $name,
+                ]
+            ));
         }
         return $matches[0];
     }

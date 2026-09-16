@@ -18,13 +18,13 @@ class ImportedResourceJournal
 
     public function recordFile(string $path): void
     {
-        $this->validateAbsolutePath($path, 'file');
+        $this->validateAbsolutePath($path, __('plugins.importexport.fullJournal.entity.file'));
         $this->files[] = $path;
     }
 
     public function recordDirectory(string $path): void
     {
-        $this->validateAbsolutePath($path, 'directory');
+        $this->validateAbsolutePath($path, __('plugins.importexport.fullJournal.entity.directory'));
         $this->directories[] = $path;
     }
 
@@ -39,12 +39,12 @@ class ImportedResourceJournal
         $errors = [];
         foreach (array_reverse($this->files) as $path) {
             if ((is_file($path) || is_link($path)) && !unlink($path)) {
-                $errors[] = 'Failed to compensate an imported file';
+                $errors[] = __('plugins.importexport.fullJournal.error.failedCompensateImportedFile');
             }
         }
         foreach (array_reverse($this->directories) as $path) {
             if (is_dir($path) && !$removeDirectory($path)) {
-                $errors[] = 'Failed to compensate an imported directory';
+                $errors[] = __('plugins.importexport.fullJournal.error.failedCompensateImportedDirectory');
             }
         }
         $this->reset();
@@ -54,9 +54,11 @@ class ImportedResourceJournal
     private function validateAbsolutePath(string $path, string $resource): void
     {
         if ($path === '' || $path[0] !== DIRECTORY_SEPARATOR) {
-            throw new InvalidArgumentException(sprintf(
-                'A created %s journal entry must use an absolute path',
-                $resource
+            throw new InvalidArgumentException(__(
+                'plugins.importexport.fullJournal.error.resourceAbsolutePathRequired',
+                [
+                    'resource' => $resource,
+                ]
             ));
         }
     }

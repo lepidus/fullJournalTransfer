@@ -14,6 +14,9 @@ msgstr "Plugin de Exportação de Revista"
 msgid "plugins.importexport.fullJournal.description"
 msgstr "Permite importar e exportar revistas."
 
+msgid "plugins.importexport.fullJournal.error.invalidUserEmail"
+msgstr "O usuário “{$username}” não pôde ser importado porque seu endereço de e-mail está vazio ou é inválido."
+
 msgid "plugins.importexport.fullJournal.cliUsage"
 msgstr ""
 "Uso: {$scriptName} {$pluginName} [comando] ...\n"
@@ -75,3 +78,804 @@ msgstr "Usuário com email {$email} não está presente no site."
 
 msgid "plugins.importexport.fullJournal.error.metric"
 msgstr "Falha ao importar a métrica. {$reason}"
+
+msgid "plugins.importexport.fullJournal.error.applicationFilesDirectoryInvalid"
+msgstr "O diretório de arquivos da aplicação é inválido."
+
+msgid "plugins.importexport.fullJournal.error.articleGalleySourceReferenceMissing"
+msgstr "A referência de origem da composição do artigo não foi informada."
+
+msgid "plugins.importexport.fullJournal.error.authorMetadataEmpty"
+msgstr "Os metadados do autor com author_ref “{$sourceReference}” não podem estar vazios na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.conflictingExportedMimeTypesFileRevisionLine"
+msgstr "Os tipos MIME exportados para a revisão do arquivo são conflitantes na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.settingLocaleRequired"
+msgstr "A configuração “{$property}” deve conter pelo menos um idioma."
+
+msgid "plugins.importexport.fullJournal.error.journalContactNameRequired"
+msgstr "A revista deve ter um nome de contato."
+
+msgid "plugins.importexport.fullJournal.error.journalLocalizedNameRequired"
+msgstr "A revista deve ter um nome com o idioma informado."
+
+msgid "plugins.importexport.fullJournal.error.contextPathInvalid"
+msgstr "O caminho da revista é inválido."
+
+msgid "plugins.importexport.fullJournal.error.contextSequenceInvalid"
+msgstr "A ordem da revista é inválida."
+
+msgid "plugins.importexport.fullJournal.error.contextSettingNotAllowed"
+msgstr "A configuração da revista “{$property}” não é permitida."
+
+msgid "plugins.importexport.fullJournal.error.contextSettingLocaleRequired"
+msgstr "A configuração da revista “{$property}” deve informar o idioma de seu conteúdo."
+
+msgid "plugins.importexport.fullJournal.error.journalPathAlreadyExists"
+msgstr "Já existe uma revista com esse caminho."
+
+msgid "plugins.importexport.fullJournal.error.journalContactEmailInvalid"
+msgstr "A revista deve ter um endereço de e-mail de contato válido."
+
+msgid "plugins.importexport.fullJournal.error.resourceAbsolutePathRequired"
+msgstr "A entrada criada no registro de importação ({$resource}) deve usar um caminho absoluto."
+
+msgid "plugins.importexport.fullJournal.error.currentWorkingDirectoryUnavailable"
+msgstr "O diretório de trabalho atual não está disponível."
+
+msgid "plugins.importexport.fullJournal.error.destinationSiteLoadFailed"
+msgstr "Não foi possível carregar o site OJS de destino."
+
+msgid "plugins.importexport.fullJournal.error.discussionAttachmentNoteMismatch"
+msgstr "O anexo de discussão com source_ref “{$sourceReference}” e submission_file_ref “{$submissionFileRef}” não pertence à nota note_ref “{$noteRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.doiPrefixRequiredDoisEnabled"
+msgstr "O prefixo DOI é obrigatório quando os DOIs estão habilitados."
+
+msgid "plugins.importexport.fullJournal.error.doiSuffixPatternRequired"
+msgstr "O padrão de sufixo DOI é obrigatório para a configuração “{$property}”."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedAuthorMetadataLocaleAuthorRefElementLocaleLine"
+msgstr "O idioma dos metadados está duplicado para o autor com author_ref “{$sourceReference}”: o elemento “{$localName}” informa o idioma “{$locale}” na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedContextSettingLocale"
+msgstr "A configuração da revista “{$property}” está duplicada para o idioma “{$locale}”{$lineSuffix}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedFormOrderLocales"
+msgstr "A ordem de formulário “{$formOrder}” está duplicada para os idiomas “{$otherLocale}” e “{$locale}”{$lineSuffix}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedLocale"
+msgstr "O idioma “{$locale}” está duplicado."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedLocalizedLocaleSourceRefLine"
+msgstr "O idioma “{$locale}” de “{$name}” está duplicado no elemento “{$localName}”, com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedSourceRefLine"
+msgstr "A referência source_ref “{$reference}” do elemento “{$localName}” está duplicada na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedSourceReference"
+msgstr "A referência de origem de “{$entity}” está duplicada: {$reference}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedSubmissionOrderLocales"
+msgstr "A ordem de submissão “{$submissionOrder}” está duplicada para os idiomas “{$otherLocale}” e “{$locale}”{$lineSuffix}."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedThemeOption"
+msgstr "A opção de tema “{$name}” está duplicada."
+
+msgid "plugins.importexport.fullJournal.error.duplicatedUserSourceReference"
+msgstr "A referência de origem do usuário está duplicada: {$sourceReference}."
+
+msgid "plugins.importexport.fullJournal.error.editorialDecisionReviewRoundBelongsAnotherSubmission"
+msgstr "A rodada de avaliação da decisão editorial pertence a outra submissão."
+
+msgid "plugins.importexport.fullJournal.error.editorialDecisionRoundReferencesIncomplete"
+msgstr "As referências à rodada da decisão editorial devem ser informadas juntas."
+
+msgid "plugins.importexport.fullJournal.error.existingUserIdentityIncomplete"
+msgstr "A identificação do usuário existente está incompleta."
+
+msgid "plugins.importexport.fullJournal.error.expectedContextSettingsElement"
+msgstr "O XML deve conter exatamente um elemento “context_settings”."
+
+msgid "plugins.importexport.fullJournal.error.expectedDiscussionAttachmentsExport"
+msgstr "É necessário fornecer anexos de discussão para exportação."
+
+msgid "plugins.importexport.fullJournal.error.expectedDiscussionNoteElement"
+msgstr "A nota de discussão deve conter exatamente um elemento “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedSingleElement"
+msgstr "O XML deve conter exatamente um elemento “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalExport"
+msgstr "É necessário fornecer uma revista para exportação."
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalMetricsExport"
+msgstr "É necessário fornecer uma revista para exportar as métricas."
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalNativeDataExport"
+msgstr "É necessário fornecer uma revista para exportar os dados nativos."
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalReferenceDataExport"
+msgstr "É necessário fornecer uma revista para exportar os dados de referência."
+
+msgid "plugins.importexport.fullJournal.error.expectedJournalWorkflowExport"
+msgstr "É necessário fornecer uma revista para exportar o fluxo editorial."
+
+msgid "plugins.importexport.fullJournal.error.expectedMetricsElement"
+msgstr "As métricas devem conter exatamente um elemento “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedAtMostOneElement"
+msgstr "O XML deve conter no máximo um elemento “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedNativeDataElement"
+msgstr "Os dados nativos devem conter exatamente um elemento “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedSingleNativeDataRoot"
+msgstr "O XML deve conter exatamente um elemento de dados nativos."
+
+msgid "plugins.importexport.fullJournal.error.expectedReferenceDataContainer"
+msgstr "Os dados de referência devem conter exatamente um contêiner “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedWorkflowElement"
+msgstr "O fluxo editorial deve conter exatamente um elemento “{$name}”."
+
+msgid "plugins.importexport.fullJournal.error.expectedWorkflowSubmissionFilePayload"
+msgstr "O XML deve conter exatamente um conteúdo de arquivo do fluxo editorial."
+
+msgid "plugins.importexport.fullJournal.error.exportArchivePathInvalid"
+msgstr "O caminho do arquivo de exportação é inválido."
+
+msgid "plugins.importexport.fullJournal.error.exportDirectoryNotWritable"
+msgstr "O diretório de exportação não permite gravação."
+
+msgid "plugins.importexport.fullJournal.error.exportStagingDirectoryCreationFailed"
+msgstr "Não foi possível criar o diretório temporário de exportação."
+
+msgid "plugins.importexport.fullJournal.error.extractedPackageEntryUnsafe"
+msgstr "A entrada “{$path}” do pacote extraído não é segura."
+
+msgid "plugins.importexport.fullJournal.error.failedCompensateImportedDirectory"
+msgstr "Não foi possível remover um diretório criado durante a importação após a falha."
+
+msgid "plugins.importexport.fullJournal.error.failedCompensateImportedFile"
+msgstr "Não foi possível remover um arquivo criado durante a importação após a falha."
+
+msgid "plugins.importexport.fullJournal.error.historicalDecisionNotSaved"
+msgstr "A decisão editorial histórica não foi salva."
+
+msgid "plugins.importexport.fullJournal.error.importUserNotFound"
+msgstr "O usuário informado para executar a importação não existe."
+
+msgid "plugins.importexport.fullJournal.error.journalSaveFailed"
+msgstr "Não foi possível salvar a revista importada."
+
+msgid "plugins.importexport.fullJournal.error.publicFilesDirectoryCreationFailed"
+msgstr "Não foi possível criar o diretório de arquivos públicos da revista importada."
+
+msgid "plugins.importexport.fullJournal.error.publicFilesDirectoryResolutionFailed"
+msgstr "Não foi possível determinar o caminho do diretório de arquivos públicos da revista importada."
+
+msgid "plugins.importexport.fullJournal.error.importedFilePathResolutionFailed"
+msgstr "Não foi possível determinar o caminho do arquivo importado."
+
+msgid "plugins.importexport.fullJournal.error.importedFileNotSaved"
+msgstr "O arquivo importado não foi salvo."
+
+msgid "plugins.importexport.fullJournal.error.fileRevisionSaveFailed"
+msgstr "Não foi possível salvar a revisão do arquivo importado."
+
+msgid "plugins.importexport.fullJournal.error.issueGalleyPathResolutionFailed"
+msgstr "Não foi possível determinar o caminho do arquivo da composição da edição importada."
+
+msgid "plugins.importexport.fullJournal.error.publicationVersionNotFound"
+msgstr "A versão da publicação importada não foi encontrada."
+
+msgid "plugins.importexport.fullJournal.error.importedThemeOptionsInvalid"
+msgstr "As opções do tema importado são inválidas."
+
+msgid "plugins.importexport.fullJournal.error.userGroupLocalizedNamesRequired"
+msgstr "O grupo de usuários importado deve ter nomes e abreviaturas com os idiomas informados."
+
+msgid "plugins.importexport.fullJournal.error.userGroupSaveFailed"
+msgstr "Não foi possível salvar o grupo de usuários importado."
+
+msgid "plugins.importexport.fullJournal.error.importedUserGroupReferenceOutsideDestinationContext"
+msgstr "A referência ao grupo de usuários importado não pertence à revista de destino."
+
+msgid "plugins.importexport.fullJournal.error.userGroupSourceReferenceRequired"
+msgstr "O grupo de usuários importado deve informar o atributo source_ref na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidAuthorMetadataElementAuthorRefFoundLine"
+msgstr "O elemento de metadados é inválido para o autor com author_ref “{$sourceReference}”: foi encontrado “{$localName}” na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidAuthorMetadataLocaleAuthorRefElementLocaleLine"
+msgstr "O idioma dos metadados é inválido para o autor com author_ref “{$sourceReference}”: o elemento “{$localName}” informa o idioma “{$locale}” na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidAuthorMetadataNodeAuthorRefFoundLine"
+msgstr "O nó de metadados é inválido para o autor com author_ref “{$sourceReference}”: foi encontrado “{$nodeName}” na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionNoteSourceRefLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a nota de discussão com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedNonNegativeNumber"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a discussão com referência “{$sourceReference}”, na linha {$line}; informe um número não negativo."
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedPositiveInteger"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a discussão com referência “{$sourceReference}”, na linha {$line}; informe um número inteiro positivo."
+
+msgid "plugins.importexport.fullJournal.error.invalidDiscussionReferenceLineExpectedTrueOrFalse"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a discussão com referência “{$sourceReference}”, na linha {$line}; informe “true” ou “false”."
+
+msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a decisão editorial com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionSourceRefLineExpectedPositiveInteger"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a decisão editorial com source_ref “{$sourceRef}”, na linha {$line}; informe um número inteiro positivo."
+
+msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionTypeSourceRefLine"
+msgstr "O tipo de decisão editorial “{$decisionType}” é inválido para source_ref “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidExportedMimeTypeFileRevisionLine"
+msgstr "O tipo MIME exportado para a revisão do arquivo é inválido na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidFullJournalCommandArguments"
+msgstr "Os argumentos do comando de transferência de revista são inválidos."
+
+msgid "plugins.importexport.fullJournal.error.invalidGenreCategory"
+msgstr "A categoria do componente é inválida."
+
+msgid "plugins.importexport.fullJournal.error.invalidHistoricalLine"
+msgstr "O valor histórico “{$value}” de “{$attribute}” é inválido para “{$referenceAttribute}” com valor “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidIntegerSourceRefLine"
+msgstr "O valor inteiro “{$value}” de “{$name}” é inválido no elemento “{$localName}”, com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidJournalRoot"
+msgstr "O elemento raiz da revista é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidJsonContextSetting"
+msgstr "A configuração da revista “{$property}” contém JSON inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidLocale"
+msgstr "A configuração “{$property}” contém um idioma inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidLocaleLocalizedSourceRefLine"
+msgstr "O idioma “{$locale}” é inválido em “{$localName}” do elemento “{$parentElement}”, com source_ref “{$parentSourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidLocalizedLocaleUserGroupSourceRefLine"
+msgstr "O idioma “{$locale}” de “{$elementName}” é inválido para o grupo de usuários com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidMetricLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido na métrica {$metricContext}, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidMetricMonth"
+msgstr "O mês da métrica é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidNativeDataRoot"
+msgstr "O elemento raiz dos dados nativos é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidNumericSourceRefLine"
+msgstr "O valor numérico “{$value}” de “{$name}” é inválido no elemento “{$localName}”, com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidOjsNativeXml"
+msgstr "O XML nativo do OJS é inválido: {$message}"
+
+msgid "plugins.importexport.fullJournal.error.invalidReferenceDataRoot"
+msgstr "O elemento raiz dos dados de referência é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewAssignmentSourceRefLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a designação de avaliação com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewAssignmentSourceRefLineExpectedInteger"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a designação de avaliação com source_ref “{$sourceRef}”, na linha {$line}; informe um número inteiro."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewCommentReviewRefLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para o comentário de avaliação com review_ref “{$reviewRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewCommentReviewRefLineExpectedInteger"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para o comentário de avaliação com review_ref “{$reviewRef}”, na linha {$line}; informe um número inteiro."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewCommentReviewRefLineExpectedTrueOrFalse"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para o comentário de avaliação com review_ref “{$reviewRef}”, na linha {$line}; informe “true” ou “false”."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewFormElementType"
+msgstr "O tipo do elemento de formulário de avaliação é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewResponseNullReviewRefElementRefLine"
+msgstr "O valor “{$isNull}” de “is_null” é inválido para a resposta de avaliação com review_ref “{$reviewRef}” e element_ref “{$elementRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewResponseTypeReviewRefElementRefLine"
+msgstr "O tipo de resposta de avaliação “{$type}” é inválido para review_ref “{$reviewRef}” e element_ref “{$elementRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundFileReviewRoundRefLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para o arquivo da rodada de avaliação com review_round_ref “{$reviewRoundRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundSourceRefLineExpectedNonNegativeInteger"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a rodada de avaliação com source_ref “{$sourceRef}”, na linha {$line}; informe um número inteiro não negativo."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundSourceRefLineExpectedPositiveInteger"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a rodada de avaliação com source_ref “{$sourceRef}”, na linha {$line}; informe um número inteiro positivo."
+
+msgid "plugins.importexport.fullJournal.error.invalidReviewRoundStageIdSourceRefLine"
+msgstr "A etapa stage_id “{$stageId}” é inválida para a rodada de avaliação com source_ref “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidStageAssignmentSourceRefLine"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a designação de etapa com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidStageAssignmentSourceRefLineExpectedTrueOrFalse"
+msgstr "O valor “{$value}” de “{$attribute}” é inválido para a designação de etapa com source_ref “{$sourceRef}”, na linha {$line}; informe “true” ou “false”."
+
+msgid "plugins.importexport.fullJournal.error.invalidSubmissionProgressSubmissionSourceRefLine"
+msgstr "O valor “{$submissionProgress}” de submission_progress é inválido para a submissão com source_ref “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidTypeContextSetting"
+msgstr "O tipo da configuração da revista “{$property}” é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidUserGroupSourceRefLineExpectedTrueOrFalse"
+msgstr "O valor “{$value}” de “{$elementName}” é inválido para o grupo de usuários com source_ref “{$sourceRef}”, na linha {$line}; informe “true” ou “false”."
+
+msgid "plugins.importexport.fullJournal.error.invalidValueContextSetting"
+msgstr "O valor da configuração da revista “{$property}” é inválido."
+
+msgid "plugins.importexport.fullJournal.error.invalidValueLocaleExpectedPositiveInteger"
+msgstr "O valor “{$value}” de “{$name}” é inválido para o idioma “{$code}”{$lineSuffix}; informe um número inteiro positivo."
+
+msgid "plugins.importexport.fullJournal.error.invalidValueLocaleExpectedTrueOrFalse"
+msgstr "O valor “{$value}” de “{$name}” é inválido para o idioma “{$code}”{$lineSuffix}; informe “true” ou “false”."
+
+msgid "plugins.importexport.fullJournal.error.invalidValueSourceRefLineExpectedTrueOrFalse"
+msgstr "O valor “{$value}” de “{$name}” é inválido no elemento “{$localName}”, com source_ref “{$sourceRef}”, na linha {$line}; informe “true” ou “false”."
+
+msgid "plugins.importexport.fullJournal.error.invalidWorkflowStageUserGroupSourceRefLine"
+msgstr "A etapa editorial “{$stage}” é inválida para o grupo de usuários com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.invalidWorkflowSubmissionFileStageFileSourceIdSubmissionRefLine"
+msgstr "A etapa “{$stageName}” é inválida para o arquivo do fluxo editorial com identificador de origem “{$sourceSubmissionFileId}” e submission_ref “{$submissionReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.issueGalleySourceReferenceMissing"
+msgstr "A referência de origem da composição da edição não foi informada."
+
+msgid "plugins.importexport.fullJournal.error.journalArchiveCreationFailed"
+msgstr "Não foi possível criar o arquivo compactado da revista: {$error}"
+
+msgid "plugins.importexport.fullJournal.error.journalImportFailed"
+msgstr "Não foi possível importar o pacote da revista."
+
+msgid "plugins.importexport.fullJournal.error.journalNotFound"
+msgstr "O caminho da revista não existe."
+
+msgid "plugins.importexport.fullJournal.error.journalPrimaryLocaleUnavailable"
+msgstr "O idioma principal da revista ({$primaryLocale}) não está disponível no OJS de destino."
+
+msgid "plugins.importexport.fullJournal.error.journalXmlReadFailed"
+msgstr "Não foi possível ler o XML da revista."
+
+msgid "plugins.importexport.fullJournal.error.journalXmlWriteFailed"
+msgstr "Não foi possível gravar o XML da revista."
+
+msgid "plugins.importexport.fullJournal.error.localeDisabledFormsButDeclaresFormOrder"
+msgstr "O idioma “{$locale}” está desabilitado para formulários, mas declara a ordem “{$formOrder}”{$lineSuffix}."
+
+msgid "plugins.importexport.fullJournal.error.localeDisabledSubmissionsButDeclaresSubmissionOrder"
+msgstr "O idioma “{$locale}” está desabilitado para submissões, mas declara a ordem “{$submissionOrder}”{$lineSuffix}."
+
+msgid "plugins.importexport.fullJournal.error.localizedContextSettingNotAllowed"
+msgstr "Não é permitido informar a configuração da revista “{$property}” por idioma."
+
+msgid "plugins.importexport.fullJournal.error.localizedContextSettingArrayRequired"
+msgstr "A configuração da revista por idioma “{$property}” deve ser uma lista de valores."
+
+msgid "plugins.importexport.fullJournal.error.manifestInvalidApplication"
+msgstr "A aplicação informada no manifesto deve ser “ojs”."
+
+msgid "plugins.importexport.fullJournal.error.manifestVersionLineMismatch"
+msgstr "A linha de versão da aplicação informada no manifesto deve corresponder à linha de versão de destino."
+
+msgid "plugins.importexport.fullJournal.error.manifestAttributeRequiredElementLine"
+msgstr "O atributo “{$name}” do manifesto é obrigatório no elemento “{$localName}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.manifestSingleJournalFileRequired"
+msgstr "O manifesto deve declarar exatamente um arquivo journal.xml."
+
+msgid "plugins.importexport.fullJournal.error.manifestDeclaresDuplicatePath"
+msgstr "O manifesto declara o caminho duplicado “{$path}”."
+
+msgid "plugins.importexport.fullJournal.error.manifestFormatVersionNotSupported"
+msgstr "A versão do formato do manifesto não é suportada."
+
+msgid "plugins.importexport.fullJournal.error.manifestMetadataInvalid"
+msgstr "Os metadados de “{$path}” no manifesto são inválidos."
+
+msgid "plugins.importexport.fullJournal.error.manifestRelativePathRequired"
+msgstr "O caminho “{$path}” no manifesto deve ser relativo."
+
+msgid "plugins.importexport.fullJournal.error.manifestInvalidRoot"
+msgstr "O elemento raiz do manifesto deve ser “full_journal_package”."
+
+msgid "plugins.importexport.fullJournal.error.completeApplicationVersionRequired"
+msgstr "O manifesto e o destino devem informar a versão completa da aplicação."
+
+msgid "plugins.importexport.fullJournal.error.manifestMalformedXml"
+msgstr "O manifesto deve ser um documento XML bem formado."
+
+msgid "plugins.importexport.fullJournal.error.mappedAuthorNotFound"
+msgstr "O autor associado não existe: {$sourceId}."
+
+msgid "plugins.importexport.fullJournal.error.mappedIssueNotFoundInContext"
+msgstr "A edição associada não existe na revista importada."
+
+msgid "plugins.importexport.fullJournal.error.mappedSubmissionNotFoundInContext"
+msgstr "A submissão associada não existe na revista importada."
+
+msgid "plugins.importexport.fullJournal.error.missingDiscussionAttachmentAttributeSourceRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para o anexo de discussão com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingDiscussionAttributeReferenceLine"
+msgstr "O atributo “{$attribute}” não foi informado para a discussão com referência “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingDiscussionNoteAttributeSourceRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para a nota de discussão com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingEditorialDecisionAttributeSourceRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para a decisão editorial com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingHistoricalReference"
+msgstr "A referência histórica de “{$entity}” não foi informada: {$sourceReference}."
+
+msgid "plugins.importexport.fullJournal.error.missingIssueSourceReference"
+msgstr "A referência de origem da edição não foi informada."
+
+msgid "plugins.importexport.fullJournal.error.missingLocalizedReferenceData"
+msgstr "Os dados de referência “{$name}” por idioma não foram informados."
+
+msgid "plugins.importexport.fullJournal.error.missingMappedReference"
+msgstr "A referência de “{$entity}” não foi associada: “{$sourceReference}”."
+
+msgid "plugins.importexport.fullJournal.error.missingMetricAttributeLine"
+msgstr "O atributo de métrica “{$attribute}” não foi informado em {$metricContext}, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingNativeSourceReference"
+msgstr "A referência de origem dos dados nativos não foi informada."
+
+msgid "plugins.importexport.fullJournal.error.missingReferenceDataAttributeSourceRefLine"
+msgstr "O atributo “{$name}” não foi informado nos dados de referência do elemento “{$localName}”, com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewAssignmentAttributeSourceRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para a designação de avaliação com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewCommentAttributeReviewRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para o comentário de avaliação com review_ref “{$reviewRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewFileAttributeReviewRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para o arquivo de avaliação com review_ref “{$reviewRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewResponseAttributeNullReviewRefElementRefLine"
+msgstr "O atributo “is_null” não foi informado para a resposta de avaliação com review_ref “{$reviewRef}” e element_ref “{$elementRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewResponseAttributeReviewRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para a resposta de avaliação com review_ref “{$reviewRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewRoundAttributeSourceRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para a rodada de avaliação com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingReviewRoundFileAttributeReviewRoundRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para o arquivo da rodada de avaliação com review_round_ref “{$reviewRoundRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingSourceRefReferenceDataElementLine"
+msgstr "O atributo source_ref não foi informado no elemento de dados de referência “{$elementName}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingSourceReference"
+msgstr "A referência de origem de “{$entity}” não foi informada."
+
+msgid "plugins.importexport.fullJournal.error.missingStageAssignmentAttributeSourceRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para a designação de etapa com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingSubmissionProgressSubmissionSourceRefLine"
+msgstr "O atributo submission_progress não foi informado para a submissão com source_ref “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingUserGroupElementSourceRefLine"
+msgstr "O elemento “{$elementName}” não foi informado para o grupo de usuários com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingUserSourceReference"
+msgstr "A referência de origem do usuário não foi informada."
+
+msgid "plugins.importexport.fullJournal.error.missingWorkflowSubmissionFileAttributeSubmissionRefLine"
+msgstr "O atributo “{$attribute}” não foi informado para o arquivo do fluxo editorial com submission_ref “{$submissionRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.missingWorkflowSubmissionFileSourceIdSubmissionRefLine"
+msgstr "O identificador de origem do arquivo do fluxo editorial não foi informado para submission_ref “{$submissionReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.nativeDataFilterCannotRestoreHistoricalDates"
+msgstr "O filtro de dados nativos não permite restaurar as datas históricas."
+
+msgid "plugins.importexport.fullJournal.error.noJournalFormLocaleAvailableDestinationOjs"
+msgstr "Nenhum idioma de formulário da revista está disponível no OJS de destino."
+
+msgid "plugins.importexport.fullJournal.error.noJournalSubmissionLocaleAvailableDestinationOjs"
+msgstr "Nenhum idioma de submissão da revista está disponível no OJS de destino."
+
+msgid "plugins.importexport.fullJournal.error.nullReviewResponseContainsText"
+msgstr "Uma resposta de avaliação nula não deve conter texto."
+
+msgid "plugins.importexport.fullJournal.error.onlyReviewRevisionsMayReferenceReviewRound"
+msgstr "Somente revisões de avaliação podem fazer referência a uma rodada de avaliação."
+
+msgid "plugins.importexport.fullJournal.error.packageArchiveEmpty"
+msgstr "O arquivo do pacote está vazio."
+
+msgid "plugins.importexport.fullJournal.error.packageArchiveInvalid"
+msgstr "O arquivo do pacote é inválido."
+
+msgid "plugins.importexport.fullJournal.error.packageListingFailed"
+msgstr "Não foi possível listar o conteúdo do pacote: {$details}"
+
+msgid "plugins.importexport.fullJournal.error.packageRegularFileRequired"
+msgstr "O pacote deve ser um arquivo regular."
+
+msgid "plugins.importexport.fullJournal.error.packageArchiveSizeInvalid"
+msgstr "O tamanho do arquivo do pacote é inválido."
+
+msgid "plugins.importexport.fullJournal.error.packageChecksumOrSizeInvalid"
+msgstr "A soma de verificação ou o tamanho de “{$path}” no pacote é inválido."
+
+msgid "plugins.importexport.fullJournal.error.packageManifestMissing"
+msgstr "O pacote deve conter o arquivo manifest.xml."
+
+msgid "plugins.importexport.fullJournal.error.packageRequiredFilesMismatch"
+msgstr "O pacote deve conter exatamente um arquivo manifest.xml e um arquivo journal.xml."
+
+msgid "plugins.importexport.fullJournal.error.packageContainsDuplicateEntry"
+msgstr "O pacote contém uma entrada duplicada."
+
+msgid "plugins.importexport.fullJournal.error.packageContainsTooManyEntries"
+msgstr "O pacote contém entradas demais."
+
+msgid "plugins.importexport.fullJournal.error.referencedFileDirectoryCreationFailed"
+msgstr "Não foi possível criar o diretório no pacote para o arquivo referenciado da revista “{$path}”."
+
+msgid "plugins.importexport.fullJournal.error.packageEntriesManifestMismatch"
+msgstr "As entradas do pacote devem corresponder ao manifesto."
+
+msgid "plugins.importexport.fullJournal.error.packageEntryLinkNotAllowed"
+msgstr "A entrada “{$path}” do pacote não pode ser um link."
+
+msgid "plugins.importexport.fullJournal.error.packageLinkOrSpecialFileNotAllowed"
+msgstr "A entrada “{$path}” do pacote não pode ser um link ou um arquivo especial."
+
+msgid "plugins.importexport.fullJournal.error.packageEntryListInconsistent"
+msgstr "A lista de entradas do pacote é inconsistente."
+
+msgid "plugins.importexport.fullJournal.error.packageExtractionFailed"
+msgstr "Não foi possível extrair o pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageExtractedSizeExceedsLimit"
+msgstr "O tamanho do pacote descompactado excede o limite."
+
+msgid "plugins.importexport.fullJournal.error.packageFileMetadataCalculationFailed"
+msgstr "Não foi possível calcular os metadados do arquivo “{$path}” no pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageManifestReadFailed"
+msgstr "Não foi possível ler o manifesto do pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageManifestSerializationFailed"
+msgstr "Não foi possível serializar o manifesto do pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageManifestWriteFailed"
+msgstr "Não foi possível gravar o manifesto do pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageRelativePathRequired"
+msgstr "O caminho “{$path}” no pacote deve ser relativo."
+
+msgid "plugins.importexport.fullJournal.error.packageAbsolutePathReportedByTar"
+msgstr "O caminho no pacote deve ser relativo. O comando tar informou: {$details}"
+
+msgid "plugins.importexport.fullJournal.error.packageStagingDirectoryCreationFailed"
+msgstr "Não foi possível criar o diretório temporário do pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageStagingDirectoryUnavailable"
+msgstr "O diretório temporário do pacote não está disponível."
+
+msgid "plugins.importexport.fullJournal.error.primaryLocaleNotSupported"
+msgstr "O idioma principal deve estar incluído entre os idiomas suportados."
+
+msgid "plugins.importexport.fullJournal.error.publicationNoRawTitleLocale"
+msgstr "A publicação {$publicationId} não tem título armazenado para o idioma {$locale}."
+
+msgid "plugins.importexport.fullJournal.error.publicationExportFailed"
+msgstr "Não foi possível exportar a publicação {$publicationId} da submissão {$submissionId}."
+
+msgid "plugins.importexport.fullJournal.error.publicationSubmissionNoLocalizedTitle"
+msgstr "A publicação {$publicationId} da submissão {$submissionId} não tem título com o idioma informado."
+
+msgid "plugins.importexport.fullJournal.error.referencedJournalFilePathInvalid"
+msgstr "O caminho do arquivo referenciado da revista “{$path}” é inválido."
+
+msgid "plugins.importexport.fullJournal.error.referencedFileStagingFailed"
+msgstr "Não foi possível copiar o arquivo referenciado da revista “{$path}” para o diretório temporário."
+
+msgid "plugins.importexport.fullJournal.error.referencedJournalFileUnavailable"
+msgstr "O arquivo referenciado da revista “{$path}” não está disponível."
+
+msgid "plugins.importexport.fullJournal.error.reviewAssignmentRoundMismatch"
+msgstr "A designação de avaliação com source_ref “{$sourceReference}” e submission_ref “{$submissionRef}” não pertence à rodada review_round_ref “{$reviewRoundRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.reviewFormElementRequiresImportedReviewForm"
+msgstr "Um elemento de formulário de avaliação requer um formulário de avaliação importado."
+
+msgid "plugins.importexport.fullJournal.error.reviewResponseFormMismatch"
+msgstr "A resposta de avaliação não pertence ao formulário de avaliação designado."
+
+msgid "plugins.importexport.fullJournal.error.reviewRevisionNoReviewRoundAssociation"
+msgstr "Uma revisão de avaliação não está associada a uma rodada de avaliação."
+
+msgid "plugins.importexport.fullJournal.error.reviewRevisionReferencesInvalidReviewRound"
+msgstr "Uma revisão de avaliação faz referência a uma rodada de avaliação inválida."
+
+msgid "plugins.importexport.fullJournal.error.reviewRoundSubmissionMismatch"
+msgstr "A rodada de avaliação review_round_ref “{$reviewRoundRef}” não pertence à submissão submission_ref “{$submissionRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.reviewRoundFileSubmissionMismatch"
+msgstr "O arquivo da rodada de avaliação submission_file_ref “{$submissionFileRef}” não pertence à submissão submission_ref “{$submissionRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.reviewFileAssignmentMismatch"
+msgstr "O arquivo de avaliação submission_file_ref “{$submissionFileRef}” não pertence à avaliação review_ref “{$reviewRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.themeIdentityMismatch"
+msgstr "A identificação do tema selecionado não corresponde ao plugin instalado."
+
+msgid "plugins.importexport.fullJournal.error.selectedThemeNotInstalled"
+msgstr "O tema selecionado não está instalado: {$pluginPath}."
+
+msgid "plugins.importexport.fullJournal.error.selectedThemePathInvalid"
+msgstr "O caminho do tema selecionado é inválido."
+
+msgid "plugins.importexport.fullJournal.error.sourceSubmissionFileNotImported"
+msgstr "O arquivo de submissão de origem não foi importado."
+
+msgid "plugins.importexport.fullJournal.error.submissionChecklistLocalizedHtmlRequired"
+msgstr "O conteúdo da lista de condições para submissão deve estar em HTML e informar seu idioma."
+
+msgid "plugins.importexport.fullJournal.error.submissionChecklistLocaleRequired"
+msgstr "A lista de condições para submissão deve informar o idioma de seu conteúdo."
+
+msgid "plugins.importexport.fullJournal.error.submissionFileDependencyCycleDetectedAmongSourceIds"
+msgstr "Foi detectado um ciclo de dependências entre os arquivos de submissão com os seguintes identificadores de origem: {$sourceIds}."
+
+msgid "plugins.importexport.fullJournal.error.submissionFileReferencesMissingSourceSubmissionFile"
+msgstr "O arquivo de submissão {$id} faz referência ao arquivo de submissão de origem inexistente {$sourceId}."
+
+msgid "plugins.importexport.fullJournal.error.subscriptionPublishingModeNotSupported"
+msgstr "O modo de publicação por assinatura não é suportado porque as assinaturas não são transferidas."
+
+msgid "plugins.importexport.fullJournal.error.temporaryDirectoryCreationFailed"
+msgstr "Não foi possível criar o diretório de arquivos temporários."
+
+msgid "plugins.importexport.fullJournal.error.themeOptionContainsInvalidJson"
+msgstr "A opção de tema “{$name}” contém JSON inválido."
+
+msgid "plugins.importexport.fullJournal.error.themeOptionNotSupported"
+msgstr "A opção de tema “{$name}” não é suportada."
+
+msgid "plugins.importexport.fullJournal.error.themeOptionNullValue"
+msgstr "O valor da opção de tema “{$name}” não pode ser nulo."
+
+msgid "plugins.importexport.fullJournal.error.unacceptableRoleIdUserGroupSourceRefLine"
+msgstr "O papel role_id “{$roleId}” não é permitido para o grupo de usuários com source_ref “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownAuthorMetadataReferenceLine"
+msgstr "A referência aos metadados do autor “{$sourceReference}” é desconhecida na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownCurrentPublicationIdSubmissionSourceRefLine"
+msgstr "A publicação atual current_publication_id “{$current}” é desconhecida para a submissão com source_ref “{$sourceReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownHistoricalIssueDateReferenceLine"
+msgstr "A referência à data histórica da edição “{$sourceReference}” é desconhecida na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownHistoricalSubmissionDateReferenceLine"
+msgstr "A referência à data histórica da submissão “{$sourceReference}” é desconhecida na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownImportedUserGroupReference"
+msgstr "A referência ao grupo de usuários importado é desconhecida."
+
+msgid "plugins.importexport.fullJournal.error.unknownIssueOrderReferenceLine"
+msgstr "A referência à ordem da edição “{$sourceReference}” é desconhecida na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownReviewFormRefSectionSourceRefLine"
+msgstr "A referência ao formulário de avaliação review_form_ref “{$reference}” é desconhecida na seção com source_ref “{$sourceRef}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.unknownReviewFormReferenceSection"
+msgstr "A seção faz referência a um formulário de avaliação desconhecido."
+
+msgid "plugins.importexport.fullJournal.error.unknownWorkflowUserReference"
+msgstr "A referência ao usuário do fluxo editorial é desconhecida: {$sourceReference}."
+
+msgid "plugins.importexport.fullJournal.error.unsafeNativeFileReferenceLine"
+msgstr "A referência de arquivo nativo “{$source}” não é segura na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.workflowReferencesMissingUser"
+msgstr "O fluxo editorial faz referência a um usuário inexistente: {$userId}."
+
+msgid "plugins.importexport.fullJournal.error.workflowFileExportFailed"
+msgstr "Não foi possível exportar um arquivo do fluxo editorial."
+
+msgid "plugins.importexport.fullJournal.error.workflowSubmissionFileReferencesUnavailableSubmissionRefLine"
+msgstr "O arquivo do fluxo editorial faz referência à submissão indisponível submission_ref “{$submissionReference}”, na linha {$line}."
+
+msgid "plugins.importexport.fullJournal.error.workflowSubmissionFileReviewRoundBelongsAnotherSubmission"
+msgstr "A rodada de avaliação do arquivo do fluxo editorial pertence a outra submissão."
+
+msgid "plugins.importexport.fullJournal.error.workflowFileReviewRoundNotImported"
+msgstr "A rodada de avaliação do arquivo do fluxo editorial não foi importada."
+
+msgid "plugins.importexport.fullJournal.error.workflowFileImportFailed"
+msgstr "Não foi possível importar o arquivo do fluxo editorial com identificador de origem “{$sourceSubmissionFileId}” e submission_ref “{$submissionReference}”."
+
+msgid "plugins.importexport.fullJournal.progress.copyingJournalFiles"
+msgstr "Copiando os arquivos da revista..."
+
+msgid "plugins.importexport.fullJournal.progress.creatingJournalArchive"
+msgstr "Criando o arquivo compactado da revista..."
+
+msgid "plugins.importexport.fullJournal.progress.exportingJournalData"
+msgstr "Exportando os dados da revista..."
+
+msgid "plugins.importexport.fullJournal.progress.extractingJournalPackage"
+msgstr "Extraindo o pacote da revista..."
+
+msgid "plugins.importexport.fullJournal.progress.importingJournalData"
+msgstr "Importando os dados da revista..."
+
+msgid "plugins.importexport.fullJournal.progress.journalExportCompleted"
+msgstr "Exportação da revista concluída."
+
+msgid "plugins.importexport.fullJournal.progress.journalImportCompleted"
+msgstr "Importação da revista concluída."
+
+msgid "plugins.importexport.fullJournal.progress.validatingJournalPackage"
+msgstr "Validando o pacote da revista..."
+
+msgid "plugins.importexport.fullJournal.warning.unavailableLocales"
+msgstr "Aviso: para migrar todos os metadados por idioma, os idiomas usados na revista de origem devem estar instalados e habilitados no OJS de destino antes da importação. Os metadados nos seguintes idiomas indisponíveis não serão importados: {$unavailableLocales}."
+
+msgid "plugins.importexport.fullJournal.error.cli"
+msgstr "Erro: {$message}"
+
+msgid "plugins.importexport.fullJournal.error.xmlLine"
+msgstr " na linha {$line}"
+
+msgid "plugins.importexport.fullJournal.error.unknownSchemaError"
+msgstr "erro de esquema desconhecido"
+
+msgid "plugins.importexport.fullJournal.warning.institutionMissingRor"
+msgstr "A métrica institucional não tem um identificador ROR estável."
+
+msgid "plugins.importexport.fullJournal.warning.institutionRorNotFound"
+msgstr "O identificador ROR da métrica institucional não foi encontrado no destino."
+
+msgid "plugins.importexport.fullJournal.warning.institutionRorAmbiguous"
+msgstr "O identificador ROR da métrica institucional corresponde a mais de uma instituição no destino."
+
+msgid "plugins.importexport.fullJournal.entity.referenceData"
+msgstr "dados de referência"
+
+msgid "plugins.importexport.fullJournal.entity.historicalIssueDate"
+msgstr "data histórica da edição"
+
+msgid "plugins.importexport.fullJournal.entity.issueDate"
+msgstr "data da edição"
+
+msgid "plugins.importexport.fullJournal.entity.historicalSubmissionDate"
+msgstr "data histórica da submissão"
+
+msgid "plugins.importexport.fullJournal.entity.submissionDate"
+msgstr "data da submissão"
+
+msgid "plugins.importexport.fullJournal.entity.authorMetadata"
+msgstr "metadados do autor"
+
+msgid "plugins.importexport.fullJournal.entity.file"
+msgstr "arquivo"
+
+msgid "plugins.importexport.fullJournal.entity.directory"
+msgstr "diretório"
