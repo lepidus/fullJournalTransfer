@@ -316,8 +316,8 @@ msgstr "Invalid editorial decision {$attribute} \"{$value}\" for source_ref \"{$
 msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionTypeSourceRefLine"
 msgstr "Invalid editorial decision type \"{$decisionType}\" for source_ref \"{$sourceReference}\" at line {$line}"
 
-msgid "plugins.importexport.fullJournal.error.invalidExportedMimeTypeFileRevisionLine"
-msgstr "Invalid exported MIME type for file revision at line {$line}"
+msgid "plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine"
+msgstr "The exported MIME type for file {$fileId} at XML line {$line} was ignored. The MIME type detected by OJS was used."
 
 msgid "plugins.importexport.fullJournal.error.invalidFullJournalCommandArguments"
 msgstr "Invalid full journal command arguments"

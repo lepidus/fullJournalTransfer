@@ -535,7 +535,8 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->assertSame($exportedMimeType, Services::get('file')->get($destinationFileId)->mimetype);
     }
 
-    public function testItRejectsAnInvalidExportedSubmissionFileMimeType(): void
+    /** @dataProvider invalidExportedMimeTypes */
+    public function testItUsesDetectedMimeTypeAndWarnsWhenExportedMimeIsInvalid(string $mimeType): void
     {
         Event::fake([BatchMetadataChanged::class]);
         Queue::fake();
@@ -546,7 +547,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $sourceGenre = $this->createGenre($source, 'Invalid MIME Manuscript');
         $this->createGenre($destination, 'Invalid MIME Manuscript');
         $submission = $this->createSubmission($source, $sourceSection, 'Article with invalid MIME', null);
-        $this->createSubmissionFile(
+        $submissionFile = $this->createSubmissionFile(
             $source,
             $submission,
             (int) $sourceGenre->getId(),
@@ -557,20 +558,35 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $document = (new FullJournalImportExportDeployment($source, null))->exportNativeData();
         $xpath = new \DOMXPath($document);
         $xpath->registerNamespace('pkp', 'http://pkp.sfu.ca');
-        $xpath->query('//pkp:file/pkp:href')->item(0)->setAttribute('mime_type', 'text/plain; charset=utf-8');
+        $xpath->query('//pkp:file/pkp:href')->item(0)->setAttribute('mime_type', $mimeType);
 
         $this->setRequestContext($destination);
         $importUser = Repo::user()->getCollector()->getMany()->first();
         $this->assertNotNull($importUser);
         $deployment = new FullJournalImportExportDeployment($destination, $importUser);
         $deployment->setImportPath((string) Config::getVar('files', 'files_dir'));
-        try {
-            $maps = $deployment->importNativeData($document->documentElement);
-            $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
-            $this->fail('An invalid exported MIME type was accepted');
-        } catch (InvalidArgumentException $exception) {
-            $this->assertStringContainsString('Invalid exported MIME type', $exception->getMessage());
-        }
+        $maps = $deployment->importNativeData($document->documentElement);
+        $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
+        $sourceRevision = Repo::submissionFile()->getRevisions((int) $submissionFile->getId())->first();
+        $destinationFileId = $maps['file_id_map'][(string) $sourceRevision->fileId];
+
+        $this->assertSame('text/plain', Services::get('file')->get($destinationFileId)->mimetype);
+        $warnings = $deployment->getProcessedObjectsWarnings(Application::ASSOC_TYPE_NONE);
+        $this->assertCount(1, $warnings[0]);
+        $this->assertStringContainsString('file ' . $sourceRevision->fileId, $warnings[0][0]);
+        $this->assertStringContainsString('MIME type detected by OJS', $warnings[0][0]);
+        $this->assertArrayNotHasKey('errors', $deployment->getWarningsAndErrors());
+    }
+
+    public static function invalidExportedMimeTypes(): array
+    {
+        return [
+            'empty' => [''],
+            'parameters' => ['text/plain; charset=utf-8'],
+            'whitespace' => [' text/plain '],
+            'control characters' => ["text/plain\r\nX-Test: invalid"],
+            'too long' => ['application/' . str_repeat('x', 244)],
+        ];
     }
 
     public function testItUsesDetectedMimeTypeWhenTheExportedValueIsAbsent(): void

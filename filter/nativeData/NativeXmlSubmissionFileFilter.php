@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter\nativeData;
 
+use APP\core\Application;
 use APP\core\Services;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
@@ -66,12 +67,15 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
             $value = $child->getAttribute('mime_type');
             $token = "[a-z0-9!#$%&'*+.^_`|~-]+";
             if (strlen($value) > 255 || preg_match('@\\A' . $token . '/' . $token . '\\z@iD', $value) !== 1) {
-                throw new InvalidArgumentException(__(
-                    'plugins.importexport.fullJournal.error.invalidExportedMimeTypeFileRevisionLine',
-                    [
+                $this->getDeployment()->addWarning(
+                    Application::ASSOC_TYPE_NONE,
+                    0,
+                    __('plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine', [
+                        'fileId' => (int) $node->getAttribute('id'),
                         'line' => $child->getLineNo(),
-                    ]
-                ));
+                    ])
+                );
+                return null;
             }
             if ($mimeType !== null && $mimeType !== $value) {
                 throw new InvalidArgumentException(__(
