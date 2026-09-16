@@ -36,10 +36,10 @@ class ArchiveManagerTest extends TestCase
 
         $result = (new ArchiveManager())->withExtractedPackage(
             $archive,
-            self::RELEASE,
+
             function (string $path) use (&$stagingPath): string {
                 $stagingPath = $path;
-                $this->assertFileExists($path . '/manifest.xml');
+                $this->assertFileDoesNotExist($path . '/manifest.xml');
                 $this->assertFileExists($path . '/journal.xml');
 
                 return (string) file_get_contents($path . '/journal.xml');
@@ -51,25 +51,27 @@ class ArchiveManagerTest extends TestCase
         $this->assertDirectoryDoesNotExist($stagingPath);
     }
 
-    public function testItRejectsAChecksumMismatchBeforeCallingTheImporter(): void
+    public function testItIgnoresAnOutdatedManifestInAnExistingPackage(): void
     {
         $archive = $this->createValidArchive(str_repeat('0', 64));
-        $called = false;
+        $result = (new ArchiveManager())->withExtractedPackage(
+            $archive,
 
-        try {
-            (new ArchiveManager())->withExtractedPackage(
-                $archive,
-                self::RELEASE,
-                function () use (&$called): void {
-                    $called = true;
-                }
-            );
-            $this->fail('A package with an invalid checksum was accepted');
-        } catch (InvalidArgumentException $exception) {
-            $this->assertStringContainsString('checksum', $exception->getMessage());
-        }
+            static fn (string $path): string => file_get_contents($path . '/journal.xml')
+        );
+        $this->assertSame('<journal/>', $result);
+    }
 
-        $this->assertFalse($called);
+    public function testItRequiresJournalXmlBeforeCallingTheImporter(): void
+    {
+        $source = $this->createTemporaryDirectory();
+        file_put_contents($source . '/article.txt', 'content');
+        $archive = $this->createTar($source, ['article.txt']);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('journal.xml');
+        (new ArchiveManager())->withExtractedPackage($archive, function (): void {
+            $this->fail('Importer was called without journal.xml');
+        });
     }
 
     public function testItRejectsAbsolutePathsBeforeCallingTheImporter(): void
@@ -100,7 +102,7 @@ class ArchiveManagerTest extends TestCase
         try {
             (new ArchiveManager())->withExtractedPackage(
                 $archive,
-                self::RELEASE,
+
                 function (string $path) use (&$stagingPath): void {
                     $stagingPath = $path;
                     throw new RuntimeException('Import failed');
@@ -120,9 +122,12 @@ class ArchiveManagerTest extends TestCase
         $source = $this->createTemporaryDirectory();
         $journal = '<journal/>';
         file_put_contents($source . '/journal.xml', $journal);
-        file_put_contents($source . '/manifest.xml', $this->manifest($checksum ?? hash('sha256', $journal)));
-
-        return $this->createTar($source, ['manifest.xml', 'journal.xml']);
+        $entries = ['journal.xml'];
+        if ($checksum !== null) {
+            file_put_contents($source . '/manifest.xml', $this->manifest($checksum));
+            $entries[] = 'manifest.xml';
+        }
+        return $this->createTar($source, $entries);
     }
 
     private function createUnsafeArchive(string $kind): string
@@ -130,20 +135,19 @@ class ArchiveManagerTest extends TestCase
         $source = $this->createTemporaryDirectory();
         $journal = '<journal/>';
         file_put_contents($source . '/journal.xml', $journal);
-        file_put_contents($source . '/manifest.xml', $this->manifest(hash('sha256', $journal)));
 
         if ($kind === 'symlink') {
             symlink('journal.xml', $source . '/linked.xml');
-            return $this->createTar($source, ['manifest.xml', 'journal.xml', 'linked.xml']);
+            return $this->createTar($source, ['journal.xml', 'linked.xml']);
         }
 
         $archive = $this->newTemporaryPath('.tar.gz');
         if ($kind === 'absolute') {
-            $arguments = ['--transform=s|^journal.xml$|/journal.xml|', 'manifest.xml', 'journal.xml'];
+            $arguments = ['--transform=s|^journal.xml$|/journal.xml|', 'journal.xml'];
         } elseif ($kind === 'traversal') {
-            $arguments = ['--transform=s|^journal.xml$|../journal.xml|', 'manifest.xml', 'journal.xml'];
+            $arguments = ['--transform=s|^journal.xml$|../journal.xml|', 'journal.xml'];
         } else {
-            $arguments = ['manifest.xml', 'journal.xml', 'journal.xml'];
+            $arguments = ['journal.xml', 'journal.xml'];
         }
         $this->runTar($archive, $source, $arguments);
 
@@ -194,7 +198,7 @@ class ArchiveManagerTest extends TestCase
         try {
             (new ArchiveManager())->withExtractedPackage(
                 $archive,
-                self::RELEASE,
+
                 function () use (&$called): void {
                     $called = true;
                 }

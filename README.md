@@ -10,6 +10,19 @@ The latest release of this plugin is compatible with the following PKP applicati
 
 **Note:** Packages can only be transferred between installations on the same OJS 3.4.0 version line.
 
+## Journal package format
+
+Exports contain `journal.xml` and its referenced files, without `manifest.xml`. Imports require
+`journal.xml` at the archive root. Manifests in older packages are ignored, including their checksums,
+sizes and version metadata. Edited packages do not require regenerating a manifest.
+
+Checks for unsafe paths, links, duplicate entries and extraction limits remain in place. XML and data
+reference validation also remains in place. The package no longer provides checksum verification or
+automatic source/destination version matching; use compatible OJS 3.4.0 installations.
+
+New exports require an importer with this change; older plugin versions that require a manifest cannot
+import them.
+
 ## Requirements
 
 - PHP >= 8.0.2

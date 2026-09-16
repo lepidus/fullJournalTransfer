@@ -10,6 +10,19 @@ A versão mais recente deste plugin é compatível com as seguintes aplicações
 
 **Nota:** Os pacotes só podem ser transferidos entre instalações da mesma linha OJS 3.4.0.
 
+## Formato do pacote da revista
+
+As exportações contêm `journal.xml` e seus arquivos referenciados, sem `manifest.xml`. A importação exige
+`journal.xml` na raiz do pacote. Manifestos de pacotes antigos são ignorados, incluindo hashes, tamanhos
+e metadados de versão. Ajustes no pacote não exigem regenerar um manifesto.
+
+As verificações de caminhos inseguros, links, entradas duplicadas e limites de extração permanecem,
+assim como a validação do XML e de suas referências. O pacote deixa de conferir hashes e de comparar
+automaticamente as versões de origem e destino; utilize instalações compatíveis do OJS 3.4.0.
+
+Novas exportações exigem um importador com esta alteração; versões anteriores do plugin que exigem
+manifesto não conseguem importá-las.
+
 ## Requisitos
 
 - PHP >= 8.0.2

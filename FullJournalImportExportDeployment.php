@@ -38,7 +38,6 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
     public function importPackage(
         string $archivePath,
-        string $applicationVersion,
         string $rootFilter,
         ?ArchiveManager $archiveManager = null,
         ?callable $progress = null
@@ -47,7 +46,6 @@ class FullJournalImportExportDeployment extends NativeImportExportDeployment
 
         return $archiveManager->withExtractedPackage(
             $archivePath,
-            $applicationVersion,
             function (string $stagingPath) use ($rootFilter, $progress): bool {
                 $journalXml = file_get_contents($stagingPath . DIRECTORY_SEPARATOR . 'journal.xml');
                 if ($journalXml === false) {

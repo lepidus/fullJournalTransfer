@@ -6,6 +6,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\tests\unit\package;
 
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\package\ArchiveManager;
 use APP\plugins\importexport\fullJournalTransfer\package\FullJournalPackageExporter;
 use APP\plugins\importexport\fullJournalTransfer\tests\support\LoadsPluginLocale;
 use DOMDocument;
@@ -31,20 +32,22 @@ class FullJournalPackageExporterTest extends TestCase
         $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
 
         try {
-            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            (new FullJournalPackageExporter($filesDirectory))->export($deployment, $archivePath);
 
             $entries = $this->runTar(['-tzf', $archivePath]);
             $this->assertSame([
-                'manifest.xml',
                 'journal.xml',
                 $referencedFile,
             ], preg_split('/\R/', trim($entries)));
-            $manifest = $this->runTar(['-xOzf', $archivePath, 'manifest.xml']);
-            $this->assertStringContainsString('application_version="3.4.0.10"', $manifest);
-            $this->assertStringContainsString('format_version="1.1"', $manifest);
-            $this->assertStringContainsString('path="journal.xml"', $manifest);
-            $this->assertStringContainsString('path="' . $referencedFile . '"', $manifest);
             $this->assertSame('example file', $this->runTar(['-xOzf', $archivePath, $referencedFile]));
+            (new ArchiveManager())->withExtractedPackage(
+                $archivePath,
+                function (string $path) use ($document, $referencedFile): void {
+                    $this->assertFileDoesNotExist($path . '/manifest.xml');
+                    $this->assertSame($document->saveXML(), file_get_contents($path . '/journal.xml'));
+                    $this->assertSame('example file', file_get_contents($path . '/' . $referencedFile));
+                }
+            );
             $this->assertSame($stagingDirectories, $this->stagingDirectories());
         } finally {
             if (is_file($archivePath)) {
@@ -71,7 +74,7 @@ class FullJournalPackageExporterTest extends TestCase
         $stagingDirectories = $this->stagingDirectories();
 
         try {
-            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            (new FullJournalPackageExporter($filesDirectory))->export($deployment, $archivePath);
             $this->fail('The missing referenced file was not rejected');
         } catch (\RuntimeException $exception) {
             $this->assertSame(
@@ -105,7 +108,7 @@ class FullJournalPackageExporterTest extends TestCase
         $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
 
         try {
-            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            (new FullJournalPackageExporter($filesDirectory))->export($deployment, $archivePath);
             $this->fail('The inconsistent native data was not rejected');
         } catch (InvalidArgumentException $exception) {
             $this->assertSame(
@@ -144,7 +147,7 @@ class FullJournalPackageExporterTest extends TestCase
         $deployment = new ExportDocumentDeployment(new Journal(), null, $document);
 
         try {
-            (new FullJournalPackageExporter($filesDirectory, '3.4.0.10'))->export($deployment, $archivePath);
+            (new FullJournalPackageExporter($filesDirectory))->export($deployment, $archivePath);
             $this->fail('The unknown workflow user was not rejected');
         } catch (InvalidArgumentException $exception) {
             $this->assertSame('Unknown workflow user reference: 2', $exception->getMessage());

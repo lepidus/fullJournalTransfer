@@ -21,7 +21,6 @@ class ArchiveManager
 
     public function withExtractedPackage(
         string $archivePath,
-        string $applicationVersion,
         callable $importer,
         ?callable $progress = null
     ) {
@@ -29,7 +28,7 @@ class ArchiveManager
             $progress(__('plugins.importexport.fullJournal.progress.validatingJournalPackage'));
         }
         $archive = $this->openAndValidateArchive($archivePath);
-        [$manifest, $entries] = $this->validateContents($archive, $archivePath, $applicationVersion);
+        $entries = $this->validateContents($archive, $archivePath);
         if ($progress) {
             $progress(__('plugins.importexport.fullJournal.progress.extractingJournalPackage'));
         }
@@ -41,7 +40,7 @@ class ArchiveManager
             }
             $this->validateExtractedFiles($stagingPath, $entries);
 
-            return $importer($stagingPath, $manifest);
+            return $importer($stagingPath);
         } finally {
             $this->removeDirectory($stagingPath);
         }
@@ -64,7 +63,7 @@ class ArchiveManager
         }
     }
 
-    private function validateContents(PharData $archive, string $archivePath, string $applicationVersion): array
+    private function validateContents(PharData $archive, string $archivePath): array
     {
         $listedEntries = $this->listArchiveEntries($archivePath);
         if (count($listedEntries) > self::MAX_ENTRIES) {
@@ -109,36 +108,11 @@ class ArchiveManager
             throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageEntryListInconsistent'));
         }
 
-        if (!in_array('manifest.xml', $entries, true)) {
-            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageManifestMissing'));
-        }
-        $manifestXml = file_get_contents($prefix . 'manifest.xml');
-        if ($manifestXml === false) {
-            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageManifestReadFailed'));
-        }
-        $manifest = PackageManifest::fromXml($manifestXml, $applicationVersion);
-        $manifest->validatePackageEntries($entries);
-
-        $expectedEntries = array_merge(['manifest.xml'], array_keys($manifest->getFiles()));
-        sort($expectedEntries);
-        if ($entries !== $expectedEntries) {
-            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageEntriesManifestMismatch'));
-        }
-        foreach ($manifest->getFiles() as $path => $metadata) {
-            $entryPath = $prefix . $path;
-            $actualSize = filesize($entryPath);
-            $actualChecksum = hash_file('sha256', $entryPath);
-            if ($actualSize !== $metadata['size'] || $actualChecksum !== $metadata['checksum']) {
-                throw new InvalidArgumentException(__(
-                    'plugins.importexport.fullJournal.error.packageChecksumOrSizeInvalid',
-                    [
-                        'path' => $path,
-                    ]
-                ));
-            }
+        if (!in_array('journal.xml', $entries, true)) {
+            throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.packageJournalXmlMissing'));
         }
 
-        return [$manifest, $entries];
+        return $entries;
     }
 
     private function listArchiveEntries(string $archivePath): array

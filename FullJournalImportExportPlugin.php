@@ -74,8 +74,7 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
             }
             $deployment = $this->getAppSpecificDeployment($journal, null);
             $exporter = new FullJournalPackageExporter(
-                (string) Config::getVar('files', 'files_dir'),
-                Application::get()->getCurrentVersion()->getVersionString()
+                (string) Config::getVar('files', 'files_dir')
             );
             $exporter->export($deployment, $archivePath, function (string $message): void {
                 $this->writeCLIOutput($message);
@@ -89,11 +88,10 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
             throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importUserNotFound'));
         }
         $deployment = $this->getAppSpecificDeployment(Application::get()->getContextDAO()->newDataObject(), $user);
-        $version = Application::get()->getCurrentVersion()->getVersionString();
         $progress = function (string $message): void {
             $this->writeCLIOutput($message);
         };
-        if (!$deployment->importPackage($archivePath, $version, 'full-journal-xml=>journal', null, $progress)) {
+        if (!$deployment->importPackage($archivePath, 'full-journal-xml=>journal', null, $progress)) {
             $message = __('plugins.importexport.fullJournal.error.journalImportFailed');
             $problems = $this->formatCLIProblems($deployment->getWarningsAndErrors());
             if ($problems !== '') {

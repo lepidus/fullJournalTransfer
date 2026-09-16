@@ -466,39 +466,6 @@ msgstr "Localized context setting is not allowed: {$property}"
 msgid "plugins.importexport.fullJournal.error.localizedContextSettingArrayRequired"
 msgstr "Localized context setting must be an array: {$property}"
 
-msgid "plugins.importexport.fullJournal.error.manifestInvalidApplication"
-msgstr "The manifest application must be ojs"
-
-msgid "plugins.importexport.fullJournal.error.manifestVersionLineMismatch"
-msgstr "The manifest application version line must match the target version line"
-
-msgid "plugins.importexport.fullJournal.error.manifestAttributeRequiredElementLine"
-msgstr "The manifest attribute \"{$name}\" is required in element \"{$localName}\" at line {$line}"
-
-msgid "plugins.importexport.fullJournal.error.manifestSingleJournalFileRequired"
-msgstr "The manifest must declare exactly one journal.xml file"
-
-msgid "plugins.importexport.fullJournal.error.manifestDeclaresDuplicatePath"
-msgstr "The manifest declares duplicate path {$path}"
-
-msgid "plugins.importexport.fullJournal.error.manifestFormatVersionNotSupported"
-msgstr "The manifest format version is not supported"
-
-msgid "plugins.importexport.fullJournal.error.manifestMetadataInvalid"
-msgstr "The manifest metadata for {$path} is invalid"
-
-msgid "plugins.importexport.fullJournal.error.manifestRelativePathRequired"
-msgstr "The manifest path {$path} must be relative"
-
-msgid "plugins.importexport.fullJournal.error.manifestInvalidRoot"
-msgstr "The manifest root element must be full_journal_package"
-
-msgid "plugins.importexport.fullJournal.error.completeApplicationVersionRequired"
-msgstr "The manifest and target must declare a complete application version"
-
-msgid "plugins.importexport.fullJournal.error.manifestMalformedXml"
-msgstr "The manifest must be a well-formed XML document"
-
 msgid "plugins.importexport.fullJournal.error.mappedAuthorNotFound"
 msgstr "Mapped author does not exist: {$sourceId}"
 
@@ -616,15 +583,6 @@ msgstr "The package archive must be a regular file"
 msgid "plugins.importexport.fullJournal.error.packageArchiveSizeInvalid"
 msgstr "The package archive size is invalid"
 
-msgid "plugins.importexport.fullJournal.error.packageChecksumOrSizeInvalid"
-msgstr "The package checksum or size for {$path} is invalid"
-
-msgid "plugins.importexport.fullJournal.error.packageManifestMissing"
-msgstr "The package must contain manifest.xml"
-
-msgid "plugins.importexport.fullJournal.error.packageRequiredFilesMismatch"
-msgstr "The package must contain exactly one manifest.xml and one journal.xml"
-
 msgid "plugins.importexport.fullJournal.error.packageContainsDuplicateEntry"
 msgstr "The package contains a duplicate entry"
 
@@ -633,9 +591,6 @@ msgstr "The package contains too many entries"
 
 msgid "plugins.importexport.fullJournal.error.referencedFileDirectoryCreationFailed"
 msgstr "Package directory for referenced journal file \"{$path}\" could not be created"
-
-msgid "plugins.importexport.fullJournal.error.packageEntriesManifestMismatch"
-msgstr "The package entries must match the manifest"
 
 msgid "plugins.importexport.fullJournal.error.packageEntryLinkNotAllowed"
 msgstr "The package entry {$path} must not be a link"
@@ -651,18 +606,6 @@ msgstr "The package could not be extracted"
 
 msgid "plugins.importexport.fullJournal.error.packageExtractedSizeExceedsLimit"
 msgstr "The package extracted size exceeds the limit"
-
-msgid "plugins.importexport.fullJournal.error.packageFileMetadataCalculationFailed"
-msgstr "The package file metadata for \"{$path}\" could not be calculated"
-
-msgid "plugins.importexport.fullJournal.error.packageManifestReadFailed"
-msgstr "The package manifest could not be read"
-
-msgid "plugins.importexport.fullJournal.error.packageManifestSerializationFailed"
-msgstr "The package manifest could not be serialized"
-
-msgid "plugins.importexport.fullJournal.error.packageManifestWriteFailed"
-msgstr "The package manifest could not be written"
 
 msgid "plugins.importexport.fullJournal.error.packageRelativePathRequired"
 msgstr "The package path {$path} must be relative"
@@ -879,3 +822,6 @@ msgstr "file"
 
 msgid "plugins.importexport.fullJournal.entity.directory"
 msgstr "directory"
+
+msgid "plugins.importexport.fullJournal.error.packageJournalXmlMissing"
+msgstr "The package must contain journal.xml"
