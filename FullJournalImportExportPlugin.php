@@ -101,6 +101,11 @@ class FullJournalImportExportPlugin extends NativeImportExportPlugin
             }
             throw new RuntimeException($message);
         }
+        $problems = $deployment->getWarningsAndErrors();
+        $warnings = $this->formatCLIProblems(['warnings' => $problems['warnings'] ?? []]);
+        if ($warnings !== '') {
+            $this->writeCLIOutput($warnings);
+        }
         $this->writeCLIOutput(__('plugins.importexport.fullJournal.progress.journalImportCompleted'));
         return true;
     }

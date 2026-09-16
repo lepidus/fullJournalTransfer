@@ -167,6 +167,33 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         ], $plugin->cliOutput);
     }
 
+    public function testItReportsWarningsWhenImportSucceeds(): void
+    {
+        $this->createContext();
+        $user = Repo::user()->getCollector()->getMany()->first();
+        $this->assertNotNull($user);
+        $deployment = new SuccessfulImportDeployment(new Journal(), $user);
+        $warning = __('plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine', [
+            'fileId' => 42,
+            'line' => 4609,
+        ]);
+        $deployment->addWarning(Application::ASSOC_TYPE_NONE, 0, $warning);
+        $plugin = $this->getMockBuilder(CliTestPlugin::class)->onlyMethods(['getAppSpecificDeployment'])->getMock();
+        $plugin->method('getAppSpecificDeployment')->willReturn($deployment);
+        $arguments = ['import', $this->archivePath(), $user->getUsername()];
+
+        $this->assertTrue($plugin->executeCLI('tools/importExport.php', $arguments));
+        $this->assertSame([], $plugin->cliErrors);
+        $this->assertSame([
+            'Validating journal package...',
+            'Extracting journal package...',
+            'Importing journal data...',
+            __('plugins.importexport.common.warningsEncountered') . "\n"
+                . '1.' . __('plugins.importexport.native.common.any') . "\n- " . $warning,
+            'Journal import completed',
+        ], $plugin->cliOutput);
+    }
+
     public function testItReportsImportProblemsAsHumanReadableCliOutput(): void
     {
         $user = Repo::user()->getCollector()->getMany()->first();
