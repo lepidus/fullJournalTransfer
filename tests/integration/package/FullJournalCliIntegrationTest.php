@@ -173,9 +173,9 @@ class FullJournalCliIntegrationTest extends DatabaseTestCase
         $user = Repo::user()->getCollector()->getMany()->first();
         $this->assertNotNull($user);
         $deployment = new SuccessfulImportDeployment(new Journal(), $user);
-        $warning = __('plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine', [
-            'fileId' => 42,
-            'line' => 4609,
+        $warning = __('plugins.importexport.common.error.filesizeMismatch', [
+            'expected' => 42,
+            'actual' => 40,
         ]);
         $deployment->addWarning(Application::ASSOC_TYPE_NONE, 0, $warning);
         $plugin = $this->getMockBuilder(CliTestPlugin::class)->onlyMethods(['getAppSpecificDeployment'])->getMock();

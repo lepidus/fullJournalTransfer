@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter\nativeData;
 
-use APP\core\Application;
 use APP\core\Services;
-use DOMElement;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use PKP\config\Config;
 use PKP\file\TemporaryFileManager;
@@ -30,7 +27,6 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
 
     public function handleRevisionElement($node)
     {
-        $exportedMimeType = $this->getExportedMimeType($node);
         $temporaryFileManager = new TemporaryFileManager();
         $temporaryPath = $temporaryFileManager->getBasePath();
         if (!is_dir($temporaryPath) && !$temporaryFileManager->mkdirtree($temporaryPath)) {
@@ -51,42 +47,7 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
             throw new InvalidArgumentException(__('plugins.importexport.fullJournal.error.importedFilePathResolutionFailed'));
         }
         $this->getDeployment()->recordCreatedFile($absolutePath);
-        if ($exportedMimeType !== null) {
-            DB::table('files')->where('file_id', $fileId)->update(['mimetype' => $exportedMimeType]);
-        }
         return $fileId;
     }
 
-    private function getExportedMimeType($node): ?string
-    {
-        $mimeType = null;
-        foreach ($node->childNodes as $child) {
-            if (!$child instanceof DOMElement || $child->localName !== 'href' || !$child->hasAttribute('mime_type')) {
-                continue;
-            }
-            $value = $child->getAttribute('mime_type');
-            $token = "[a-z0-9!#$%&'*+.^_`|~-]+";
-            if (strlen($value) > 255 || preg_match('@\\A' . $token . '/' . $token . '\\z@iD', $value) !== 1) {
-                $this->getDeployment()->addWarning(
-                    Application::ASSOC_TYPE_NONE,
-                    0,
-                    __('plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine', [
-                        'fileId' => (int) $node->getAttribute('id'),
-                        'line' => $child->getLineNo(),
-                    ])
-                );
-                return null;
-            }
-            if ($mimeType !== null && $mimeType !== $value) {
-                throw new InvalidArgumentException(__(
-                    'plugins.importexport.fullJournal.error.conflictingExportedMimeTypesFileRevisionLine',
-                    [
-                        'line' => $node->getLineNo(),
-                    ]
-                ));
-            }
-            $mimeType = $value;
-        }
-        return $mimeType;
-    }
 }

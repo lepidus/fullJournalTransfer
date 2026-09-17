@@ -496,7 +496,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         }
     }
 
-    public function testItPreservesTheExportedSubmissionFileMimeType(): void
+    public function testItUsesDetectedMimeTypeWhenTheExportedValueDiffers(): void
     {
         Event::fake([BatchMetadataChanged::class]);
         Queue::fake();
@@ -506,7 +506,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->createSection($destination);
         $sourceGenre = $this->createGenre($source, 'MIME Manuscript');
         $this->createGenre($destination, 'MIME Manuscript');
-        $submission = $this->createSubmission($source, $sourceSection, 'Article with preserved MIME', null);
+        $submission = $this->createSubmission($source, $sourceSection, 'Article with different exported MIME', null);
         $submissionFile = $this->createSubmissionFile(
             $source,
             $submission,
@@ -532,11 +532,12 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $this->fileIds = array_merge($this->fileIds, array_values($maps['file_id_map']));
         $destinationFileId = $maps['file_id_map'][(string) $sourceRevision->fileId];
 
-        $this->assertSame($exportedMimeType, Services::get('file')->get($destinationFileId)->mimetype);
+        $this->assertSame('text/plain', Services::get('file')->get($destinationFileId)->mimetype);
+        $this->assertSame([], $deployment->getWarningsAndErrors());
     }
 
     /** @dataProvider invalidExportedMimeTypes */
-    public function testItUsesDetectedMimeTypeAndWarnsWhenExportedMimeIsInvalid(string $mimeType): void
+    public function testItUsesDetectedMimeTypeWithoutWarningsWhenExportedMimeIsInvalid(string $mimeType): void
     {
         Event::fake([BatchMetadataChanged::class]);
         Queue::fake();
@@ -571,11 +572,7 @@ class NativeDataFilterIntegrationTest extends DatabaseTestCase
         $destinationFileId = $maps['file_id_map'][(string) $sourceRevision->fileId];
 
         $this->assertSame('text/plain', Services::get('file')->get($destinationFileId)->mimetype);
-        $warnings = $deployment->getProcessedObjectsWarnings(Application::ASSOC_TYPE_NONE);
-        $this->assertCount(1, $warnings[0]);
-        $this->assertStringContainsString('file ' . $sourceRevision->fileId, $warnings[0][0]);
-        $this->assertStringContainsString('MIME type detected by OJS', $warnings[0][0]);
-        $this->assertArrayNotHasKey('errors', $deployment->getWarningsAndErrors());
+        $this->assertSame([], $deployment->getWarningsAndErrors());
     }
 
     public static function invalidExportedMimeTypes(): array
