@@ -88,9 +88,6 @@ msgstr "Article galley source reference is missing"
 msgid "plugins.importexport.fullJournal.error.authorMetadataEmpty"
 msgstr "Author metadata entry for author_ref \"{$sourceReference}\" must not be empty at line {$line}"
 
-msgid "plugins.importexport.fullJournal.error.conflictingExportedMimeTypesFileRevisionLine"
-msgstr "Conflicting exported MIME types for file revision at line {$line}"
-
 msgid "plugins.importexport.fullJournal.error.settingLocaleRequired"
 msgstr "{$property} must contain at least one locale"
 
@@ -315,9 +312,6 @@ msgstr "Invalid editorial decision {$attribute} \"{$value}\" for source_ref \"{$
 
 msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionTypeSourceRefLine"
 msgstr "Invalid editorial decision type \"{$decisionType}\" for source_ref \"{$sourceReference}\" at line {$line}"
-
-msgid "plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine"
-msgstr "The exported MIME type for file {$fileId} at XML line {$line} was ignored. The MIME type detected by OJS was used."
 
 msgid "plugins.importexport.fullJournal.error.invalidFullJournalCommandArguments"
 msgstr "Invalid full journal command arguments"

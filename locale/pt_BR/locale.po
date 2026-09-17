@@ -88,9 +88,6 @@ msgstr "A referência de origem da composição do artigo não foi informada."
 msgid "plugins.importexport.fullJournal.error.authorMetadataEmpty"
 msgstr "Os metadados do autor com author_ref “{$sourceReference}” não podem estar vazios na linha {$line}."
 
-msgid "plugins.importexport.fullJournal.error.conflictingExportedMimeTypesFileRevisionLine"
-msgstr "Os tipos MIME exportados para a revisão do arquivo são conflitantes na linha {$line}."
-
 msgid "plugins.importexport.fullJournal.error.settingLocaleRequired"
 msgstr "A configuração “{$property}” deve conter pelo menos um idioma."
 
@@ -315,9 +312,6 @@ msgstr "O valor “{$value}” de “{$attribute}” é inválido para a decisã
 
 msgid "plugins.importexport.fullJournal.error.invalidEditorialDecisionTypeSourceRefLine"
 msgstr "O tipo de decisão editorial “{$decisionType}” é inválido para source_ref “{$sourceReference}”, na linha {$line}."
-
-msgid "plugins.importexport.fullJournal.warning.invalidExportedMimeTypeFileRevisionLine"
-msgstr "O tipo MIME exportado para o arquivo {$fileId}, na linha {$line} do XML, foi ignorado. Foi utilizado o tipo MIME detectado pelo OJS."
 
 msgid "plugins.importexport.fullJournal.error.invalidFullJournalCommandArguments"
 msgstr "Os argumentos do comando de transferência de revista são inválidos."
