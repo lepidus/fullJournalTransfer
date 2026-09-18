@@ -25,7 +25,7 @@
             displayName="plugins.importexport.fullJournalTransfer.displayName"
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::classes.journal.Journal" />
+            outputType="class::classes.journal.Journal[]" />
         <!-- Native XML Users input -->
         <filterGroup
 			symbolic="native-xml=>user"
@@ -74,7 +74,7 @@
             displayName="plugins.importexport.fullJournalTransfer.displayName"
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::lib.pkp.classes.announcement.Announcement" />
+            outputType="class::lib.pkp.classes.announcement.Announcement[]" />
         <!-- AnnouncementType native XML output -->
         <filterGroup
             symbolic="announcement-type=>native-xml"
@@ -102,7 +102,7 @@
             displayName="plugins.importexport.fullJournalTransfer.displayName"
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::lib.pkp.classes.reviewForm.ReviewForm" />
+            outputType="class::lib.pkp.classes.reviewForm.ReviewForm[]" />
 		<!-- WorkflowFile native XML output -->
         <filterGroup
             symbolic="workflow-file=>native-xml"
@@ -116,7 +116,7 @@
             displayName="plugins.importexport.fullJournalTransfer.displayName"
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::lib.pkp.classes.submission.SubmissionFile" />
+            outputType="class::lib.pkp.classes.submission.SubmissionFile[]" />
         <!-- ReviewFormElement native XML output -->
         <filterGroup
             symbolic="review-form-element=>native-xml"

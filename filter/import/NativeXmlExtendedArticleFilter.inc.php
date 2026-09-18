@@ -432,6 +432,14 @@ class NativeXmlExtendedArticleFilter extends NativeXmlArticleFilter
             return $importFilter;
         }
 
-        return parent::getImportFilter($elementName);
+        $importFilter = parent::getImportFilter($elementName);
+        if ($elementName == 'submission_file' && $importFilter) {
+            // NativeImportFilter::process() returns an array even for a single file in OJS 3.3.
+            $inputType = $importFilter->getInputType();
+            $outputType = 'class::lib.pkp.classes.submission.SubmissionFile[]';
+            $importFilter->setTransformationType($inputType, $outputType);
+        }
+
+        return $importFilter;
     }
 }

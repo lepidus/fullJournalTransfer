@@ -15,6 +15,16 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $this->setDisplayName('Native XML journal import');
         parent::__construct($filterGroup);
+
+        // Normalize existing filter groups to the array returned by NativeImportFilter::process().
+        $inputType = $this->getInputType();
+        $outputType = 'class::classes.journal.Journal[]';
+        $this->setTransformationType($inputType, $outputType);
+    }
+
+    public function getPluralElementName()
+    {
+        return 'journals';
     }
 
     public function getSingularElementName()
@@ -87,7 +97,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         foreach ($contextService->installFileDirs as $dir) {
             $journalFileDir = sprintf($dir, $contextService->contextsFileDirName, $journal->getId());
             if (!is_dir($journalFileDir)) {
-                $fileManager->mkdir($journalFileDir);
+                $fileManager->mkdirtree($journalFileDir);
             }
         }
     }

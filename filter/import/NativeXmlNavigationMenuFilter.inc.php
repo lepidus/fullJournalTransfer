@@ -17,12 +17,12 @@ class NativeXmlNavigationMenuFilter extends NativeImportFilter
 
     public function getPluralElementName()
     {
-        return 'navigation-menus';
+        return 'navigation_menus';
     }
 
     public function getSingularElementName()
     {
-        return 'navigation-menu';
+        return 'navigation_menu';
     }
 
     public function getClassName()

@@ -18,6 +18,26 @@ import('plugins.importexport.native.filter.NativeXmlArticleFileFilter');
 
 class NativeXmlWorkflowFileFilter extends NativeXmlArticleFileFilter
 {
+    public function __construct($filterGroup)
+    {
+        parent::__construct($filterGroup);
+
+        // Existing installations may still declare a single SubmissionFile in the filter group.
+        $inputType = $this->getInputType();
+        $outputType = 'class::lib.pkp.classes.submission.SubmissionFile[]';
+        $this->setTransformationType($inputType, $outputType);
+    }
+
+    public function getPluralElementName()
+    {
+        return 'workflow_files';
+    }
+
+    public function getSingularElementName()
+    {
+        return 'workflow_file';
+    }
+
     public function getClassName()
     {
         return 'plugins.importexport.fullJournalTransfer.filter.import.NativeXmlWorkflowFileFilter';

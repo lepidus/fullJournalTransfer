@@ -14,6 +14,11 @@ class NativeXmlAnnouncementFilter extends NativeImportFilter
     {
         $this->setDisplayName('Native XML announcement import');
         parent::__construct($filterGroup);
+
+        // Normalize existing filter groups to the array returned by NativeImportFilter::process().
+        $inputType = $this->getInputType();
+        $outputType = 'class::lib.pkp.classes.announcement.Announcement[]';
+        $this->setTransformationType($inputType, $outputType);
     }
 
     public function getPluralElementName()
