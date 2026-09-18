@@ -92,7 +92,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         foreach ($contextService->installFileDirs as $dir) {
             $journalFileDir = sprintf($dir, $contextService->contextsFileDirName, $journal->getId());
             if (!is_dir($journalFileDir)) {
-                $fileManager->mkdir($journalFileDir);
+                $fileManager->mkdirtree($journalFileDir);
             }
         }
     }
