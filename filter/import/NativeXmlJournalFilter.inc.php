@@ -17,6 +17,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
         parent::__construct($filterGroup);
     }
 
+    public function getPluralElementName()
+    {
+        return 'journals';
+    }
+
     public function getSingularElementName()
     {
         return 'journal';
