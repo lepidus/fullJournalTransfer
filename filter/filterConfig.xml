@@ -116,7 +116,7 @@
             displayName="plugins.importexport.fullJournalTransfer.displayName"
             description="plugins.importexport.fullJournalTransfer.description"
             inputType="xml::schema(plugins/importexport/fullJournalTransfer/fullJournal.xsd)"
-            outputType="class::lib.pkp.classes.submission.SubmissionFile" />
+            outputType="class::lib.pkp.classes.submission.SubmissionFile[]" />
         <!-- ReviewFormElement native XML output -->
         <filterGroup
             symbolic="review-form-element=>native-xml"
