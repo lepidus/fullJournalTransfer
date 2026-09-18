@@ -15,6 +15,11 @@ class NativeXmlJournalFilter extends NativeImportFilter
     {
         $this->setDisplayName('Native XML journal import');
         parent::__construct($filterGroup);
+
+        // Normalize existing filter groups to the array returned by NativeImportFilter::process().
+        $inputType = $this->getInputType();
+        $outputType = 'class::classes.journal.Journal[]';
+        $this->setTransformationType($inputType, $outputType);
     }
 
     public function getPluralElementName()
