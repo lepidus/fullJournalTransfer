@@ -65,3 +65,6 @@ msgstr "User with email {$email} is not present on the site."
 
 msgid "plugins.importexport.fullJournal.error.metric"
 msgstr "Failed to import metric. {$reason}"
+
+msgid "plugins.importexport.fullJournal.error.metricsXml"
+msgstr "Could not generate the XML for the journal usage statistics."

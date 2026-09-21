@@ -510,33 +510,51 @@ class JournalNativeXmlFilter extends NativeExportFilter
 
         echo __('plugins.importexport.fullJournal.exportingMetrics') . "\n";
 
-        $metricsNode = $doc->createElementNS($deployment->getNamespace(), 'metrics');
+        // Build the block outside DOM to avoid repeated per-record namespace processing.
+        $writer = new XMLWriter();
+        $writer->openMemory();
+        $writer->startElementNS(null, 'metrics', $deployment->getNamespace());
         foreach ($metrics as $metric) {
-            $metricNode = $doc->createElementNS($deployment->getNamespace(), 'metric');
-            $metricNode->setAttribute('assoc_type', $metric['assoc_type']);
-            $metricNode->setAttribute('assoc_id', $metric['assoc_id']);
-            $metricNode->setAttribute('day', $metric['day']);
-            $metricNode->setAttribute('metric', $metric['metric']);
-            $metricNode->setAttribute('metric_type', $metric['metric_type']);
-            $metricNode->setAttribute('load_id', $metric['load_id']);
+            $writer->startElement('metric');
+            $this->writeMetricAttribute($writer, 'assoc_type', (string) $metric['assoc_type']);
+            $this->writeMetricAttribute($writer, 'assoc_id', (string) $metric['assoc_id']);
+            $this->writeMetricAttribute($writer, 'day', (string) $metric['day']);
+            $this->writeMetricAttribute($writer, 'metric', (string) $metric['metric']);
+            $this->writeMetricAttribute($writer, 'metric_type', (string) $metric['metric_type']);
+            $this->writeMetricAttribute($writer, 'load_id', (string) $metric['load_id']);
 
             if ($country = $metric['country_id']) {
-                $metricNode->setAttribute('country_id', $country);
+                $this->writeMetricAttribute($writer, 'country_id', (string) $country);
             }
             if ($region = $metric['region']) {
-                $metricNode->setAttribute('region', $region);
+                $this->writeMetricAttribute($writer, 'region', (string) $region);
             }
             if ($city = $metric['city']) {
-                $metricNode->setAttribute('city', $city);
+                $this->writeMetricAttribute($writer, 'city', (string) $city);
             }
             if ($fileType = $metric['file_type']) {
-                $metricNode->setAttribute('file_type', $fileType);
+                $this->writeMetricAttribute($writer, 'file_type', (string) $fileType);
             }
 
-            $metricsNode->appendChild($metricNode);
+            $writer->endElement();
         }
 
-        $journalNode->appendChild($metricsNode);
+        $writer->endElement();
+        $fragment = $doc->createDocumentFragment();
+        if (!$fragment->appendXML($writer->outputMemory())) {
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.metricsXml'));
+        }
+        $journalNode->appendChild($fragment);
+    }
+
+    private function writeMetricAttribute($writer, $name, $value)
+    {
+        // XMLWriter may replace invalid XML characters; reject them instead of changing the data.
+        $xmlCharacters = '/\A[\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]*\z/u';
+        if (preg_match($xmlCharacters, $value) !== 1) {
+            throw new RuntimeException(__('plugins.importexport.fullJournal.error.metricsXml'));
+        }
+        $writer->writeAttribute($name, $value);
     }
 
     private function removeDuplicatedInterests($usersDoc)

@@ -15,7 +15,7 @@ A versão mais recente deste plugin é compatível com as seguintes aplicações
 - PHP >= 7.4
 - php-mbstring
 - php-intl
-- php-xml
+- php-xml (DOM, XMLWriter)
 
 ## Download do Plugin
 Para baixar o plugin, vá para a [página de Releases](https://github.com/lepidus/fullJournalTransfer/releases) e baixe o pacote tar.gz da versão mais recente compatível com o seu site.

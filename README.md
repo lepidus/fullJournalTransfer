@@ -15,7 +15,7 @@ The latest release of this plugin is compatible with the following PKP applicati
 - PHP >= 7.4
 - php-mbstring
 - php-intl
-- php-xml
+- php-xml (DOM, XMLWriter)
 
 ## Plugin Download
 To download the plugin, go to the [Releases page](https://github.com/lepidus/fullJournalTransfer/releases) and download the tar.gz package of the latest release compatible with your website.
