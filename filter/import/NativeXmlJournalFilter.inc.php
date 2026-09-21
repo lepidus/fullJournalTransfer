@@ -472,6 +472,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $deployment = $this->getDeployment();
         echo __('plugins.importexport.fullJournal.importingMetrics') . "\n";
 
+        $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $records = [];
+        $onError = function ($e) use ($deployment, $journal) {
+            $deployment->addWarning(
+                ASSOC_TYPE_JOURNAL,
+                $journal->getId(),
+                __('plugins.importexport.fullJournal.error.metric', ['reason' => $e->getMessage()])
+            );
+        };
         $metricKeys = [
             'assoc_type', 'day', 'country_id', 'region', 'city', 'file_type', 'metric', 'metric_type', 'load_id'
         ];
@@ -504,21 +513,14 @@ class NativeXmlJournalFilter extends NativeImportFilter
                         $record['assoc_id'] = $deployment->getIssueDBId($oldAssocId);
                         break;
                 }
-                $metricsDAO = DAORegistry::getDAO('MetricsDAO');
-                try {
-                    $metricsDAO->insertRecord($record);
-                } catch (Exception $e) {
-                    $deployment->addWarning(
-                        ASSOC_TYPE_JOURNAL,
-                        $journal->getId(),
-                        __(
-                            'plugins.importexport.fullJournal.error.metric',
-                            ['reason' => $e->getMessage()]
-                        )
-                    );
+                $records[] = $record;
+                if (count($records) === FullJournalMetricsDAO::IMPORT_BATCH_SIZE) {
+                    $metricsDAO->insertRecords($records, $onError);
+                    $records = [];
                 }
             }
         }
+        $metricsDAO->insertRecords($records, $onError);
     }
 
     public function logIdRelation($journal)

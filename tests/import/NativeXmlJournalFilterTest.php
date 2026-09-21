@@ -36,14 +36,15 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
         ];
     }
 
-    protected function getMockedDAOs()
+    protected function getMockedRegistryKeys()
     {
-        return ['MetricsDAO'];
+        // The plugin DAO may not be registered before a standalone test run.
+        return ['daos'];
     }
 
     private function registerMockMetricsDAO($journal)
     {
-        $mockMetricsDAO = $this->getMockBuilder(MetricsDAO::class)
+        $mockMetricsDAO = $this->getMockBuilder(FullJournalMetricsDAO::class)
             ->setMethods(['foreignKeyLookup'])
             ->getMock();
 
@@ -51,7 +52,7 @@ class NativeXmlJournalFilterTest extends NativeImportExportFilterTestCase
             ->method('foreignKeyLookup')
             ->will($this->returnValue([$journal->getId() ?? rand(1, 100), null, null, null, null, null]));
 
-        DAORegistry::registerDAO('MetricsDAO', $mockMetricsDAO);
+        DAORegistry::registerDAO('FullJournalMetricsDAO', $mockMetricsDAO);
     }
 
     private function setJournalAttributeData($journal)
