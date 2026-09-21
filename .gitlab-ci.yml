@@ -7,3 +7,9 @@ include:
     file:
       - 'templates/groups/pkp_plugin.yml'
       - 'templates/groups/ojs/unit_tests.yml'
+
+plugin_unit_tests_ojs:
+  before_script:
+    # Metrics import tests use an isolated SQLite database in memory.
+    - apt-get update
+    - apt-get install -y --no-install-recommends "php${PHP_VERSION}-sqlite3"
