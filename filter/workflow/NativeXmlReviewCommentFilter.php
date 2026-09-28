@@ -33,7 +33,7 @@ class NativeXmlReviewCommentFilter extends NativeImportFilter
             'submission_id' => $submissionId,
             'assoc_id' => $reviewId,
             'author_id' => $deployment->requireReference('user', $this->required($node, 'author_ref')),
-            'comment_title' => $this->required($node, 'title'),
+            'comment_title' => $node->getAttribute('title'),
             'comments' => $node->textContent,
             'date_posted' => $this->date($node, 'date_posted'),
             'date_modified' => $this->date($node, 'date_modified'),
