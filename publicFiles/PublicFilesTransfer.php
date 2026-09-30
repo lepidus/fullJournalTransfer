@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\publicFiles;
 use APP\journal\Journal;
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use InvalidArgumentException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -31,10 +32,24 @@ class PublicFilesTransfer
     ];
     private const METADATA = ['name', 'uploadName', 'width', 'height', 'dateUploaded', 'altText'];
 
+    /** Convert an in-application filesystem path to a relative public URL path. */
+    public function publicPath(string $path): string
+    {
+        if (str_starts_with($path, '/')) {
+            $applicationRoot = dirname(INDEX_FILE_LOCATION) . '/';
+            if (!str_starts_with($path, $applicationRoot)) {
+                $this->invalid();
+            }
+            $path = substr($path, strlen($applicationRoot));
+        }
+        $this->validatePath($path);
+        return $path;
+    }
+
     public function export(DOMDocument $document, Journal $journal, string $path, string $url, array $acceptedLocales): DOMElement
     {
         $node = $document->createElementNS(self::NAMESPACE, 'public_files');
-        $node->setAttribute('source_path', $path);
+        $node->setAttribute('source_path', $this->publicPath($path));
         $node->setAttribute('source_url', $url);
         if (is_link($path) || is_link(dirname($path))) {
             $this->invalid();
@@ -180,6 +195,144 @@ class PublicFilesTransfer
             $entries[] = $entry;
         }
         return $entries;
+    }
+
+    public function applySettings(DOMElement $node, Journal $journal, array $acceptedLocales): void
+    {
+        foreach ($this->validate($node)['settings'] as $setting) {
+            if ($setting['locale'] === '') {
+                $journal->setData($setting['name'], $setting['value']);
+            } elseif (in_array($setting['locale'], $acceptedLocales, true)) {
+                $journal->setData($setting['name'], $setting['value'], $setting['locale']);
+            }
+        }
+    }
+
+    public function restore(
+        DOMElement $node,
+        string $packagePath,
+        string $destinationRoot,
+        string $destinationUrl,
+        callable $recordFile,
+        callable $recordDirectory
+    ): void {
+        $data = $this->validate($node);
+        $destination = realpath($destinationRoot);
+        if ($destination === false || is_link($destinationRoot) || is_link(dirname($destinationRoot))) {
+            $this->invalid();
+        }
+        $sources = [];
+        foreach ($data['files'] as $relative) {
+            $sources[$relative] = $this->regularFile($packagePath . '/public-files', $relative);
+            $target = $destination;
+            foreach (explode('/', $relative) as $component) {
+                $target .= '/' . $component;
+                if (is_link($target)) {
+                    $this->invalid();
+                }
+            }
+            if (file_exists($target)) {
+                $this->invalid();
+            }
+        }
+        foreach ($sources as $relative => $source) {
+            $target = $destination . '/' . $relative;
+            $parent = $destination;
+            $components = explode('/', $relative);
+            array_pop($components);
+            foreach ($components as $component) {
+                $parent .= '/' . $component;
+                if (!is_dir($parent)) {
+                    if (!mkdir($parent, 0755)) {
+                        $this->ioError();
+                    }
+                    $recordDirectory($parent);
+                }
+                if (is_link($parent)) {
+                    $this->invalid();
+                }
+            }
+            $output = fopen($target, 'xb');
+            if ($output === false) {
+                $this->ioError();
+            }
+            try {
+                $recordFile($target);
+                if (in_array(
+                    strtolower(pathinfo($relative, PATHINFO_EXTENSION)),
+                    ['css', 'html', 'htm', 'svg', 'js', 'json', 'xml', 'map'],
+                    true
+                )
+                ) {
+                    $content = file_get_contents($source);
+                    if ($content === false) {
+                        $this->ioError();
+                    }
+                    $content = $this->rewriteText($content, $node, $destinationUrl);
+                    if (fwrite($output, $content) !== strlen($content)) {
+                        $this->ioError();
+                    }
+                } else {
+                    $input = fopen($source, 'rb');
+                    if ($input === false) {
+                        $this->ioError();
+                    }
+                    try {
+                        if (stream_copy_to_stream($input, $output) !== filesize($source)) {
+                            $this->ioError();
+                        }
+                    } finally {
+                        fclose($input);
+                    }
+                }
+            } finally {
+                fclose($output);
+            }
+        }
+    }
+
+    /** Rewrite exported content before any child filter persists it. */
+    public function rewriteReferences(DOMNode $node, DOMElement $publicFiles, string $destinationUrl): void
+    {
+        if ($node === $publicFiles) {
+            return;
+        }
+        if ($node instanceof DOMElement) {
+            foreach ($node->attributes as $attribute) {
+                $attribute->value = $this->rewriteText($attribute->value, $publicFiles, $destinationUrl);
+            }
+        } elseif (in_array($node->nodeType, [XML_TEXT_NODE, XML_CDATA_SECTION_NODE], true)) {
+            $node->nodeValue = $this->rewriteText($node->nodeValue, $publicFiles, $destinationUrl);
+        }
+        foreach ($node->childNodes as $child) {
+            $this->rewriteReferences($child, $publicFiles, $destinationUrl);
+        }
+    }
+
+    private function rewriteText(string $text, DOMElement $node, string $destinationUrl): string
+    {
+        $sourceUrl = $node->getAttribute('source_url');
+        $sourcePath = $node->getAttribute('source_path');
+        $sourceRootPath = (string) parse_url($sourceUrl, PHP_URL_PATH);
+        $destinationRootPath = (string) parse_url($destinationUrl, PHP_URL_PATH);
+        $maps = [
+            $sourceUrl . '/' => $destinationUrl . '/',
+            rawurldecode($sourceUrl) . '/' => rawurldecode($destinationUrl) . '/',
+            preg_replace('~^https?:~', '', $sourceUrl) . '/'
+                => preg_replace('~^https?:~', '', $destinationUrl) . '/',
+            $sourceRootPath . '/' => $destinationRootPath . '/',
+            rawurldecode($sourceRootPath) . '/' => rawurldecode($destinationRootPath) . '/',
+            $sourcePath . '/' => ltrim($destinationRootPath, '/') . '/',
+        ];
+        // JSON theme options may escape slashes; do not decode arbitrary JSON or HTML.
+        foreach ($maps as $from => $to) {
+            $maps[str_replace('/', '\\/', $from)] = str_replace('/', '\\/', $to);
+        }
+        uksort($maps, static fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+        $pattern = '~(?<![a-zA-Z0-9_/:.\\\\-])(?:'
+            . implode('|', array_map(static fn ($value): string => preg_quote($value, '~'), array_keys($maps)))
+            . ')~';
+        return preg_replace_callback($pattern, static fn (array $match): string => $maps[$match[0]], $text);
     }
 
     private function regularFile(string $root, string $relative): string

@@ -67,12 +67,13 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addTheme($document, $root, $journal);
         if ((int) $journal->getId() > 0) {
             $publicPath = (new PublicFileManager())->getContextFilesPath($journal->getId());
-            $root->appendChild((new PublicFilesTransfer())->export(
+            $publicTransfer = new PublicFilesTransfer();
+            $root->appendChild($publicTransfer->export(
                 $document,
                 $journal,
                 $publicPath,
                 Application::get()->getRequest()->getBaseUrl() . '/'
-                    . implode('/', array_map('rawurlencode', explode('/', $publicPath))),
+                    . implode('/', array_map('rawurlencode', explode('/', $publicTransfer->publicPath($publicPath)))),
                 $acceptedLocales
             ));
         }

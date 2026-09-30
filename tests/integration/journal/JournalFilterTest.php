@@ -16,6 +16,39 @@ class JournalFilterTest extends TestCase
 {
     use LoadsPluginLocale;
 
+    public function testItRestoresAppearanceSettingsFromTheJournalContract(): void
+    {
+        $source = new Journal();
+        $source->setPath('appearance-journal');
+        $source->setSequence(1);
+        $source->setPrimaryLocale('en');
+        $source->setData('name', ['en' => 'Appearance Journal']);
+        $source->setData('contactName', 'Editorial Team');
+        $source->setData('contactEmail', 'editor@example.com');
+        foreach (['supportedLocales', 'supportedFormLocales', 'supportedSubmissionLocales'] as $property) {
+            $source->setData($property, ['en']);
+        }
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
+        $fragment = $document->createDocumentFragment();
+        $fragment->appendXML('<public_files xmlns="http://pkp.sfu.ca" source_path="public/journals/7" '
+            . 'source_url="https://source.example/public/journals/7">'
+            . '<setting name="pageHeaderLogoImage" locale="en">'
+            . '{"uploadName":"logo.png","altText":"Journal logo"}</setting>'
+            . '<setting name="styleSheet">{"uploadName":"style.css","dateUploaded":"2026-09-30"}</setting>'
+            . '<file path="logo.png"/><file path="style.css"/></public_files>');
+        $document->documentElement->appendChild($fragment);
+        $destination = new Journal();
+        (new FullJournalImportExportDeployment($destination, null))->importContextData($document->documentElement);
+        $this->assertSame(
+            ['en' => ['uploadName' => 'logo.png', 'altText' => 'Journal logo']],
+            $destination->getData('pageHeaderLogoImage')
+        );
+        $this->assertSame(
+            ['uploadName' => 'style.css', 'dateUploaded' => '2026-09-30'],
+            $destination->getData('styleSheet')
+        );
+    }
+
     public function testItPreservesLocalesEnabledExclusivelyForFormsOrSubmissions(): void
     {
         $source = new Journal();
