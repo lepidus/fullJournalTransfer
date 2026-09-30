@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\package;
 
 use APP\plugins\importexport\fullJournalTransfer\FullJournalImportExportDeployment;
+use APP\plugins\importexport\fullJournalTransfer\publicFiles\PublicFilesTransfer;
 use APP\plugins\importexport\fullJournalTransfer\validation\JournalUserReferenceValidator;
 use APP\plugins\importexport\fullJournalTransfer\validation\NativeDataReferenceValidator;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use InvalidArgumentException;
+use PKP\config\Config;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
@@ -18,9 +20,12 @@ class FullJournalPackageExporter
 {
     private string $filesDirectory;
 
-    public function __construct(string $filesDirectory)
+    private ?string $publicDirectory;
+
+    public function __construct(string $filesDirectory, ?string $publicDirectory = null)
     {
         $this->filesDirectory = $filesDirectory;
+        $this->publicDirectory = $publicDirectory;
     }
 
     public function export(
@@ -55,6 +60,15 @@ class FullJournalPackageExporter
                 $progress(__('plugins.importexport.fullJournal.progress.copyingJournalFiles'));
             }
             $packageFiles = array_merge(['journal.xml'], $this->stageReferencedFiles($document, $stagingPath));
+            foreach ($document->documentElement->childNodes as $child) {
+                if ($child instanceof DOMElement && $child->localName === 'public_files') {
+                    $packageFiles = array_merge($packageFiles, (new PublicFilesTransfer())->stage(
+                        $child,
+                        $this->publicDirectory ?? Config::getVar('files', 'public_files_dir'),
+                        $stagingPath
+                    ));
+                }
+            }
             if ($progress) {
                 $progress(__('plugins.importexport.fullJournal.progress.creatingJournalArchive'));
             }
