@@ -46,8 +46,13 @@ class PublicFilesTransfer
         return $path;
     }
 
-    public function export(DOMDocument $document, Journal $journal, string $path, string $url, array $acceptedLocales): DOMElement
-    {
+    public function export(
+        DOMDocument $document,
+        Journal $journal,
+        string $path,
+        string $url,
+        array $acceptedLocales
+    ): DOMElement {
         $node = $document->createElementNS(self::NAMESPACE, 'public_files');
         $node->setAttribute('source_path', $this->publicPath($path));
         $node->setAttribute('source_url', $url);
@@ -81,7 +86,9 @@ class PublicFilesTransfer
                 $this->invalid();
             }
             foreach ($localized ? $value : ['' => $value] as $locale => $metadata) {
-                if (($localized && !in_array($locale, $acceptedLocales, true)) || $metadata === null || $metadata === []) {
+                if (($localized && !in_array($locale, $acceptedLocales, true))
+                    || $metadata === null || $metadata === []
+                ) {
                     continue;
                 }
                 if (!is_array($metadata)) {
@@ -311,6 +318,9 @@ class PublicFilesTransfer
 
     private function rewriteText(string $text, DOMElement $node, string $destinationUrl): string
     {
+        if (!str_contains($text, 'journals') && !str_contains($text, '%')) {
+            return $text;
+        }
         $sourceUrl = $node->getAttribute('source_url');
         $sourcePath = $node->getAttribute('source_path');
         $sourceRootPath = (string) parse_url($sourceUrl, PHP_URL_PATH);
@@ -374,7 +384,10 @@ class PublicFilesTransfer
         foreach (explode('/', $path) as $component) {
             if (in_array($component, ['', '.', '..'], true)
                 || in_array(strtolower($component), ['.htaccess', '.user.ini', 'web.config'], true)
-                || preg_match('/\.(php[0-9]*|phtml|pht|phar|cgi|fcgi|pl|py|sh|shtml|shtm|stm|asp[x]?|jsp[x]?)($|\.)/i', $component)
+                || preg_match(
+                    '/\.(php[0-9]*|phtml|pht|phar|cgi|fcgi|pl|py|sh|shtml|shtm|stm|asp[x]?|jsp[x]?)($|\.)/i',
+                    $component
+                )
             ) {
                 $this->invalid();
             }

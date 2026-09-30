@@ -136,13 +136,14 @@ class PublicFilesTransferTest extends TestCase
                 static function (string $path): void {}
             );
         } finally {
-            $this->assertSame('existing', file_get_contents($directory . '/destination/logo.png'));
+            $existing = file_get_contents($directory . '/destination/logo.png');
             unlink($directory . '/package/public-files/logo.png');
             unlink($directory . '/destination/logo.png');
             rmdir($directory . '/package/public-files');
             rmdir($directory . '/package');
             rmdir($directory . '/destination');
             rmdir($directory);
+            $this->assertSame('existing', $existing);
         }
     }
 
@@ -191,6 +192,25 @@ class PublicFilesTransferTest extends TestCase
         $this->assertSame($expected, $content->textContent);
     }
 
+    public function testItRewritesPercentEncodedSourceDirectoryUrls(): void
+    {
+        $document = new DOMDocument();
+        $document->loadXML('<journal><content>https://source.example/public/%6aournals/7/logo.png</content>'
+            . '<public_files source_path="public/journals/7" '
+            . 'source_url="https://source.example/public/%6aournals/7"/></journal>');
+        $publicFiles = $document->getElementsByTagName('public_files')->item(0);
+        (new PublicFilesTransfer())->validate($publicFiles);
+        (new PublicFilesTransfer())->rewriteReferences(
+            $document->documentElement,
+            $publicFiles,
+            'https://target.example/public/journals/12'
+        );
+        $this->assertSame(
+            'https://target.example/public/journals/12/logo.png',
+            $document->getElementsByTagName('content')->item(0)->textContent
+        );
+    }
+
     public static function publicReferences(): array
     {
         return [
@@ -224,6 +244,27 @@ class PublicFilesTransferTest extends TestCase
             '../site/logo.png', '/logo.png', 'assets/../logo.png', 'assets//logo.png',
             'assets\\logo.png', 'shell.php', 'shell.PHP.png', 'shell.pht', 'shell.jsp', 'unknown.exe', '.htaccess', 'assets/.user.ini',
         ]);
+    }
+
+    public function testItRejectsSymlinkedPublicFilesBeforeStaging(): void
+    {
+        $directory = sys_get_temp_dir() . '/public-symlink-' . bin2hex(random_bytes(8));
+        mkdir($directory . '/public/journals/7', 0700, true);
+        mkdir($directory . '/stage', 0700, true);
+        file_put_contents($directory . '/outside.png', 'outside journal');
+        symlink($directory . '/outside.png', $directory . '/public/journals/7/logo.png');
+        $document = new DOMDocument();
+        $document->loadXML('<public_files source_path="public/journals/7" '
+            . 'source_url="https://source.example/public/journals/7"><file path="logo.png"/></public_files>');
+        try {
+            $this->expectException(InvalidArgumentException::class);
+            (new PublicFilesTransfer())->stage($document->documentElement, $directory . '/public', $directory . '/stage');
+        } finally {
+            $staged = is_dir($directory . '/stage/public-files');
+            unlink($directory . '/public/journals/7/logo.png');
+            (new PublicFileManager())->rmtree($directory);
+            $this->assertFalse($staged);
+        }
     }
 
     public function testItRejectsAppearanceMetadataWithoutItsFile(): void
