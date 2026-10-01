@@ -61,7 +61,56 @@ class NativeXmlMetricsImportTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(501, $this->connection->table('metrics')->count());
         $this->assertSame(1002, (int) $this->connection->table('metrics')->sum('metric'));
         $this->assertCount(2, $queries, '501 metrics should need only two INSERT statements.');
-        $this->assertCount(2, $this->lookups, 'Resolve each association once per bounded batch.');
+        $this->assertCount(1, $this->lookups, 'Resolve each association once across import batches.');
+    }
+
+    public function testSeparateImportsResolveAssociationsIndependently()
+    {
+        $this->importMetrics([$this->metric()]);
+        $this->importMetrics([$this->metric()]);
+        $this->assertCount(2, $this->lookups);
+        $this->assertSame(2, $this->connection->table('metrics')->count());
+    }
+
+    public function testSharedCacheEvictsOldestAssociationAtCapacity()
+    {
+        $cache = [];
+        $onError = function ($e) {
+            $this->fail($e->getMessage());
+        };
+        for ($id = 1; $id <= FullJournalMetricsDAO::IMPORT_ASSOCIATION_CACHE_SIZE + 1; $id++) {
+            $this->dao->insertRecords([array_replace($this->metric(), ['assoc_id' => $id])], $onError, $cache);
+        }
+        $this->assertCount(FullJournalMetricsDAO::IMPORT_ASSOCIATION_CACHE_SIZE, $cache);
+        $lookups = count($this->lookups);
+        $this->dao->insertRecords([array_replace($this->metric(), ['assoc_id' => 2])], $onError, $cache);
+        $this->assertCount($lookups, $this->lookups);
+        $this->dao->insertRecords([array_replace($this->metric(), ['assoc_id' => 1])], $onError, $cache);
+        $this->assertCount($lookups + 1, $this->lookups);
+        $this->assertCount(FullJournalMetricsDAO::IMPORT_ASSOCIATION_CACHE_SIZE, $cache);
+    }
+
+    public function testFailedAssociationLookupIsRetriedInNextBatch()
+    {
+        $dao = $this->getMockBuilder(FullJournalMetricsDAO::class)
+            ->onlyMethods(['foreignKeyLookup'])->getMock();
+        $attempts = 0;
+        $dao->method('foreignKeyLookup')->willReturnCallback(function () use (&$attempts) {
+            if (++$attempts === 1) {
+                throw new Exception('Association temporarily unavailable.');
+            }
+            return [42, null, null, null, null, null];
+        });
+        $cache = [];
+        $errors = [];
+        $onError = function ($e) use (&$errors) {
+            $errors[] = $e;
+        };
+        $dao->insertRecords([$this->metric()], $onError, $cache);
+        $dao->insertRecords([$this->metric()], $onError, $cache);
+        $this->assertSame(2, $attempts);
+        $this->assertCount(1, $errors);
+        $this->assertSame(1, $this->connection->table('metrics')->count());
     }
 
     public function testRemapsAllSupportedAssociations()

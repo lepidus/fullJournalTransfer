@@ -13,17 +13,18 @@ use Illuminate\Database\QueryException;
 class FullJournalMetricsDAO extends MetricsDAO
 {
     public const IMPORT_BATCH_SIZE = 500;
+    public const IMPORT_ASSOCIATION_CACHE_SIZE = 10000;
 
     private $transactionalConnection;
     private $transactionalMetrics;
 
     /**
-     * Import a batch, resolving each destination association only once in this batch.
+     * Import a batch, optionally sharing a bounded association cache across batches.
+     * The caller must create a fresh cache for each metrics import.
      * Invalid records are reported individually, as in the native metrics importer.
      */
-    public function insertRecords(array $records, callable $onError)
+    public function insertRecords(array $records, callable $onError, array &$associations = [])
     {
-        $associations = [];
         $rows = [];
         foreach ($records as $record) {
             try {
@@ -83,7 +84,12 @@ class FullJournalMetricsDAO extends MetricsDAO
         $row['assoc_id'] = (int) $row['assoc_id'];
         $key = $row['assoc_type'] . ':' . $row['assoc_id'];
         if (!isset($associations[$key])) {
-            $associations[$key] = $this->foreignKeyLookup($row['assoc_type'], $row['assoc_id']);
+            $association = $this->foreignKeyLookup($row['assoc_type'], $row['assoc_id']);
+            // Evict the oldest successful lookup; never cache exceptions.
+            if (count($associations) >= self::IMPORT_ASSOCIATION_CACHE_SIZE) {
+                unset($associations[array_key_first($associations)]);
+            }
+            $associations[$key] = $association;
         }
         [$row['context_id'], $row['pkp_section_id'], $row['assoc_object_type'],
             $row['assoc_object_id'], $row['submission_id'], $row['representation_id']] = $associations[$key];
