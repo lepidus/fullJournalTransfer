@@ -77,6 +77,9 @@ class ReviewFormElementNativeXmlFilter extends NativeExportFilter
         $deployment = $this->getDeployment();
 
         foreach ($possibleResponses as $locale => $values) {
+            if (empty($values)) {
+                continue;
+            }
             $reviewFormElementNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'possible_responses'));
             $node->setAttribute('locale', $locale);
             foreach ($values as $possibleResponse) {
