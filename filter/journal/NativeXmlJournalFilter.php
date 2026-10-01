@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter\journal;
 use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\navigation\NavigationMenusTransfer;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalLocalePolicy;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
 use APP\plugins\importexport\fullJournalTransfer\publicFiles\PublicFilesTransfer;
@@ -198,6 +199,15 @@ class NativeXmlJournalFilter extends NativeImportFilter
             $themeNode = $this->optionalChild($node, 'theme');
             if ($themeNode) {
                 $this->importThemeOptions($themeNode, $createdJournal);
+            }
+            $navigation = $this->optionalChild($node, 'navigation_menus');
+            if ($navigation) {
+                $locales = array_values(array_unique(array_merge(
+                    $createdJournal->getData('supportedLocales'),
+                    $createdJournal->getData('supportedFormLocales'),
+                    $createdJournal->getData('supportedSubmissionLocales')
+                )));
+                (new NavigationMenusTransfer())->import($navigation, (int) $contextId, $locales);
             }
             $operations = [
                 'users' => 'importUsers',

@@ -19,6 +19,7 @@
                 <element name="context_settings" type="pkp:context_settings" />
                 <element name="theme" type="pkp:theme" minOccurs="0" />
                 <element name="public_files" type="pkp:public_files" minOccurs="0" />
+                <element name="navigation_menus" type="pkp:navigation_menus" minOccurs="0" />
                 <element name="users" type="pkp:open_data" minOccurs="0" />
                 <element name="reference_data" type="pkp:open_data" minOccurs="0" />
                 <element name="native_data" type="pkp:native_data" minOccurs="0" />
@@ -31,6 +32,49 @@
             <attribute name="source_enabled" type="boolean" use="required" />
         </complexType>
     </element>
+
+    <complexType name="navigation_field" mixed="true">
+        <attribute name="name" use="required">
+            <simpleType><restriction base="string">
+                <enumeration value="title"/><enumeration value="content"/><enumeration value="remoteUrl"/>
+            </restriction></simpleType>
+        </attribute>
+        <attribute name="locale" type="pkp:locale_code" use="required"/>
+    </complexType>
+    <complexType name="navigation_menus">
+        <sequence>
+            <element name="items">
+                <complexType><sequence>
+                    <element name="item" minOccurs="0" maxOccurs="unbounded">
+                        <complexType><sequence>
+                            <element name="field" type="pkp:navigation_field" minOccurs="0" maxOccurs="unbounded"/>
+                        </sequence>
+                            <attribute name="source_ref" type="positiveInteger" use="required"/>
+                            <attribute name="type" type="string" use="required"/>
+                            <attribute name="path" type="string" use="required"/>
+                            <attribute name="title_locale_key" type="string" use="required"/>
+                        </complexType>
+                    </element>
+                </sequence></complexType>
+            </element>
+            <element name="menu" minOccurs="0" maxOccurs="unbounded">
+                <complexType><sequence>
+                    <element name="assignment" minOccurs="0" maxOccurs="unbounded">
+                        <complexType><sequence>
+                            <element name="field" type="pkp:navigation_field" minOccurs="0" maxOccurs="unbounded"/>
+                        </sequence>
+                            <attribute name="item_ref" type="positiveInteger" use="required"/>
+                            <attribute name="parent_ref" type="nonNegativeInteger" use="required"/>
+                            <attribute name="seq" type="nonNegativeInteger" use="required"/>
+                        </complexType>
+                    </element>
+                </sequence>
+                    <attribute name="title" type="string" use="required"/>
+                    <attribute name="area" type="string" use="required"/>
+                </complexType>
+            </element>
+        </sequence>
+    </complexType>
 
     <complexType name="locales">
         <sequence>

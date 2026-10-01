@@ -7,6 +7,7 @@ namespace APP\plugins\importexport\fullJournalTransfer\filter\journal;
 use APP\core\Application;
 use APP\file\PublicFileManager;
 use APP\journal\Journal;
+use APP\plugins\importexport\fullJournalTransfer\navigation\NavigationMenusTransfer;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
 use APP\plugins\importexport\fullJournalTransfer\publicFiles\PublicFilesTransfer;
 use APP\plugins\importexport\fullJournalTransfer\theme\ThemeSettingsTransfer;
@@ -74,6 +75,13 @@ class JournalNativeXmlFilter extends NativeExportFilter
                 $publicPath,
                 Application::get()->getRequest()->getBaseUrl() . '/'
                     . implode('/', array_map('rawurlencode', explode('/', $publicTransfer->publicPath($publicPath)))),
+                $acceptedLocales
+            ));
+        }
+        if ((int) $journal->getId() > 0) {
+            $root->appendChild((new NavigationMenusTransfer())->export(
+                $document,
+                (int) $journal->getId(),
                 $acceptedLocales
             ));
         }
