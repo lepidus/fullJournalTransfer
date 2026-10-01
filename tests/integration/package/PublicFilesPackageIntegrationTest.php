@@ -103,6 +103,10 @@ class PublicFilesPackageIntegrationTest extends DatabaseTestCase
             file_get_contents($destinationPath . '/image.png')
         );
         $this->assertSame(
+            str_replace($this->url($source) . '/', $this->url($saved) . '/', file_get_contents($sourcePath . '/extensionless-logo')),
+            file_get_contents($destinationPath . '/extensionless-logo')
+        );
+        $this->assertSame(
             file_get_contents($sourcePath . '/assets/font.woff2'),
             file_get_contents($destinationPath . '/assets/font.woff2')
         );
@@ -185,6 +189,10 @@ class PublicFilesPackageIntegrationTest extends DatabaseTestCase
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='
         ));
         file_put_contents($path . '/assets/font.woff2', 'synthetic font bytes');
+        file_put_contents(
+            $path . '/extensionless-logo',
+            '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><image href="' . $this->url($journal) . '/image.png"/></svg>'
+        );
         file_put_contents($path . '/style.css', 'a{background:url(' . $this->url($journal) . '/image.png)}');
         file_put_contents($path . '/assets/page.html', '<img src="' . $this->url($journal) . '/image.png">');
         foreach (['pageHeaderLogoImage', 'homepageImage', 'favicon', 'journalThumbnail'] as $name) {

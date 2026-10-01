@@ -30,6 +30,10 @@ class PublicFilesTransfer
         'ppt', 'pptx', 'odp', 'zip', 'gz', 'bz2', 'tar', 'tgz', '7z', 'rar',
         'xml', 'json', 'html', 'htm', 'mp3', 'mp4', 'webm', 'ogg', 'wav', 'ogv', 'epub',
     ];
+    private const IMAGE_MIME_TYPES = [
+        'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml',
+        'image/x-icon', 'image/vnd.microsoft.icon', 'image/bmp', 'image/x-ms-bmp', 'image/tiff',
+    ];
     private const METADATA = ['name', 'uploadName', 'width', 'height', 'dateUploaded', 'altText'];
 
     /** Convert an in-application filesystem path to a relative public URL path. */
@@ -72,6 +76,7 @@ class PublicFilesTransfer
                 if ($entry->isFile()) {
                     $relative = substr($entry->getPathname(), strlen($path) + 1);
                     $this->validateFilePath($relative);
+                    $this->validateExtensionlessImage($entry->getPathname());
                     $paths[] = $relative;
                 }
             }
@@ -269,7 +274,8 @@ class PublicFilesTransfer
                     strtolower(pathinfo($relative, PATHINFO_EXTENSION)),
                     ['css', 'html', 'htm', 'svg', 'js', 'json', 'xml', 'map'],
                     true
-                )
+                ) || (pathinfo($relative, PATHINFO_EXTENSION) === ''
+                    && (new \finfo(FILEINFO_MIME_TYPE))->file($source) === 'image/svg+xml')
                 ) {
                     $content = file_get_contents($source);
                     if ($content === false) {
@@ -365,13 +371,26 @@ class PublicFilesTransfer
         ) {
             $this->invalid();
         }
+        $this->validateExtensionlessImage($real);
         return $real;
     }
 
     private function validateFilePath(string $path): void
     {
         $this->validatePath($path);
-        if (!in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), self::STATIC_EXTENSIONS, true)) {
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if ($extension !== '' && !in_array($extension, self::STATIC_EXTENSIONS, true)) {
+            $this->invalid();
+        }
+    }
+
+    private function validateExtensionlessImage(string $path): void
+    {
+        if (pathinfo($path, PATHINFO_EXTENSION) !== '') {
+            return;
+        }
+        $mimeType = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
+        if (!in_array($mimeType, self::IMAGE_MIME_TYPES, true)) {
             $this->invalid();
         }
     }

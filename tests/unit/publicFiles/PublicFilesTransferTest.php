@@ -246,6 +246,48 @@ class PublicFilesTransferTest extends TestCase
         ]);
     }
 
+    /** @dataProvider nonImageExtensionlessFiles */
+    public function testItRejectsNonImageExtensionlessFiles(string $content, bool $import): void
+    {
+        $directory = sys_get_temp_dir() . '/extensionless-public-' . bin2hex(random_bytes(8));
+        $source = $import ? '/package/public-files' : '/public/journals/7';
+        mkdir($directory . $source, 0700, true);
+        mkdir($directory . '/destination', 0700, true);
+        file_put_contents($directory . $source . '/unknown', $content);
+        $document = new DOMDocument();
+        $document->loadXML('<public_files source_path="public/journals/7" '
+            . 'source_url="https://source.example/public/journals/7"><file path="unknown"/></public_files>');
+        try {
+            $this->expectException(InvalidArgumentException::class);
+            $transfer = new PublicFilesTransfer();
+            if ($import) {
+                $transfer->restore(
+                    $document->documentElement,
+                    $directory . '/package',
+                    $directory . '/destination',
+                    'https://target.example/public/journals/12',
+                    static function (string $path): void {},
+                    static function (string $path): void {}
+                );
+            } else {
+                $transfer->stage($document->documentElement, $directory . '/public', $directory . '/destination');
+            }
+        } finally {
+            $written = file_exists($directory . '/destination/unknown')
+                || file_exists($directory . '/destination/public-files/unknown');
+            (new PublicFileManager())->rmtree($directory);
+            $this->assertFalse($written);
+        }
+    }
+
+    public static function nonImageExtensionlessFiles(): array
+    {
+        return [
+            ['plain text', false], ['plain text', true],
+            ['<?php echo "executable";', false], ['<?php echo "executable";', true],
+        ];
+    }
+
     public function testItRejectsSymlinkedPublicFilesBeforeStaging(): void
     {
         $directory = sys_get_temp_dir() . '/public-symlink-' . bin2hex(random_bytes(8));
