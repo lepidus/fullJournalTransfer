@@ -30,6 +30,7 @@ class PublicFilesTransfer
         'ppt', 'pptx', 'odp', 'zip', 'gz', 'bz2', 'tar', 'tgz', '7z', 'rar',
         'xml', 'json', 'html', 'htm', 'mp3', 'mp4', 'webm', 'ogg', 'wav', 'ogv', 'epub',
     ];
+    private const TEXT_EXTENSIONS = ['css', 'html', 'htm', 'svg', 'js', 'json', 'xml', 'map'];
     private const IMAGE_MIME_TYPES = [
         'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml',
         'image/x-icon', 'image/vnd.microsoft.icon', 'image/bmp', 'image/x-ms-bmp', 'image/tiff',
@@ -76,7 +77,7 @@ class PublicFilesTransfer
                 if ($entry->isFile()) {
                     $relative = substr($entry->getPathname(), strlen($path) + 1);
                     $this->validateFilePath($relative);
-                    $this->validateExtensionlessImage($entry->getPathname());
+                    $this->imageMimeType($entry->getPathname());
                     $paths[] = $relative;
                 }
             }
@@ -247,86 +248,98 @@ class PublicFilesTransfer
                 $this->invalid();
             }
         }
+        $rewrite = $this->referenceRewriter($node, $destinationUrl);
         foreach ($sources as $relative => $source) {
             $target = $destination . '/' . $relative;
-            $parent = $destination;
-            $components = explode('/', $relative);
-            array_pop($components);
-            foreach ($components as $component) {
-                $parent .= '/' . $component;
-                if (!is_dir($parent)) {
-                    if (!mkdir($parent, 0755)) {
-                        $this->ioError();
-                    }
-                    $recordDirectory($parent);
-                }
-                if (is_link($parent)) {
-                    $this->invalid();
-                }
+            $this->createParentDirectories($destination, $relative, $recordDirectory);
+            $this->copyFile($source, $target, $rewrite, $recordFile);
+        }
+    }
+
+    private function createParentDirectories(string $root, string $relative, callable $recordDirectory): void
+    {
+        $parent = $root;
+        foreach (array_slice(explode('/', $relative), 0, -1) as $component) {
+            $parent .= '/' . $component;
+            if (is_link($parent)) {
+                $this->invalid();
             }
-            $output = fopen($target, 'xb');
-            if ($output === false) {
-                $this->ioError();
-            }
-            try {
-                $recordFile($target);
-                if (in_array(
-                    strtolower(pathinfo($relative, PATHINFO_EXTENSION)),
-                    ['css', 'html', 'htm', 'svg', 'js', 'json', 'xml', 'map'],
-                    true
-                ) || (pathinfo($relative, PATHINFO_EXTENSION) === ''
-                    && (new \finfo(FILEINFO_MIME_TYPE))->file($source) === 'image/svg+xml')
-                ) {
-                    $content = file_get_contents($source);
-                    if ($content === false) {
-                        $this->ioError();
-                    }
-                    $content = $this->rewriteText($content, $node, $destinationUrl);
-                    if (fwrite($output, $content) !== strlen($content)) {
-                        $this->ioError();
-                    }
-                } else {
-                    $input = fopen($source, 'rb');
-                    if ($input === false) {
-                        $this->ioError();
-                    }
-                    try {
-                        if (stream_copy_to_stream($input, $output) !== filesize($source)) {
-                            $this->ioError();
-                        }
-                    } finally {
-                        fclose($input);
-                    }
+            if (!is_dir($parent)) {
+                if (!mkdir($parent, 0755)) {
+                    $this->ioError();
                 }
-            } finally {
-                fclose($output);
+                $recordDirectory($parent);
             }
         }
     }
 
+    private function copyFile(string $source, string $target, callable $rewrite, callable $recordFile): void
+    {
+        $output = fopen($target, 'xb');
+        if ($output === false) {
+            $this->ioError();
+        }
+        try {
+            $recordFile($target);
+            if ($this->isTextFile($source)) {
+                $content = file_get_contents($source);
+                if ($content === false) {
+                    $this->ioError();
+                }
+                $content = $rewrite($content);
+                if (fwrite($output, $content) !== strlen($content)) {
+                    $this->ioError();
+                }
+                return;
+            }
+            $input = fopen($source, 'rb');
+            if ($input === false) {
+                $this->ioError();
+            }
+            try {
+                if (stream_copy_to_stream($input, $output) !== filesize($source)) {
+                    $this->ioError();
+                }
+            } finally {
+                fclose($input);
+            }
+        } finally {
+            fclose($output);
+        }
+    }
+
+    private function isTextFile(string $path): bool
+    {
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($extension, self::TEXT_EXTENSIONS, true)
+            || ($extension === '' && $this->imageMimeType($path) === 'image/svg+xml');
+    }
+
     /** Rewrite exported content before any child filter persists it. */
     public function rewriteReferences(DOMNode $node, DOMElement $publicFiles, string $destinationUrl): void
+    {
+        $this->rewriteNode($node, $publicFiles, $this->referenceRewriter($publicFiles, $destinationUrl));
+    }
+
+    private function rewriteNode(DOMNode $node, DOMElement $publicFiles, callable $rewrite): void
     {
         if ($node === $publicFiles) {
             return;
         }
         if ($node instanceof DOMElement) {
             foreach ($node->attributes as $attribute) {
-                $attribute->value = $this->rewriteText($attribute->value, $publicFiles, $destinationUrl);
+                $attribute->value = $rewrite($attribute->value);
             }
         } elseif (in_array($node->nodeType, [XML_TEXT_NODE, XML_CDATA_SECTION_NODE], true)) {
-            $node->nodeValue = $this->rewriteText($node->nodeValue, $publicFiles, $destinationUrl);
+            $node->nodeValue = $rewrite($node->nodeValue);
         }
         foreach ($node->childNodes as $child) {
-            $this->rewriteReferences($child, $publicFiles, $destinationUrl);
+            $this->rewriteNode($child, $publicFiles, $rewrite);
         }
     }
 
-    private function rewriteText(string $text, DOMElement $node, string $destinationUrl): string
+    private function referenceRewriter(DOMElement $node, string $destinationUrl): callable
     {
-        if (!str_contains($text, 'journals') && !str_contains($text, '%')) {
-            return $text;
-        }
         $sourceUrl = $node->getAttribute('source_url');
         $sourcePath = $node->getAttribute('source_path');
         $sourceRootPath = (string) parse_url($sourceUrl, PHP_URL_PATH);
@@ -348,7 +361,12 @@ class PublicFilesTransfer
         $pattern = '~(?<![a-zA-Z0-9_/:.\\\\-])(?:'
             . implode('|', array_map(static fn ($value): string => preg_quote($value, '~'), array_keys($maps)))
             . ')~';
-        return preg_replace_callback($pattern, static fn (array $match): string => $maps[$match[0]], $text);
+        return static function (string $text) use ($pattern, $maps): string {
+            if (!str_contains($text, 'journals') && !str_contains($text, '%')) {
+                return $text;
+            }
+            return preg_replace_callback($pattern, static fn (array $match): string => $maps[$match[0]], $text);
+        };
     }
 
     private function regularFile(string $root, string $relative): string
@@ -371,7 +389,7 @@ class PublicFilesTransfer
         ) {
             $this->invalid();
         }
-        $this->validateExtensionlessImage($real);
+        $this->imageMimeType($real);
         return $real;
     }
 
@@ -384,15 +402,17 @@ class PublicFilesTransfer
         }
     }
 
-    private function validateExtensionlessImage(string $path): void
+    /** Inspect only extensionless images; named static files keep their existing policy. */
+    private function imageMimeType(string $path): ?string
     {
         if (pathinfo($path, PATHINFO_EXTENSION) !== '') {
-            return;
+            return null;
         }
         $mimeType = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
         if (!in_array($mimeType, self::IMAGE_MIME_TYPES, true)) {
             $this->invalid();
         }
+        return $mimeType;
     }
 
     private function validatePath(string $path): void
