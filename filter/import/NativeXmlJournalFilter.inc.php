@@ -473,6 +473,7 @@ class NativeXmlJournalFilter extends NativeImportFilter
         echo __('plugins.importexport.fullJournal.importingMetrics') . "\n";
 
         $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+        $associations = [];
         $records = [];
         $onError = function ($e) use ($deployment, $journal) {
             $deployment->addWarning(
@@ -515,12 +516,12 @@ class NativeXmlJournalFilter extends NativeImportFilter
                 }
                 $records[] = $record;
                 if (count($records) === FullJournalMetricsDAO::IMPORT_BATCH_SIZE) {
-                    $metricsDAO->insertRecords($records, $onError);
+                    $metricsDAO->insertRecords($records, $onError, $associations);
                     $records = [];
                 }
             }
         }
-        $metricsDAO->insertRecords($records, $onError);
+        $metricsDAO->insertRecords($records, $onError, $associations);
     }
 
     public function logIdRelation($journal)
