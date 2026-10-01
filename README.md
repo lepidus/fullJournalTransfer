@@ -138,34 +138,11 @@ deposit-plugin settings are not transferred, and importing a package never sched
 
 ## Public files and appearance
 
-The package includes static files from the journal's own public directory, normally
-`public/journals/<id>/`, preserving subdirectories that contain files. It excludes `public/site/` and
-other journals. In addition to native cover transfer, it transfers `pageHeaderLogoImage`,
-`homepageImage`, `favicon`, `journalThumbnail` and `styleSheet`, including metadata and accepted locales.
+The plugin transfers journal logos, images, favicon, custom CSS and other static files, updating their
+references for the destination. Shared site files and external resources are not transferred.
 
-Files are stored under `public-files/` in the package and restored into the new journal's directory.
-References to the source public directory are updated for the destination domain, installation path
-and journal ID in exported XML content, including HTML and theme options, and in CSS, HTML, HTM, SVG,
-JS, JSON, XML and MAP files. Relative references within the tree remain usable. External resources
-are not downloaded. Rewriting JavaScript may invalidate integrity hashes and source map positions
-maintained outside the transferred content.
-
-The explicit static extension list in `publicFiles/PublicFilesTransfer.php` permits common images,
-fonts, styles, browser scripts, documents, archives and media. Unsupported extensions, server
-executables, special files and symbolic links stop the transfer. Appearance settings referencing
-missing files are also rejected. Import does not overwrite existing public files and registers new
-files and directories for compensation if the import fails.
-
-The configured public directory must be relative to the application or an absolute path inside it;
-absolute filesystem paths are converted to relative public URL paths. All permitted files in the
-journal directory are included, even if currently unreferenced. This preserves assets used by
-announcements, highlights, pages and plugins, but does not add transfer of their records or settings
-when those are outside the plugin's existing contracts. Code and assets installed in theme or plugin
-directories must be installed separately at the destination.
-
-Use this plugin version at both ends to transfer the new `public_files` section. Older packages
-without that optional section remain supported, but cannot restore appearance files they did not
-include. HTML, JavaScript and SVG remain active content: import packages only from trusted sources.
+Use the updated plugin version at both ends. Themes and plugins must be installed at the destination;
+copying their public files does not automatically transfer their settings or content.
 
 ## Running Tests
 

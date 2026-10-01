@@ -140,37 +140,12 @@ depósito DOI.
 
 ## Arquivos públicos e aparência
 
-O pacote inclui os arquivos estáticos da pasta pública específica da revista, normalmente
-`public/journals/<id>/`, preservando as subpastas que contêm arquivos. A pasta `public/site/` e os
-arquivos de outras revistas não são incluídos. Além das capas tratadas pelo formato nativo, são
-transferidas as configurações `pageHeaderLogoImage`, `homepageImage`, `favicon`, `journalThumbnail` e
-`styleSheet`, com os metadados e locales aceitos na transferência.
+O plugin transfere logos, imagens, favicon, CSS personalizado e outros arquivos estáticos da revista,
+ajustando suas referências para o destino. Arquivos compartilhados do site e recursos externos não são
+transferidos.
 
-Os arquivos ficam em `public-files/` no pacote e são restaurados na pasta da nova revista. Referências
-à pasta pública de origem são atualizadas para o domínio, caminho de instalação e ID do destino no
-conteúdo XML exportado, inclusive HTML e opções do tema, e nos arquivos CSS, HTML, HTM, SVG, JS, JSON,
-XML e MAP. Referências relativas entre arquivos da mesma árvore continuam funcionando. Recursos
-externos não são baixados. A alteração de JavaScript pode invalidar hashes de integridade e posições
-de mapas de código mantidos fora do conteúdo transferido.
-
-A transferência aceita extensões estáticas comuns de imagens, fontes, estilos, scripts de navegador,
-documentos, arquivos compactados e mídia, conforme a lista explícita em
-`publicFiles/PublicFilesTransfer.php`. Arquivos com extensões não admitidas, arquivos executáveis do
-servidor, arquivos especiais e links simbólicos interrompem a transferência. Uma configuração de
-aparência que referencia um arquivo ausente também é rejeitada. A importação não sobrescreve arquivos
-públicos preexistentes e inclui os arquivos e diretórios criados na compensação em caso de falha.
-
-O diretório público configurado deve ser relativo à instalação, ou um caminho absoluto dentro dela;
-nesse último caso, o caminho em disco é separado do caminho usado nas URLs. Todos os arquivos
-admitidos da pasta da revista são incluídos, mesmo que não tenham referências atuais nos conteúdos.
-Isso preserva recursos de notícias, destaques, páginas e plugins, mas não acrescenta a transferência
-dos respectivos registros ou configurações quando estes não fazem parte dos contratos do plugin.
-Arquivos e código instalados na pasta de um tema ou plugin exigem instalação separada no destino.
-
-Use esta versão do plugin nas duas instalações para transferir a nova seção `public_files`. Pacotes
-anteriores, sem essa seção opcional, continuam aceitos, mas não recuperam os arquivos de aparência que
-não estavam incluídos neles. HTML, JavaScript e SVG são preservados como conteúdo ativo: importe
-somente pacotes de origem confiável.
+Use a versão atualizada do plugin na origem e no destino. Temas e plugins precisam estar instalados no
+destino; a cópia de seus arquivos públicos não transfere automaticamente suas configurações ou conteúdos.
 
 ## Execução de Testes
 
