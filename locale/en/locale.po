@@ -819,3 +819,9 @@ msgstr "directory"
 
 msgid "plugins.importexport.fullJournal.error.packageJournalXmlMissing"
 msgstr "The package must contain journal.xml"
+
+msgid "plugins.importexport.fullJournal.error.publicFilesInvalid"
+msgstr "Invalid or unsafe journal public files or appearance metadata"
+
+msgid "plugins.importexport.fullJournal.error.publicFilesCopyFailed"
+msgstr "Unable to copy journal public files"

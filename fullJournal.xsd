@@ -18,6 +18,7 @@
                 <element name="submission_checklist" type="pkp:submission_checklist" minOccurs="0" />
                 <element name="context_settings" type="pkp:context_settings" />
                 <element name="theme" type="pkp:theme" minOccurs="0" />
+                <element name="public_files" type="pkp:public_files" minOccurs="0" />
                 <element name="users" type="pkp:open_data" minOccurs="0" />
                 <element name="reference_data" type="pkp:open_data" minOccurs="0" />
                 <element name="native_data" type="pkp:native_data" minOccurs="0" />
@@ -75,6 +76,30 @@
                 </complexType>
             </element>
         </sequence>
+    </complexType>
+
+    <complexType name="public_files">
+        <sequence>
+            <element name="setting" minOccurs="0" maxOccurs="unbounded">
+                <complexType mixed="true">
+                    <attribute name="name" use="required">
+                        <simpleType><restriction base="string">
+                            <enumeration value="pageHeaderLogoImage" />
+                            <enumeration value="homepageImage" />
+                            <enumeration value="favicon" />
+                            <enumeration value="journalThumbnail" />
+                            <enumeration value="styleSheet" />
+                        </restriction></simpleType>
+                    </attribute>
+                    <attribute name="locale" type="pkp:locale_code" use="optional" />
+                </complexType>
+            </element>
+            <element name="file" minOccurs="0" maxOccurs="unbounded">
+                <complexType><attribute name="path" type="string" use="required" /></complexType>
+            </element>
+        </sequence>
+        <attribute name="source_path" type="string" use="required" />
+        <attribute name="source_url" type="anyURI" use="required" />
     </complexType>
 
     <complexType name="theme">

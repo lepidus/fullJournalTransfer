@@ -120,6 +120,7 @@ deposit-plugin settings are not transferred, and importing a package never sched
 - Submission historical dates and issue publication timestamps
 - Incomplete submission wizard progress
 - Selected theme and theme options
+- Journal logos, images, favicon, custom CSS and other static files
 - Navigation Menus
 - Sections
 - Review Forms

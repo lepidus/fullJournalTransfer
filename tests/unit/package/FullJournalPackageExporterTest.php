@@ -62,6 +62,39 @@ class FullJournalPackageExporterTest extends TestCase
         }
     }
 
+    public function testItPackagesOnlyTheSelectedJournalsPublicFiles(): void
+    {
+        $directory = sys_get_temp_dir() . '/public-package-' . bin2hex(random_bytes(8));
+        mkdir($directory . '/files', 0700, true);
+        mkdir($directory . '/public/journals/7/assets', 0700, true);
+        mkdir($directory . '/public/site', 0700, true);
+        file_put_contents($directory . '/public/journals/7/assets/logo.png', 'journal logo');
+        file_put_contents($directory . '/public/site/logo.png', 'site logo');
+        $document = new DOMDocument();
+        $document->loadXML('<journal><public_files source_path="public/journals/7" '
+            . 'source_url="https://source.example/public/journals/7">'
+            . '<file path="assets/logo.png"/></public_files></journal>');
+        $archive = $directory . '/journal.tar.gz';
+        try {
+            (new FullJournalPackageExporter($directory . '/files', $directory . '/public'))->export(
+                new ExportDocumentDeployment(new Journal(), null, $document),
+                $archive
+            );
+            $this->assertSame("journal.xml\npublic-files/assets/logo.png\n", $this->runTar(['-tzf', $archive]));
+            $this->assertSame('journal logo', $this->runTar(['-xOzf', $archive, 'public-files/assets/logo.png']));
+        } finally {
+            foreach (['journal.tar.gz', 'public/journals/7/assets/logo.png', 'public/site/logo.png'] as $file) {
+                if (is_file($directory . '/' . $file)) {
+                    unlink($directory . '/' . $file);
+                }
+            }
+            foreach (['files', 'public/journals/7/assets', 'public/journals/7', 'public/journals',
+                'public/site', 'public', ''] as $path) {
+                rmdir($directory . '/' . $path);
+            }
+        }
+    }
+
     public function testItCleansTheStagingDirectoryWhenExportFails(): void
     {
         $directory = sys_get_temp_dir() . '/full-journal-exporter-' . bin2hex(random_bytes(8));

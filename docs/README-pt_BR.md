@@ -122,6 +122,7 @@ depósito DOI.
 - Datas históricas das submissões e horários de publicação das edições
 - Progresso das submissões incompletas no assistente
 - Tema selecionado e opções do tema
+- Logos, imagens, favicon, CSS personalizado e demais arquivos estáticos da revista
 - Menus de Navegação
 - Seções
 - Formulários de Avaliação

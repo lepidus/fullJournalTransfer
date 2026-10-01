@@ -47,6 +47,25 @@ class FullJournalSchemaTest extends TestCase
         $this->assertTrue($document->schemaValidate($this->schemaPath()));
     }
 
+    public function testItAcceptsTheOptionalPublicFilesContract(): void
+    {
+        $document = $this->loadXml('<journal xmlns="http://pkp.sfu.ca" primary_locale="en" url_path="journal" '
+            . 'sequence="1" source_enabled="false">'
+            . '<locales><locale code="en" enabled_for_ui="true" enabled_for_forms="true" form_order="1" '
+            . 'enabled_for_submissions="true" submission_order="1"/></locales>'
+            . '<context_settings><setting name="name" type="string" locale="en">Journal</setting>'
+            . '<setting name="contactName" type="string">Editor</setting>'
+            . '<setting name="contactEmail" type="string">editor@example.com</setting></context_settings>'
+            . '<public_files source_path="public/journals/7" source_url="https://source.example/public/journals/7">'
+            . '<setting name="pageHeaderLogoImage" locale="en">{"uploadName":"logo.png"}</setting>'
+            . '<setting name="styleSheet">{"uploadName":"style.css"}</setting>'
+            . '<file path="logo.png"/><file path="style.css"/></public_files></journal>');
+        $this->assertTrue($document->schemaValidate($this->schemaPath()));
+        $document->getElementsByTagNameNS('http://pkp.sfu.ca', 'public_files')->item(0)
+            ->getElementsByTagNameNS('http://pkp.sfu.ca', 'setting')->item(0)->setAttribute('name', 'apiKey');
+        $this->assertInvalidDocument($document->saveXML());
+    }
+
     public function testPluginSchemaTypeNamesUseSnakeCase(): void
     {
         $document = $this->loadXml((string) file_get_contents($this->schemaPath()));

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace APP\plugins\importexport\fullJournalTransfer\filter\journal;
 
+use APP\core\Application;
+use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
+use APP\plugins\importexport\fullJournalTransfer\publicFiles\PublicFilesTransfer;
 use APP\plugins\importexport\fullJournalTransfer\theme\ThemeSettingsTransfer;
 use DOMDocument;
 use DOMElement;
@@ -62,6 +65,18 @@ class JournalNativeXmlFilter extends NativeExportFilter
         )));
         $this->addSettings($document, $root, $journal, $acceptedLocales);
         $this->addTheme($document, $root, $journal);
+        if ((int) $journal->getId() > 0) {
+            $publicPath = (new PublicFileManager())->getContextFilesPath($journal->getId());
+            $publicTransfer = new PublicFilesTransfer();
+            $root->appendChild($publicTransfer->export(
+                $document,
+                $journal,
+                $publicPath,
+                Application::get()->getRequest()->getBaseUrl() . '/'
+                    . implode('/', array_map('rawurlencode', explode('/', $publicTransfer->publicPath($publicPath)))),
+                $acceptedLocales
+            ));
+        }
         $this->validateRequiredSettings($journal);
         if ((int) $journal->getId() > 0) {
             foreach (['exportUsers', 'exportReferenceData', 'exportNativeData', 'exportWorkflow',

@@ -67,6 +67,55 @@ class ContextCreationIntegrationTest extends DatabaseTestCase
         $deployment->createContextData($document->documentElement);
     }
 
+    public function testItPersistsPublicFilesAndRewrittenContentForTheNewJournal(): void
+    {
+        $source = new Journal();
+        $source->setPath('public-journal-' . bin2hex(random_bytes(4)));
+        $source->setSequence(1);
+        $source->setPrimaryLocale('en');
+        foreach (['supportedLocales', 'supportedFormLocales', 'supportedSubmissionLocales'] as $name) {
+            $source->setData($name, ['en']);
+        }
+        $source->setData('name', ['en' => 'Public Journal']);
+        $source->setData('contactName', 'Editorial Team');
+        $source->setData('contactEmail', 'editor@example.com');
+        $source->setData('description', ['en' => '<img src="https://source.example/public/journals/7/logo.png">']);
+        $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
+        $fragment = $document->createDocumentFragment();
+        $fragment->appendXML('<public_files xmlns="http://pkp.sfu.ca" source_path="public/journals/7" '
+            . 'source_url="https://source.example/public/journals/7">'
+            . '<setting name="pageHeaderLogoImage" locale="en">{"uploadName":"logo.png"}</setting>'
+            . '<setting name="styleSheet">{"uploadName":"style.css"}</setting>'
+            . '<file path="logo.png"/><file path="style.css"/></public_files>');
+        $document->documentElement->appendChild($fragment);
+        $package = sys_get_temp_dir() . '/public-context-' . bin2hex(random_bytes(8));
+        mkdir($package . '/public-files', 0700, true);
+        file_put_contents($package . '/public-files/logo.png', 'synthetic logo');
+        file_put_contents(
+            $package . '/public-files/style.css',
+            'a{background:url(https://source.example/public/journals/7/logo.png)}'
+        );
+        try {
+            $deployment = new FullJournalImportExportDeployment(new Journal(), null);
+            $deployment->setImportPath($package);
+            $this->createdContext = $deployment->createContextData($document->documentElement);
+            $saved = Application::get()->getContextDAO()->getById($this->createdContext->getId());
+            $path = (new PublicFileManager())->getContextFilesPath($saved->getId());
+            $url = Application::get()->getRequest()->getBaseUrl() . '/'
+                . (new \APP\plugins\importexport\fullJournalTransfer\publicFiles\PublicFilesTransfer())->publicPath($path);
+            $this->assertSame('synthetic logo', file_get_contents($path . '/logo.png'));
+            $this->assertSame(['en' => ['uploadName' => 'logo.png']], $saved->getData('pageHeaderLogoImage'));
+            $this->assertSame(['uploadName' => 'style.css'], $saved->getData('styleSheet'));
+            $this->assertSame('<img src="' . $url . '/logo.png">', $saved->getData('description', 'en'));
+            $this->assertSame('a{background:url(' . $url . '/logo.png)}', file_get_contents($path . '/style.css'));
+        } finally {
+            unlink($package . '/public-files/logo.png');
+            unlink($package . '/public-files/style.css');
+            rmdir($package . '/public-files');
+            rmdir($package);
+        }
+    }
+
     public function testItRejectsInvalidDestinationLocalesBeforeCreatingTheContext(): void
     {
         foreach ($this->invalidDestinationLocaleProvider() as $case) {

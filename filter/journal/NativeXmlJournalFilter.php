@@ -9,6 +9,7 @@ use APP\file\PublicFileManager;
 use APP\journal\Journal;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalLocalePolicy;
 use APP\plugins\importexport\fullJournalTransfer\policy\JournalSettingsPolicy;
+use APP\plugins\importexport\fullJournalTransfer\publicFiles\PublicFilesTransfer;
 use APP\plugins\importexport\fullJournalTransfer\theme\ThemeSettingsTransfer;
 use DOMElement;
 use Illuminate\Support\Facades\DB;
@@ -135,6 +136,10 @@ class NativeXmlJournalFilter extends NativeImportFilter
         $journal->setData('submissionChecklist', $checklist);
         $acceptedLocales = array_values(array_unique(array_merge(...array_values($locales))));
         $this->importSettings($node, $journal, $acceptedLocales);
+        $publicFiles = $this->optionalChild($node, 'public_files');
+        if ($publicFiles) {
+            (new PublicFilesTransfer())->applySettings($publicFiles, $journal, $acceptedLocales);
+        }
         $themeNode = $this->optionalChild($node, 'theme');
         if ($themeNode) {
             $theme = $this->getImportedTheme($themeNode);
@@ -172,6 +177,23 @@ class NativeXmlJournalFilter extends NativeImportFilter
                     throw new RuntimeException(__('plugins.importexport.fullJournal.error.publicFilesDirectoryResolutionFailed'));
                 }
                 $deployment->recordCreatedDirectory($absolutePublicFilesPath);
+            }
+            $publicFiles = $this->optionalChild($node, 'public_files');
+            if ($publicFiles) {
+                $transfer = new PublicFilesTransfer();
+                $destinationUrl = Application::get()->getRequest()->getBaseUrl() . '/'
+                    . implode('/', array_map('rawurlencode', explode('/', $transfer->publicPath($publicFilesPath))));
+                $transfer->restore(
+                    $publicFiles,
+                    $deployment->getImportPath(),
+                    $publicFilesPath,
+                    $destinationUrl,
+                    [$deployment, 'recordCreatedFile'],
+                    [$deployment, 'recordCreatedDirectory']
+                );
+                $transfer->rewriteReferences($node, $publicFiles, $destinationUrl);
+                $this->hydrate($node, $createdJournal);
+                $contextDao->updateObject($createdJournal);
             }
             $themeNode = $this->optionalChild($node, 'theme');
             if ($themeNode) {
