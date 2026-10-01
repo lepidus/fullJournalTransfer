@@ -122,7 +122,7 @@ depósito DOI.
 - Datas históricas das submissões e horários de publicação das edições
 - Progresso das submissões incompletas no assistente
 - Tema selecionado e opções do tema
-- Arquivos públicos da revista e configurações de logo, imagens, favicon e CSS
+- Logos, imagens, favicon, CSS personalizado e demais arquivos estáticos da revista
 - Menus de Navegação
 - Seções
 - Formulários de Avaliação
@@ -137,15 +137,6 @@ depósito DOI.
 - Decisões do Editor
 - Discussões
 - Métricas
-
-## Arquivos públicos e aparência
-
-O plugin transfere logos, imagens, favicon, CSS personalizado e outros arquivos estáticos da revista,
-ajustando suas referências para o destino. Arquivos compartilhados do site e recursos externos não são
-transferidos.
-
-Use a versão atualizada do plugin na origem e no destino. Temas e plugins precisam estar instalados no
-destino; a cópia de seus arquivos públicos não transfere automaticamente suas configurações ou conteúdos.
 
 ## Execução de Testes
 

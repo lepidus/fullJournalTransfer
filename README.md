@@ -120,7 +120,7 @@ deposit-plugin settings are not transferred, and importing a package never sched
 - Submission historical dates and issue publication timestamps
 - Incomplete submission wizard progress
 - Selected theme and theme options
-- Journal public files and logo, image, favicon and CSS settings
+- Journal logos, images, favicon, custom CSS and other static files
 - Navigation Menus
 - Sections
 - Review Forms
@@ -135,14 +135,6 @@ deposit-plugin settings are not transferred, and importing a package never sched
 - Editor Decisions
 - Discussions
 - Metrics
-
-## Public files and appearance
-
-The plugin transfers journal logos, images, favicon, custom CSS and other static files, updating their
-references for the destination. Shared site files and external resources are not transferred.
-
-Use the updated plugin version at both ends. Themes and plugins must be installed at the destination;
-copying their public files does not automatically transfer their settings or content.
 
 ## Running Tests
 
