@@ -825,3 +825,6 @@ msgstr "Invalid or unsafe journal public files or appearance metadata"
 
 msgid "plugins.importexport.fullJournal.error.publicFilesCopyFailed"
 msgstr "Unable to copy journal public files"
+
+msgid "plugins.importexport.fullJournal.error.invalidNavigationMenus"
+msgstr "Invalid navigation menus: duplicate entries, unavailable item types, or invalid hierarchy/references."

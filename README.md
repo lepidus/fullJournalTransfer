@@ -121,7 +121,8 @@ deposit-plugin settings are not transferred, and importing a package never sched
 - Incomplete submission wizard progress
 - Selected theme and theme options
 - Journal logos, images, favicon, custom CSS and other static files
-- Navigation Menus
+- Navigation menus assigned to an area and their associated items, including localized titles, custom pages,
+  URLs, order and submenus
 - Sections
 - Review Forms
 - Review Assignments

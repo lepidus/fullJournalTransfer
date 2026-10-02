@@ -825,3 +825,6 @@ msgstr "Arquivos públicos ou metadados de aparência da revista inválidos ou i
 
 msgid "plugins.importexport.fullJournal.error.publicFilesCopyFailed"
 msgstr "Não foi possível copiar os arquivos públicos da revista"
+
+msgid "plugins.importexport.fullJournal.error.invalidNavigationMenus"
+msgstr "Menus de navegação inválidos: entradas duplicadas, tipos de item indisponíveis ou hierarquia/referências inválidas."
