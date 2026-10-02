@@ -21,20 +21,16 @@ class NavigationMenusTransfer
         $root = $document->createElementNS(self::NS, 'navigation_menus');
         $items = $document->createElementNS(self::NS, 'items');
         $root->appendChild($items);
-        foreach (DAORegistry::getDAO('NavigationMenuItemDAO')->getByContextId($contextId)->toArray() as $item) {
-            $node = $document->createElementNS(self::NS, 'item');
-            $node->setAttribute('source_ref', (string) $item->getId());
-            $node->setAttribute('type', (string) $item->getType());
-            $node->setAttribute('path', (string) $item->getPath());
-            $node->setAttribute('title_locale_key', (string) $item->getTitleLocaleKey());
-            $this->exportFields($document, $node, $item, ['title', 'content', 'remoteUrl'], $locales);
-            $items->appendChild($node);
-        }
+        $usedItems = [];
         foreach (DAORegistry::getDAO('NavigationMenuDAO')->getByContextId($contextId)->toArray() as $menu) {
+            if (!$menu->getAreaName()) {
+                continue;
+            }
             $node = $document->createElementNS(self::NS, 'menu');
             $node->setAttribute('title', (string) $menu->getTitle());
             $node->setAttribute('area', (string) $menu->getAreaName());
             foreach (DAORegistry::getDAO('NavigationMenuItemAssignmentDAO')->getByMenuId($menu->getId())->toArray() as $link) {
+                $usedItems[$link->getMenuItemId()] = true;
                 $assignment = $document->createElementNS(self::NS, 'assignment');
                 $assignment->setAttribute('item_ref', (string) $link->getMenuItemId());
                 $assignment->setAttribute('parent_ref', (string) ((int) $link->getParentId()));
@@ -43,6 +39,18 @@ class NavigationMenusTransfer
                 $node->appendChild($assignment);
             }
             $root->appendChild($node);
+        }
+        foreach (DAORegistry::getDAO('NavigationMenuItemDAO')->getByContextId($contextId)->toArray() as $item) {
+            if (!isset($usedItems[$item->getId()])) {
+                continue;
+            }
+            $node = $document->createElementNS(self::NS, 'item');
+            $node->setAttribute('source_ref', (string) $item->getId());
+            $node->setAttribute('type', (string) $item->getType());
+            $node->setAttribute('path', (string) $item->getPath());
+            $node->setAttribute('title_locale_key', (string) $item->getTitleLocaleKey());
+            $this->exportFields($document, $node, $item, ['title', 'content', 'remoteUrl'], $locales);
+            $items->appendChild($node);
         }
         $this->validate($root);
         return $root;
@@ -58,8 +66,21 @@ class NavigationMenusTransfer
             // The caller imports into a newly created context; replace its default navigation only.
             $menuDao->deleteByContextId($contextId);
             $itemDao->deleteByContextId($contextId);
+            $menus = array_filter(
+                $this->children($root, 'menu'),
+                fn (DOMElement $menu): bool => $menu->getAttribute('area') !== ''
+            );
+            $usedItems = [];
+            foreach ($menus as $menu) {
+                foreach ($this->children($menu, 'assignment') as $link) {
+                    $usedItems[$link->getAttribute('item_ref')] = true;
+                }
+            }
             $ids = [];
             foreach ($this->children($this->children($root, 'items')[0], 'item') as $node) {
+                if (!isset($usedItems[$node->getAttribute('source_ref')])) {
+                    continue;
+                }
                 $item = $itemDao->newDataObject();
                 $item->setContextId($contextId);
                 $item->setType($node->getAttribute('type'));
@@ -68,7 +89,7 @@ class NavigationMenusTransfer
                 $this->importFields($node, $item, $locales);
                 $ids[$node->getAttribute('source_ref')] = $itemDao->insertObject($item);
             }
-            foreach ($this->children($root, 'menu') as $node) {
+            foreach ($menus as $node) {
                 $menu = $menuDao->newDataObject();
                 $menu->setContextId($contextId);
                 $menu->setTitle($node->getAttribute('title'));
@@ -95,11 +116,24 @@ class NavigationMenusTransfer
         if (count($containers) !== 1) {
             $this->invalid();
         }
+        $menus = array_filter(
+            $this->children($root, 'menu'),
+            fn (DOMElement $menu): bool => $menu->getAttribute('area') !== ''
+        );
+        $usedItems = [];
+        foreach ($menus as $menu) {
+            foreach ($this->children($menu, 'assignment') as $link) {
+                $usedItems[$link->getAttribute('item_ref')] = true;
+            }
+        }
         $types = Services::get('navigationMenu')->getMenuItemTypes();
         $items = [];
         $paths = [];
         foreach ($this->children($containers[0], 'item') as $node) {
             $id = $node->getAttribute('source_ref');
+            if (!isset($usedItems[$id])) {
+                continue;
+            }
             $path = $node->getAttribute('path');
             if (!ctype_digit($id) || (int) $id < 1 || isset($items[$id])
                 || !isset($types[$node->getAttribute('type')])
@@ -116,7 +150,7 @@ class NavigationMenusTransfer
         }
         $areas = [];
         $titles = [];
-        foreach ($this->children($root, 'menu') as $menu) {
+        foreach ($menus as $menu) {
             $area = $menu->getAttribute('area');
             $title = $menu->getAttribute('title');
             if ($title === '' || isset($titles[$title]) || ($area !== '' && isset($areas[$area]))) {

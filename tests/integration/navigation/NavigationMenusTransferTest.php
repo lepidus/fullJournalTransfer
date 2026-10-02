@@ -34,7 +34,7 @@ class NavigationMenusTransferTest extends DatabaseTestCase
         parent::tearDown();
     }
 
-    public function testItPreservesSharedItemsUnusedItemsHierarchyAndLocalizedTitles(): void
+    public function testItTransfersOnlyItemsUsedInMenusWithAnArea(): void
     {
         $contextDao = Application::get()->getContextDAO();
         $source = $contextDao->newDataObject();
@@ -51,7 +51,7 @@ class NavigationMenusTransferTest extends DatabaseTestCase
         $menus = DAORegistry::getDAO('NavigationMenuDAO');
         $assignments = DAORegistry::getDAO('NavigationMenuItemAssignmentDAO');
         $ids = [];
-        foreach (['parent', 'child', 'unused'] as $path) {
+        foreach (['parent', 'child', 'unused', 'unassigned'] as $path) {
             $item = $items->newDataObject();
             $item->setContextId($source->getId());
             $item->setType(NavigationMenuItem::NMI_TYPE_CUSTOM);
@@ -77,6 +77,17 @@ class NavigationMenusTransferTest extends DatabaseTestCase
                 $assignments->updateLocaleFields($assignment);
             }
         }
+        $menu = $menus->newDataObject();
+        $menu->setContextId($source->getId());
+        $menu->setTitle('Unassigned');
+        $menu->setAreaName('');
+        $menus->insertObject($menu);
+        $assignment = $assignments->newDataObject();
+        $assignment->setMenuId($menu->getId());
+        $assignment->setMenuItemId($ids['unassigned']);
+        $assignment->setParentId(0);
+        $assignment->setSequence(1);
+        $assignments->insertObject($assignment);
         foreach (['supportedLocales', 'supportedFormLocales', 'supportedSubmissionLocales'] as $name) {
             $source->setData($name, ['en', 'pt_BR']);
         }
@@ -87,10 +98,26 @@ class NavigationMenusTransferTest extends DatabaseTestCase
         $document = (new FullJournalImportExportDeployment($source, null))->exportContextData();
         $this->assertTrue($document->schemaValidate(dirname(__DIR__, 3) . '/fullJournal.xsd'));
         $node = $document->getElementsByTagNameNS('http://pkp.sfu.ca', 'navigation_menus')->item(0);
+        $this->assertSame(2, $node->getElementsByTagNameNS('http://pkp.sfu.ca', 'item')->length);
+        $this->assertSame(2, $node->getElementsByTagNameNS('http://pkp.sfu.ca', 'menu')->length);
+        // Older packages may contain unused items and unassigned menus; ignore them on import too.
+        $extraItems = $document->createDocumentFragment();
+        $extraItems->appendXML('<item xmlns="http://pkp.sfu.ca" source_ref="999999" '
+            . 'type="UNAVAILABLE_PLUGIN_TYPE" path="unused" title_locale_key=""/>'
+            . '<item xmlns="http://pkp.sfu.ca" source_ref="999998" '
+            . 'type="NMI_TYPE_CUSTOM" path="unassigned" title_locale_key=""/>');
+        $node->getElementsByTagNameNS('http://pkp.sfu.ca', 'items')->item(0)->appendChild($extraItems);
+        $extraMenu = $document->createDocumentFragment();
+        $extraMenu->appendXML('<menu xmlns="http://pkp.sfu.ca" title="Unassigned" area="">'
+            . '<assignment item_ref="999998" parent_ref="0" seq="1"/></menu>');
+        $node->appendChild($extraMenu);
         $transfer = new NavigationMenusTransfer();
         $transfer->import($node, (int) $target->getId(), ['en', 'pt_BR']);
         $newItems = $items->getByContextId($target->getId())->toArray();
-        $this->assertCount(3, $newItems);
+        $this->assertCount(2, $newItems);
+        $this->assertNull($items->getByPath($target->getId(), 'unused'));
+        $this->assertNull($items->getByPath($target->getId(), 'unassigned'));
+        $this->assertCount(2, $menus->getByContextId($target->getId())->toArray());
         $newParent = $items->getByPath($target->getId(), 'parent');
         $this->assertNotEquals($ids['parent'], $newParent->getId());
         $this->assertSame('Título parent', $newParent->getTitle('pt_BR'));
@@ -160,16 +187,16 @@ class NavigationMenusTransferTest extends DatabaseTestCase
         $end = '</menu></navigation_menus>';
         return [
             'unsafe URL' => [$start . str_replace('/>', '><field name="remoteUrl" locale="en">'
-                . 'javascript:alert(1)</field></item>', $item) . $menu . $end],
-            'invalid path' => [$start . str_replace('path="page"', 'path="bad?path"', $item) . $menu . $end],
+                . 'javascript:alert(1)</field></item>', $item) . $menu . '<assignment item_ref="1" parent_ref="0" seq="1"/>' . $end],
+            'invalid path' => [$start . str_replace('path="page"', 'path="bad?path"', $item) . $menu . '<assignment item_ref="1" parent_ref="0" seq="1"/>' . $end],
             'missing item' => [$start . $menu
                 . '<assignment item_ref="42" parent_ref="0" seq="1"/>' . $end],
             'cycle' => [$start . $item . $menu
                 . '<assignment item_ref="1" parent_ref="1" seq="1"/>' . $end],
             'missing parent' => [$start . $item . $menu
                 . '<assignment item_ref="1" parent_ref="42" seq="1"/>' . $end],
-            'duplicate item' => [$start . $item . $item . $menu . $end],
-            'unknown type' => [$start . str_replace('NMI_TYPE_CUSTOM', 'MISSING_TYPE', $item) . $menu . $end],
+            'duplicate item' => [$start . $item . $item . $menu . '<assignment item_ref="1" parent_ref="0" seq="1"/>' . $end],
+            'unknown type' => [$start . str_replace('NMI_TYPE_CUSTOM', 'MISSING_TYPE', $item) . $menu . '<assignment item_ref="1" parent_ref="0" seq="1"/>' . $end],
         ];
     }
 }
