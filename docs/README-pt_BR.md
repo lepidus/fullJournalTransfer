@@ -164,7 +164,9 @@ php plugins/importexport/fullJournalTransfer/tests/round-trip/run \
 # Créditos
 Este plugin foi idealizado e patrocinado pelo Instituto Brasileiro de Informação em Ciência e Tecnologia (IBICT) para a versão 2.x do OJS.
 
-O financiamento para a versão 3.3 vem da Universidade Federal de São Paulo (Unifesp) e da Universidade Federal do Recôncavo da Bahia (UFRB).
+A versão para OJS 3.3 foi financiada pela Universidade Federal de São Paulo (UNIFESP) e pela Universidade Federal do Recôncavo da Bahia (UFRB).
+
+A versão para OJS 3.4.0 foi financiada pela Universidade Federal de São Paulo (UNIFESP).
 
 Desenvolvido pela Lepidus Tecnologia.
 
