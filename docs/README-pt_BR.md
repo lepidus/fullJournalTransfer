@@ -15,7 +15,7 @@ A versão mais recente deste plugin é compatível com as seguintes aplicações
 - PHP >= 7.4
 - php-mbstring
 - php-intl
-- php-xml (DOM, XMLWriter)
+- php-xml (DOM, XMLWriter, XMLReader)
 
 ## Download do Plugin
 Para baixar o plugin, vá para a [página de Releases](https://github.com/lepidus/fullJournalTransfer/releases) e baixe o pacote tar.gz da versão mais recente compatível com o seu site.
@@ -105,3 +105,12 @@ Desenvolvido pela Lepidus Tecnologia.
 Este plugin é licenciado sob a Licença Pública Geral GNU v3.0
 
 Copyright (c) 2014-2024 Lepidus Tecnologia
+
+## Exportação de métricas
+
+A exportação por CLI lê as métricas com cursor MySQL sem buffer e grava os registros
+em disco, sem acumular todas as linhas nem inserir seu XML no DOM da revista.
+O XML completo é validado com XMLReader antes da compactação; o formato de importação
+permanece o mesmo. Os demais dados ainda usam DOM e podem exigir um limite PHP maior.
+Reserve espaço temporário para o XML da revista e para o XML separado das métricas.
+Os temporários ficam em diretório privado por execução e são removidos ao concluir.

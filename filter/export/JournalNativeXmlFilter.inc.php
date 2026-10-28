@@ -167,7 +167,10 @@ class JournalNativeXmlFilter extends NativeExportFilter
         $this->addReviewForms($doc, $journalNode, $journal);
         $this->addIssues($doc, $journalNode, $journal);
         $this->addArticles($doc, $journalNode, $journal);
-        $this->addMetrics($doc, $journalNode, $journal);
+        // CLI export appends metrics directly to the file after this metadata DOM is validated.
+        if (empty($this->opts['stream-metrics'])) {
+            $this->addMetrics($doc, $journalNode, $journal);
+        }
 
         return $journalNode;
     }
