@@ -173,6 +173,46 @@ class FullJournalMetricsDAO extends MetricsDAO
         }
     }
 
+    /**
+     * Stream the export on a MySQL unbuffered cursor. No other SQL may run on this
+     * connection inside the consumer. Restore its setting even if the consumer throws.
+     */
+    public function withExportRows($contextId, callable $consumer)
+    {
+        $pdo = Capsule::connection()->getReadPdo();
+        $mysql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $buffered = $mysql ? $pdo->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY) : null;
+        $statement = null;
+        try {
+            if ($mysql && !$pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false)) {
+                throw new RuntimeException('Could not enable unbuffered metrics export.');
+            }
+            $statement = $pdo->prepare(
+                'SELECT assoc_type, assoc_id, day, country_id, region, city, file_type, load_id, metric, metric_type'
+                . ' FROM metrics WHERE context_id = ?'
+            );
+            if (!$statement || !$statement->execute([$contextId])) {
+                throw new RuntimeException('Could not read metrics for export.');
+            }
+            $rows = (static function () use ($statement) {
+                while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                    yield $row;
+                }
+            })();
+            return $consumer($rows);
+        } finally {
+            try {
+                if ($statement) {
+                    $statement->closeCursor();
+                }
+            } finally {
+                if ($mysql) {
+                    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, $buffered);
+                }
+            }
+        }
+    }
+
     public function getByContextId($contextId)
     {
         $result = $this->retrieve(

@@ -7,6 +7,7 @@
 
 use Symfony\Component\Process\Process;
 
+import('plugins.importexport.fullJournalTransfer.classes.StreamedJournalExport');
 import('lib.pkp.classes.plugins.ImportExportPlugin');
 import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 
@@ -226,19 +227,17 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
     public function exportJournal($journal, $archivePath, $opts)
     {
         $journalPath = $journal->getPath();
-        $xmlPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $journalPath . '.xml';
 
         $filter = $this->getJournalImportExportFilter($journal, null, false);
+        $opts['stream-metrics'] = true;
         $filter->setOpts($opts);
 
         libxml_use_internal_errors(true);
+        libxml_clear_errors();
         $journalXml = $filter->execute($journal);
-        $xml = $journalXml ? $journalXml->saveXml() : null;
-
         $errors = array_filter(libxml_get_errors(), function ($error) {
             return $error->level == LIBXML_ERR_ERROR || $error->level == LIBXML_ERR_FATAL;
         });
-
         if (!empty($errors)) {
             try {
                 $this->displayXMLValidationErrors($errors, '');
@@ -247,26 +246,44 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
             }
             return false;
         }
-
-        if (empty($xml)) {
+        if (!$journalXml) {
             return false;
         }
 
-        if (!file_put_contents($xmlPath, $xml)) {
+        $temporaryDirectory = tempnam(sys_get_temp_dir(), 'fjt-export-');
+        if ($temporaryDirectory === false) {
             return false;
         }
-
-        import('lib.pkp.classes.file.ContextFileManager');
-        $contextFileManager = new ContextFileManager($journal->getId());
-        $journalFilesDir = $contextFileManager->getBasePath();
-        $this->archiveFiles($archivePath, $xmlPath, $journalFilesDir);
-        unlink($xmlPath);
-
-        if (!file_exists($archivePath)) {
+        if (!unlink($temporaryDirectory) || !mkdir($temporaryDirectory, 0700)) {
             return false;
         }
+        $xmlPath = $temporaryDirectory . DIRECTORY_SEPARATOR . basename($journalPath) . '.xml';
 
-        return true;
+        try {
+            $metricsDAO = DAORegistry::getDAO('FullJournalMetricsDAO');
+            $writer = new StreamedJournalExport();
+            $metricsDAO->withExportRows($journal->getId(), function ($metrics) use ($writer, $journalXml, $xmlPath) {
+                $writer->write($journalXml, $metrics, $xmlPath);
+            });
+            // Release the metadata DOM before validating the complete file.
+            unset($journalXml, $filter);
+            $writer->validate($xmlPath, BASE_SYS_DIR . '/plugins/importexport/fullJournalTransfer/fullJournal.xsd');
+
+            import('lib.pkp.classes.file.ContextFileManager');
+            $contextFileManager = new ContextFileManager($journal->getId());
+            $journalFilesDir = $contextFileManager->getBasePath();
+            $this->archiveFiles($archivePath, $xmlPath, $journalFilesDir);
+
+            if (!file_exists($archivePath)) {
+                return false;
+            }
+            return true;
+        } finally {
+            if (file_exists($xmlPath)) {
+                unlink($xmlPath);
+            }
+            rmdir($temporaryDirectory);
+        }
     }
 
     public function getJournalImportExportFilter($context, $user, $isImport = true)

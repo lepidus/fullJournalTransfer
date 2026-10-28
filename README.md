@@ -15,7 +15,7 @@ The latest release of this plugin is compatible with the following PKP applicati
 - PHP >= 7.4
 - php-mbstring
 - php-intl
-- php-xml (DOM, XMLWriter)
+- php-xml (DOM, XMLWriter, XMLReader)
 
 ## Plugin Download
 To download the plugin, go to the [Releases page](https://github.com/lepidus/fullJournalTransfer/releases) and download the tar.gz package of the latest release compatible with your website.
@@ -45,6 +45,15 @@ php tools/importExport.php FullJournalImportExportPlugin import [targzFileName] 
 ⚠️ During the import process, a "Journal Registration" email is sent to all imported users. For testing purposes, we strongly recommend to disable the email functionality in the config.inc.php file before running the import script.
 
 **Obs**.: Journals containing substantial data will consume a large memory resources. In such instances, employ the PHP parameter `-d memory_limit=-1` during import/export operations.
+
+## Metrics export
+
+CLI export reads metrics through an unbuffered MySQL cursor and writes them to disk,
+without accumulating all rows or adding their XML to the journal DOM. The complete
+XML is validated using XMLReader before archiving; the import format is unchanged.
+Other journal data still uses DOM and may require a larger PHP memory limit.
+Allow temporary disk space for both the journal XML and the separate metrics XML.
+Temporary files are stored in a private directory for each export and removed afterward.
 
 ## Troubleshooting
 
