@@ -9,6 +9,8 @@ import('lib.pkp.plugins.importexport.native.filter.NativeExportFilter');
 
 class JournalNativeXmlFilter extends NativeExportFilter
 {
+    private $interestTransliterator;
+
     public function __construct($filterGroup)
     {
         $this->setDisplayName('Native XML journal export');
@@ -563,7 +565,10 @@ class JournalNativeXmlFilter extends NativeExportFilter
     private function removeDuplicatedInterests($usersDoc)
     {
         $deployment = $this->getDeployment();
-        $userNodes = $usersDoc->getElementsByTagNameNS($deployment->getNamespace(), 'user');
+        $xpath = new DOMXPath($usersDoc);
+        $xpath->registerNamespace('pkp', $deployment->getNamespace());
+        // XPath returns a static selection; a live DOM list is rescanned after each text update.
+        $userNodes = $xpath->query('//pkp:user');
         foreach ($userNodes as $userNode) {
             $interestNodeList = $userNode->getElementsByTagNameNS($deployment->getNamespace(), 'review_interests');
             if ($interestNodeList->length == 1) {
@@ -582,11 +587,13 @@ class JournalNativeXmlFilter extends NativeExportFilter
 
     public function removeAccents($string)
     {
-        $transliterator = Transliterator::createFromRules(
-            ':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;',
-            Transliterator::FORWARD
-        );
-        $normalized = $transliterator->transliterate($string);
+        if ($this->interestTransliterator === null) {
+            $this->interestTransliterator = Transliterator::createFromRules(
+                ':: Any-Latin; :: Latin-ASCII; :: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;',
+                Transliterator::FORWARD
+            );
+        }
+        $normalized = $this->interestTransliterator->transliterate($string);
 
         return strtolower($normalized);
     }
