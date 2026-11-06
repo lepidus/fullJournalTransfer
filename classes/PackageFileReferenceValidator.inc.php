@@ -29,6 +29,7 @@ class PackageFileReferenceValidator
         }
 
         $previousErrors = libxml_use_internal_errors(true);
+        libxml_clear_errors();
         $reader = new XMLReader();
         try {
             if (!is_string($xmlPath) || !is_file($xmlPath) || !$reader->open($xmlPath, null, LIBXML_NONET)) {

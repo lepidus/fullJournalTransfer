@@ -99,6 +99,22 @@ class PackageFileReferenceValidatorTest extends \PHPUnit\Framework\TestCase
         (new PackageFileReferenceValidator())->findUnsafeReference($xmlPath, $this->package);
     }
 
+    public function testIgnoresLibxmlErrorsRaisedBeforeTheValidation(): void
+    {
+        $xmlPath = $this->journalXml(['journals/1/articles/file.pdf']);
+        $previousErrors = libxml_use_internal_errors(true);
+        simplexml_load_string('<unclosed>');
+
+        try {
+            $unsafeReference = (new PackageFileReferenceValidator())->findUnsafeReference($xmlPath, $this->package);
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previousErrors);
+        }
+
+        $this->assertNull($unsafeReference);
+    }
+
     private function journalXml(array $sources): string
     {
         $files = '';
