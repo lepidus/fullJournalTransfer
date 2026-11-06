@@ -68,3 +68,9 @@ msgstr "Falha ao importar a métrica. {$reason}"
 
 msgid "plugins.importexport.fullJournal.error.metricsXml"
 msgstr "Não foi possível gerar o XML das estatísticas de uso da revista."
+
+msgid "plugins.importexport.fullJournal.error.unsafeFileReference"
+msgstr "A referência de arquivo “{$source}” na linha {$line} não é segura: somente arquivos dentro do pacote podem ser importados."
+
+msgid "plugins.importexport.fullJournal.error.packageXmlUnreadable"
+msgstr "Não foi possível ler o XML da revista no pacote."

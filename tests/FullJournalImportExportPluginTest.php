@@ -27,4 +27,33 @@ class FullJournalImportExportPluginTest extends PKPTestCase
 
         unlink($archivePath);
     }
+
+    public function testImportStopsBeforeFilteringWhenAFileReferenceLeavesThePackage()
+    {
+        $plugin = new FullJournalImportExportPlugin();
+        $sourceDir = sys_get_temp_dir() . '/fjt-unsafe-source-' . bin2hex(random_bytes(8));
+        mkdir($sourceDir, 0700);
+        file_put_contents(
+            $sourceDir . '/journal.xml',
+            '<journal xmlns="http://pkp.sfu.ca"><file><href src="/etc/passwd"/></file></journal>'
+        );
+        $archivePath = sys_get_temp_dir() . '/fjt-unsafe-' . bin2hex(random_bytes(8)) . '.tar.gz';
+        $process = new Process([Config::getVar('cli', 'tar'), '-czf', $archivePath, '-C', $sourceDir, 'journal.xml']);
+        $process->mustRun();
+        $filter = $this->getMockBuilder(stdClass::class)->addMethods(['execute', 'getDeployment'])->getMock();
+        $filter->expects($this->never())->method('execute');
+
+        try {
+            ob_start();
+            $imported = $plugin->importJournal($archivePath, null, $filter);
+            ob_end_clean();
+        } finally {
+            unlink($archivePath);
+            unlink($sourceDir . '/journal.xml');
+            rmdir($sourceDir);
+        }
+
+        $this->assertFalse($imported);
+        $this->assertDirectoryDoesNotExist(sys_get_temp_dir() . '/' . basename($archivePath, '.tar.gz'));
+    }
 }

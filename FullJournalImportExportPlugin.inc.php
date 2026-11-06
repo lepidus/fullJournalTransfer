@@ -8,6 +8,7 @@
 use Symfony\Component\Process\Process;
 
 import('plugins.importexport.fullJournalTransfer.classes.StreamedJournalExport');
+import('plugins.importexport.fullJournalTransfer.classes.PackageFileReferenceValidator');
 import('lib.pkp.classes.plugins.ImportExportPlugin');
 import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 
@@ -212,13 +213,28 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
             }
         }
 
+        import('lib.pkp.classes.file.FileManager');
+        $fileManager = new FileManager();
+
+        $validator = new PackageFileReferenceValidator();
+        try {
+            $unsafeReference = $validator->findUnsafeReference($xmlFile, $extractDir);
+        } catch (RuntimeException $exception) {
+            $fileManager->rmtree($extractDir);
+            echo __('plugins.importexport.fullJournal.error.packageXmlUnreadable') . "\n";
+            return false;
+        }
+        if ($unsafeReference !== null) {
+            $fileManager->rmtree($extractDir);
+            echo __('plugins.importexport.fullJournal.error.unsafeFileReference', $unsafeReference) . "\n";
+            return false;
+        }
+
         $xml = file_get_contents($xmlFile);
 
         $filter->getDeployment()->setImportPath($extractDir);
         $content = $filter->execute($xml);
 
-        import('lib.pkp.classes.file.FileManager');
-        $fileManager = new FileManager();
         $fileManager->rmtree($extractDir);
 
         return true;

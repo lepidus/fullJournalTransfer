@@ -68,3 +68,9 @@ msgstr "Failed to import metric. {$reason}"
 
 msgid "plugins.importexport.fullJournal.error.metricsXml"
 msgstr "Could not generate the XML for the journal usage statistics."
+
+msgid "plugins.importexport.fullJournal.error.unsafeFileReference"
+msgstr "Unsafe file reference \"{$source}\" at line {$line}: only files inside the package can be imported."
+
+msgid "plugins.importexport.fullJournal.error.packageXmlUnreadable"
+msgstr "Could not read the journal XML in the package."
