@@ -8,6 +8,8 @@
 use Symfony\Component\Process\Process;
 
 import('plugins.importexport.fullJournalTransfer.classes.StreamedJournalExport');
+import('plugins.importexport.fullJournalTransfer.classes.ExtractedPackageDirectory');
+import('plugins.importexport.fullJournalTransfer.classes.PackageFileReferenceValidator');
 import('lib.pkp.classes.plugins.ImportExportPlugin');
 import('plugins.importexport.fullJournalTransfer.FullJournalImportExportDeployment');
 
@@ -195,33 +197,57 @@ class FullJournalImportExportPlugin extends ImportExportPlugin
             return false;
         }
 
-        $process = new Process([
-            Config::getVar('cli', 'tar'),
-            '-xzf',
-            $archivePath,
-            '-C',
-            $extractDir,
-        ]);
-        $process->setTimeout(null);
-        $process->mustRun();
+        // The extraction directory may hold links from the package: FileManager::rmtree() would
+        // follow them, so it is always removed without following links.
+        $packageDirectory = new ExtractedPackageDirectory();
+        try {
+            $process = new Process([
+                Config::getVar('cli', 'tar'),
+                '-xzf',
+                $archivePath,
+                '-C',
+                $extractDir,
+            ]);
+            $process->setTimeout(null);
+            $process->mustRun();
 
-        $xmlFile = null;
-        foreach (scandir($extractDir) as $item) {
-            if (strtolower(substr($item, -4)) == '.xml') {
-                $xmlFile = $extractDir . DIRECTORY_SEPARATOR . $item;
+            $unsupportedEntry = $packageDirectory->findUnsupportedEntry($extractDir);
+            if ($unsupportedEntry !== null) {
+                echo __(
+                    'plugins.importexport.fullJournal.error.packageLinkOrSpecialFileNotAllowed',
+                    ['path' => $unsupportedEntry]
+                ) . "\n";
+                return false;
             }
+
+            $xmlFile = null;
+            foreach (scandir($extractDir) as $item) {
+                if (strtolower(substr($item, -4)) == '.xml') {
+                    $xmlFile = $extractDir . DIRECTORY_SEPARATOR . $item;
+                }
+            }
+
+            $validator = new PackageFileReferenceValidator();
+            try {
+                $unsafeReference = $validator->findUnsafeReference($xmlFile, $extractDir);
+            } catch (RuntimeException $exception) {
+                echo __('plugins.importexport.fullJournal.error.packageXmlUnreadable') . "\n";
+                return false;
+            }
+            if ($unsafeReference !== null) {
+                echo __('plugins.importexport.fullJournal.error.unsafeFileReference', $unsafeReference) . "\n";
+                return false;
+            }
+
+            $xml = file_get_contents($xmlFile);
+
+            $filter->getDeployment()->setImportPath($extractDir);
+            $content = $filter->execute($xml);
+
+            return true;
+        } finally {
+            $packageDirectory->remove($extractDir);
         }
-
-        $xml = file_get_contents($xmlFile);
-
-        $filter->getDeployment()->setImportPath($extractDir);
-        $content = $filter->execute($xml);
-
-        import('lib.pkp.classes.file.FileManager');
-        $fileManager = new FileManager();
-        $fileManager->rmtree($extractDir);
-
-        return true;
     }
 
     public function exportJournal($journal, $archivePath, $opts)
