@@ -74,3 +74,6 @@ msgstr "A referência de arquivo “{$source}” na linha {$line} não é segura
 
 msgid "plugins.importexport.fullJournal.error.packageXmlUnreadable"
 msgstr "Não foi possível ler o XML da revista no pacote."
+
+msgid "plugins.importexport.fullJournal.error.packageLinkOrSpecialFileNotAllowed"
+msgstr "A entrada “{$path}” do pacote não pode ser um link ou um arquivo especial."

@@ -74,3 +74,6 @@ msgstr "Unsafe file reference \"{$source}\" at line {$line}: only files inside t
 
 msgid "plugins.importexport.fullJournal.error.packageXmlUnreadable"
 msgstr "Could not read the journal XML in the package."
+
+msgid "plugins.importexport.fullJournal.error.packageLinkOrSpecialFileNotAllowed"
+msgstr "The package entry {$path} must not be a link or special file"
