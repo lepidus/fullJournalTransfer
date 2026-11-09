@@ -298,14 +298,7 @@ class NativeDataReferenceValidator
     {
         foreach ($root->getElementsByTagNameNS('http://pkp.sfu.ca', 'href') as $href) {
             $source = trim($href->getAttribute('src'));
-            $segments = preg_split('~[/\\\\]+~', $source);
-            if ($source === ''
-                || str_starts_with($source, '/')
-                || preg_match('~^[a-z][a-z0-9+.-]*:~i', $source)
-                || in_array('..', $segments, true)
-                || in_array('.', $segments, true)
-                || str_contains($source, "\0")
-            ) {
+            if (!PackageFileReferenceValidator::isSafeRelativeSource($source)) {
                 throw new InvalidArgumentException(__(
                     'plugins.importexport.fullJournal.error.unsafeNativeFileReferenceLine',
                     [

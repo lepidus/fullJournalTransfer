@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace APP\plugins\importexport\fullJournalTransfer\filter\nativeData;
 
 use APP\core\Services;
+use APP\plugins\importexport\fullJournalTransfer\validation\PackageFileReferenceValidator;
+use DOMElement;
 use InvalidArgumentException;
 use PKP\config\Config;
 use PKP\file\TemporaryFileManager;
@@ -27,6 +29,7 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
 
     public function handleRevisionElement($node)
     {
+        $this->validatePackageFileReferences($node);
         $temporaryFileManager = new TemporaryFileManager();
         $temporaryPath = $temporaryFileManager->getBasePath();
         if (!is_dir($temporaryPath) && !$temporaryFileManager->mkdirtree($temporaryPath)) {
@@ -50,4 +53,14 @@ class NativeXmlSubmissionFileFilter extends \APP\plugins\importexport\native\fil
         return $fileId;
     }
 
+    private function validatePackageFileReferences(DOMElement $node): void
+    {
+        $validator = new PackageFileReferenceValidator();
+        $packagePath = (string) $this->getDeployment()->getImportPath();
+        foreach ($node->childNodes as $child) {
+            if ($child instanceof DOMElement && $child->localName === 'href') {
+                $validator->validate($child, $packagePath);
+            }
+        }
+    }
 }
